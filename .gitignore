@@ -1,0 +1,16 @@
+# CMake and generated build files
+/build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+
+# Local IDE state
+.idea/
+.vscode/
+.zed/
+
+# Local tooling cache
+.cache/
+
