@@ -1,10 +1,8 @@
-# CMake and generated build files
+# Generated build output
 /build/
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-CTestTestfile.cmake
-compile_commands.json
+
+# Bazel output symlinks
+/bazel-*
 
 # Local IDE state
 .idea/
@@ -13,4 +11,3 @@ compile_commands.json
 
 # Local tooling cache
 .cache/
-

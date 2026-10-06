@@ -1,0 +1,182 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+COMMON_COPTS = [
+    "-std=c++23",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+]
+
+# GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
+TEST_COPTS = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"]
+
+config_setting(
+    name = "debug_build",
+    values = {"compilation_mode": "dbg"},
+)
+
+DOCUMENT_MODEL_SRCS = [
+    "document.cpp",
+    "gap_buffer.cpp",
+    "line_starts.cpp",
+    "logical_line_range.cpp",
+    "wrapped_row_range.cpp",
+]
+
+DOCUMENT_MODEL_HDRS = [
+    "document.h",
+    "document_view.h",
+    "dsl.h",
+    "gap_buffer.h",
+    "line_starts.h",
+    "logical_line_range.h",
+    "types.h",
+    "wrapped_row_range.h",
+]
+
+cc_library(
+    name = "document_model",
+    srcs = DOCUMENT_MODEL_SRCS,
+    hdrs = DOCUMENT_MODEL_HDRS,
+    copts = COMMON_COPTS,
+    deps = ["@gsl//:gsl"],
+)
+
+cc_library(
+    name = "document_model_test",
+    testonly = True,
+    srcs = DOCUMENT_MODEL_SRCS,
+    hdrs = DOCUMENT_MODEL_HDRS,
+    copts = COMMON_COPTS,
+    defines = select({
+        ":debug_build": ["CONTRACT_EXCEPTIONS"],
+        "//conditions:default": [],
+    }),
+    deps = ["@gsl//:gsl"],
+)
+
+cc_library(
+    name = "editor_support",
+    srcs = [
+        "gap_loader.cpp",
+        "key.cpp",
+        "raw_mode.cpp",
+        "read_key.cpp",
+        "terminal.cpp",
+    ],
+    hdrs = [
+        "gap_loader.h",
+        "key.h",
+        "raw_mode.h",
+        "read_key.h",
+        "terminal.h",
+    ],
+    copts = COMMON_COPTS,
+    deps = [
+        ":document_model",
+        "@gsl//:gsl",
+    ],
+)
+
+cc_binary(
+    name = "editor",
+    srcs = ["editor.cpp"],
+    copts = COMMON_COPTS,
+    deps = [
+        ":document_model",
+        ":editor_support",
+    ],
+)
+
+cc_test(
+    name = "gap_buffer_tests",
+    srcs = ["gap_buffer_tests.cpp"],
+    copts = TEST_COPTS,
+    defines = select({
+        ":debug_build": ["CONTRACT_EXCEPTIONS"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":document_model_test",
+        "@googletest//:gtest_main",
+        "@gsl//:gsl",
+    ],
+)
+
+cc_test(
+    name = "line_starts_tests",
+    srcs = ["line_starts_tests.cpp"],
+    copts = TEST_COPTS,
+    defines = select({
+        ":debug_build": ["CONTRACT_EXCEPTIONS"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":document_model_test",
+        "@googletest//:gtest_main",
+        "@gsl//:gsl",
+    ],
+)
+
+cc_test(
+    name = "document_tests",
+    srcs = ["document_tests.cpp"],
+    copts = TEST_COPTS,
+    defines = select({
+        ":debug_build": ["CONTRACT_EXCEPTIONS"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":document_model_test",
+        "@googletest//:gtest_main",
+        "@gsl//:gsl",
+    ],
+)
+
+cc_test(
+    name = "document_view_tests",
+    srcs = ["document_view_tests.cpp"],
+    copts = TEST_COPTS,
+    defines = select({
+        ":debug_build": ["CONTRACT_EXCEPTIONS"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":document_model_test",
+        "@googletest//:gtest_main",
+        "@gsl//:gsl",
+    ],
+)
+
+cc_test(
+    name = "logical_line_range_tests",
+    srcs = ["logical_line_range_tests.cpp"],
+    copts = TEST_COPTS,
+    defines = select({
+        ":debug_build": ["CONTRACT_EXCEPTIONS"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":document_model_test",
+        "@googletest//:gtest_main",
+        "@gsl//:gsl",
+    ],
+)
+
+cc_test(
+    name = "wrapped_row_range_tests",
+    srcs = ["wrapped_row_range_tests.cpp"],
+    copts = TEST_COPTS,
+    defines = select({
+        ":debug_build": ["CONTRACT_EXCEPTIONS"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":document_model_test",
+        "@googletest//:gtest_main",
+        "@gsl//:gsl",
+    ],
+)
