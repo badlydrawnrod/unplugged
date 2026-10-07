@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <limits>
 #include <vector>
 
 #include "document.h"
@@ -107,6 +108,51 @@ TEST(WrappedRowRangeTest, WidthOneProducesOneBytePerRow) {
   ++it;
   ASSERT_NE(it, rows.end());
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'z'}));
+  ++it;
+  EXPECT_EQ(it, rows.end());
+}
+
+// Feature: features/wrapped_rows.feature
+// Scenario: A wide viewport shows a short line in one row
+TEST(WrappedRowRangeTest, LargeWidthsPreserveOneRowAndItsContent) {
+  Document doc{std::vector<Byte>{'a', 'b', 'c', '\n'}};
+  const auto line = *doc.Lines().begin();
+  const ByteCount max_width = std::numeric_limits<ByteCount>::max();
+  for (const ByteCount width : {max_width - 1, max_width}) {
+    SCOPED_TRACE(width);
+    WrappedRowRange rows(doc, line, width);
+    ASSERT_EQ(rows.row_count(), 1u);
+    auto it = rows.begin();
+    ASSERT_NE(it, rows.end());
+    EXPECT_EQ(it.row_index(), 0u);
+    EXPECT_EQ(Collect(*it), (std::vector<Byte>{'a', 'b', 'c'}));
+    ++it;
+    EXPECT_EQ(it, rows.end());
+  }
+}
+
+TEST(WrappedRowRangeTest, EmptyDocumentAtMaximumWidthHasOneEmptyRow) {
+  Document doc;
+  WrappedRowRange rows(doc, *doc.Lines().begin(),
+                       std::numeric_limits<ByteCount>::max());
+  ASSERT_EQ(rows.row_count(), 1u);
+  auto it = rows.begin();
+  ASSERT_NE(it, rows.end());
+  EXPECT_TRUE((*it).empty());
+  ++it;
+  EXPECT_EQ(it, rows.end());
+}
+
+TEST(WrappedRowRangeTest, ExactMultipleDoesNotAddAnEmptyRow) {
+  Document doc{std::vector<Byte>{'a', 'b', 'c', 'd', 'e', 'f'}};
+  WrappedRowRange rows(doc, *doc.Lines().begin(), 3);
+  ASSERT_EQ(rows.row_count(), 2u);
+  auto it = rows.begin();
+  ASSERT_NE(it, rows.end());
+  EXPECT_EQ(Collect(*it), (std::vector<Byte>{'a', 'b', 'c'}));
+  ++it;
+  ASSERT_NE(it, rows.end());
+  EXPECT_EQ(Collect(*it), (std::vector<Byte>{'d', 'e', 'f'}));
   ++it;
   EXPECT_EQ(it, rows.end());
 }

@@ -1,19 +1,31 @@
 #include "wrapped_row_range.h"
 
+#include <limits>
+
 #include "document.h"
 #include "document_view.h"
 #include "dsl.h"
 
 namespace {
-WrappedRowRange::RowIndex ComputeRowCount(ByteCount content_count,
-                                          ByteCount width) {
+constexpr WrappedRowRange::RowIndex ComputeRowCount(ByteCount content_count,
+                                                    ByteCount width) {
   if (content_count == 0) {
     return 1;
   }
 
-  return static_cast<WrappedRowRange::RowIndex>((content_count + width - 1) /
-                                                width);
+  // Width is positive. Subtract first so rounding up cannot overflow, even
+  // when the content length or width is at the byte-count maximum.
+  return 1 + (content_count - 1) / width;
 }
+
+static_assert(std::numeric_limits<WrappedRowRange::RowIndex>::max() >=
+              std::numeric_limits<ByteCount>::max());
+constexpr ByteCount kMaxByteCount = std::numeric_limits<ByteCount>::max();
+static_assert(ComputeRowCount(0, kMaxByteCount) == 1);
+static_assert(ComputeRowCount(kMaxByteCount, 1) == kMaxByteCount);
+static_assert(ComputeRowCount(kMaxByteCount, 2) == kMaxByteCount / 2 + 1);
+static_assert(ComputeRowCount(kMaxByteCount, kMaxByteCount) == 1);
+static_assert(ComputeRowCount(kMaxDocumentBytes, kMaxByteCount) == 1);
 
 ByteCount ContentCountWithoutTrailingNewline(DocumentView line) {
   const ByteCount size = line.size();

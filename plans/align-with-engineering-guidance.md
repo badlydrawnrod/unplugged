@@ -1,7 +1,6 @@
 # Align with engineering guidance
 
-Status: in progress; the empty-document contract and document/line-index
-agreement invariants and supported size limits are implemented.
+Status: in progress; the first four items of part 1 are implemented.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -54,10 +53,12 @@ each increment, and update this plan with completed work and remaining issues.
 - [x] Enforce supported document-size limits before narrowing sizes to
   32-bit `ByteIndex` and `ByteCount`. Construction, edits, line-index offsets,
   physical gap capacity, and file loading now enforce always-on limits.
-- [ ] Make wrapped-row counting safe against integer overflow.
+- [x] Make wrapped-row counting safe against integer overflow.
+  Nonempty content uses `1 + (content_count - 1) / width`, avoiding the
+  overflowing rounding addition. Empty content still produces one row.
 - [ ] Define edit failure guarantees. Review allocation-capable
-  `LineStarts::UpdateOnInsert`, which is declared `noexcept` in production,
-  and the sequential storage/index mutations in `Document::Edit`. Ensure
+  `LineStarts::UpdateOnInsert` and the sequential storage/index mutations
+  in `Document::Edit`. Ensure
   the implementation matches the intended failure policy.
 - [ ] Prevent contradictory text/special-key states in `Key`, using
   encapsulated construction or a discriminated representation. Keep the
@@ -237,6 +238,22 @@ boundary tests also passed against optimized libraries with contracts disabled.
 `git diff --check` passed. Existing GoogleTest signedness warnings remain covered
 by the documented exception.
 
-Continue with wrapped-row counting overflow, the fourth item of part 1.
+The fourth item of part 1 is complete. Wrapped-row counting rounds up without
+adding width to content length. Compile-time checks cover maximum byte counts,
+width one, width two, maximum width, and empty content, and ensure the row-index
+type can represent every possible count. API tests verify short-line content
+and iteration at the two largest widths, empty documents at maximum width,
+and exact-width multiples without an extra empty row. The wide-viewport
+acceptance scenario is persisted in `features/wrapped_rows.feature` and bound
+in `wrapped_row_range_tests.cpp`.
+
+Validation for item 4: focused wrapped-row tests and all eight suites in default
+and debug builds passed. Optimized wrapped-row behavior tests also passed
+(excluding the zero-width test, which requires enabled contracts).
+Formatting checks for changed code and `git diff --check` passed.
+
+Continue with edit failure guarantees, the fifth item of part 1. The earlier
+size-limit change already removed `noexcept` from line-index mutators; general
+allocation failure and sequential mutation guarantees still need review.
 Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).
