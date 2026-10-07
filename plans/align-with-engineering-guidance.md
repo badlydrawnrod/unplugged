@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
 Status: in progress; the empty-document contract and document/line-index
-agreement invariants are implemented.
+agreement invariants and supported size limits are implemented.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -51,8 +51,9 @@ each increment, and update this plan with completed work and remaining issues.
   with the document's newline bytes. The checker verifies the initial start
   at zero, a matching start after every newline, and no extra entries.
   The allocation-free full scan is compiled out when `NDEBUG` is defined.
-- [ ] Enforce supported document-size limits before narrowing sizes to
-  32-bit `ByteIndex` and `ByteCount`. Check growth and offset arithmetic too.
+- [x] Enforce supported document-size limits before narrowing sizes to
+  32-bit `ByteIndex` and `ByteCount`. Construction, edits, line-index offsets,
+  physical gap capacity, and file loading now enforce always-on limits.
 - [ ] Make wrapped-row counting safe against integer overflow.
 - [ ] Define edit failure guarantees. Review allocation-capable
   `LineStarts::UpdateOnInsert`, which is declared `noexcept` in production,
@@ -207,6 +208,35 @@ Validation for item 2: focused document tests and all six suites in default
 and debug builds passed. `bazel build -c opt //:editor` passed with the scan
 disabled. Formatting checks for changed code and `git diff --check` passed.
 
-Continue with supported document-size limits, the third item of part 1.
+The third item of part 1 is complete. `kMaxDocumentBytes` is the smaller of
+the 32-bit byte-count maximum and iterator difference-type maximum, minus one.
+The reserved value accommodates the initial logical line and exclusive
+line-range end even for all-newline content. A compile-time check ties this
+limit to the document line-number type. Physical gap storage may use the
+reserved byte, but spare capacity growth is capped to keep all offsets
+representable.
+
+Always-on checked arithmetic in the private `internal/size_limits.h` rejects
+oversized counts before narrowing and checks addition by subtraction.
+Oversized construction and edits throw `std::length_error`; edits check the
+post-deletion size before mutation. Line-index updates validate shifted starts,
+new starts, line counts, and deletion ends before mutation. Their `noexcept`
+specifications were removed so size-limit errors can propagate. General
+allocation/edit failure guarantees remain a later item of part 1.
+
+File loading rejects oversized files before allocating or narrowing their
+length. The scenario in `features/document_size.feature` is bound to a sparse
+file test through `gap_loader::Load`. Arithmetic boundary tests exercise actual
+limits without allocating huge buffers; line-index API tests exercise offsets
+at and beyond the supported limit.
+
+Validation for item 3: `bazel test //...` and `bazel test -c dbg //...` passed
+all eight suites. The size-limit and loader suites and the four new line-index
+boundary tests also passed against optimized libraries with contracts disabled.
+`bazel build -c opt //:editor`, formatting checks for changed code, and
+`git diff --check` passed. Existing GoogleTest signedness warnings remain covered
+by the documented exception.
+
+Continue with wrapped-row counting overflow, the fourth item of part 1.
 Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).

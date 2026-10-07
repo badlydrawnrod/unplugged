@@ -1,6 +1,13 @@
 #include "line_starts.h"
 
 #include <algorithm>
+#include <limits>
+
+#include "internal/size_limits.h"
+
+using unplugged::internal::CheckedAdd;
+using unplugged::internal::CheckedByteCount;
+using unplugged::internal::CheckedByteGrowth;
 
 [[nodiscard]] unplugged::dbc::InvariantResult LineStarts::check_invariants()
     const {
@@ -11,6 +18,10 @@
 
 LineStarts::LineStarts(std::vector<ByteIndex> &&line_starts)
     : line_starts_{std::move(line_starts)} {
+  CheckedAdd(0, line_starts_.size(), std::numeric_limits<LineNumber>::max());
+  for (const ByteIndex start : line_starts_) {
+    CheckedByteCount(start, kMaxDocumentBytes);
+  }
   DBC_GUARD_CLASS_INVARIANTS();
 }
 
@@ -41,11 +52,17 @@ LineStarts::LineStarts(std::vector<ByteIndex> &&line_starts)
   return static_cast<LineNumber>(std::distance(line_starts_.begin(), it) - 1);
 }
 
-void LineStarts::UpdateOnInsert(ByteIndex pos, ByteSpan bytes) noexcept(
-    !kLineStartsContractExceptionsEnabled) {
+void LineStarts::UpdateOnInsert(ByteIndex pos, ByteSpan bytes) {
   DBC_GUARD_CLASS_INVARIANTS();
 
-  const ByteCount count = bytes.size();
+  CheckedByteGrowth(pos, bytes.size(), kMaxDocumentBytes);
+  const ByteCount count = CheckedByteCount(bytes.size(), kMaxDocumentBytes);
+  if (!line_starts_.empty() && line_starts_.back() > pos) {
+    CheckedByteGrowth(line_starts_.back(), count, kMaxDocumentBytes);
+  }
+  const auto newline_count = std::ranges::count(bytes, Byte{'\n'});
+  CheckedAdd(line_starts_.size(), static_cast<size_t>(newline_count),
+             std::numeric_limits<LineNumber>::max());
 
   // Update line starts from the line after the one that contains pos.
   auto shift_begin =
@@ -67,15 +84,13 @@ void LineStarts::UpdateOnInsert(ByteIndex pos, ByteSpan bytes) noexcept(
   }
 }
 
-void LineStarts::UpdateOnDelete(ByteIndex pos, ByteCount count) noexcept(
-    !kLineStartsContractExceptionsEnabled) {
+void LineStarts::UpdateOnDelete(ByteIndex pos, ByteCount count) {
   DBC_GUARD_CLASS_INVARIANTS();
 
+  const ByteIndex end_pos = CheckedByteGrowth(pos, count, kMaxDocumentBytes);
   if (count == 0) {
     return;
   }
-
-  const ByteIndex end_pos = pos + count;
 
   // Remove line starts in (pos, end_pos]. The start at pos remains; a start at
   // end_pos is removed because the deletion also removes the newline before it.

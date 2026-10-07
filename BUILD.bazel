@@ -21,6 +21,7 @@ config_setting(
 DOCUMENT_MODEL_SRCS = [
     "document.cpp",
     "gap_buffer.cpp",
+    "internal/size_limits.h",
     "line_starts.cpp",
     "logical_line_range.cpp",
     "wrapped_row_range.cpp",
@@ -88,6 +89,29 @@ cc_binary(
     deps = [
         ":document_model",
         ":editor_support",
+    ],
+)
+
+cc_test(
+    name = "size_limits_tests",
+    srcs = [
+        "internal/size_limits.h",
+        "internal/size_limits_tests.cpp",
+        "types.h",
+    ],
+    copts = TEST_COPTS,
+    deps = [
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "gap_loader_tests",
+    srcs = ["gap_loader_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        ":editor_support",
+        "@googletest//:gtest_main",
     ],
 )
 

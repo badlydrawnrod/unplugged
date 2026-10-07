@@ -30,11 +30,10 @@ class LineStarts {
   [[nodiscard]] LineNumber LineFromPos(ByteIndex pos) const
       noexcept(!kLineStartsContractExceptionsEnabled);
 
-  void UpdateOnInsert(ByteIndex pos, ByteSpan bytes) noexcept(
-      !kLineStartsContractExceptionsEnabled);
+  // Size-limit errors throw std::length_error before changing the index.
+  void UpdateOnInsert(ByteIndex pos, ByteSpan bytes);
 
-  void UpdateOnDelete(ByteIndex pos, ByteCount count) noexcept(
-      !kLineStartsContractExceptionsEnabled);
+  void UpdateOnDelete(ByteIndex pos, ByteCount count);
 
   [[nodiscard]] unplugged::dbc::InvariantResult check_invariants() const;
 

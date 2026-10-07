@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include "document_view.h"
+#include "internal/size_limits.h"
 #include "logical_line_range.h"
 
 [[nodiscard]] unplugged::dbc::InvariantResult Document::check_invariants()
@@ -105,6 +106,10 @@ void Document::Edit(ByteIndex pos, ByteCount delete_count,
       "cannot delete beyond the end of the document. pos={}, delete_count={}, "
       "Len()={}",
       pos, delete_count, Len());
+
+  // Reject oversized replacements before either storage or index is mutated.
+  unplugged::internal::CheckedByteGrowth(
+      Len() - delete_count, insert_bytes.size(), kMaxDocumentBytes);
 
   buffer_.Delete(pos, delete_count);
   line_starts_.UpdateOnDelete(pos, delete_count);

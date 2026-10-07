@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -15,6 +16,10 @@ std::vector<uint8_t> Load(const char *filename) {
     auto size = is.tellg();
     if (size < 0) {
       return {};
+    }
+    // Reject oversized files before narrowing the size or allocating storage.
+    if (size > static_cast<std::streamoff>(kMaxDocumentBytes)) {
+      throw std::length_error("file exceeds supported document-size limit");
     }
     std::vector<std::uint8_t> buffer(static_cast<size_t>(size));
     is.seekg(0);

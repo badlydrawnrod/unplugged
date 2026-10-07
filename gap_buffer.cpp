@@ -3,10 +3,16 @@
 #include <algorithm>
 #include <cstring>
 
+#include "internal/size_limits.h"
+
+using unplugged::internal::CheckedAdd;
+using unplugged::internal::CheckedByteCount;
+using unplugged::internal::CheckedByteGrowth;
+
 GapBuffer::GapBuffer(std::vector<Byte> &&buffer)
     : data_{std::move(buffer)},
-      left_{ByteCount(data_.size())},
-      right_{ByteCount(data_.size())} {
+      left_{CheckedByteCount(data_.size(), kMaxDocumentBytes)},
+      right_{left_} {
   DBC_GUARD_CLASS_INVARIANTS();
 }
 
@@ -19,6 +25,10 @@ GapBuffer::GapBuffer(std::vector<Byte> &&buffer)
       right_ <= data_.size(),
       "gap right cannot exceed total buffer size. right_={}, size()={}", right_,
       data_.size());
+  DBC_INVARIANT(data_.size() <= unplugged::internal::kMaxStorageBytes,
+                "physical storage must fit in a byte index");
+  DBC_INVARIANT(Len() <= kMaxDocumentBytes,
+                "logical storage must respect the document-size limit");
   return {};
 }
 
@@ -61,15 +71,15 @@ void GapBuffer::GrowGap(ByteCount needed) {
     return;
   }
 
-  ByteCount growSize =
-      std::max(InitialGapSize, ByteCount(data_.size()) / GrowDivisor);
-  growSize = std::max(growSize, needed - GapSize());
+  const ByteCount grow_size = unplugged::internal::GapGrowth(
+      CheckedByteCount(data_.size(), unplugged::internal::kMaxStorageBytes),
+      GapSize(), needed);
 
-  data_.reserve(data_.size() + growSize);
-  data_.resize(data_.size() + growSize);
-  std::copy_backward(data_.begin() + right_, data_.end() - growSize,
+  data_.reserve(data_.size() + grow_size);
+  data_.resize(data_.size() + grow_size);
+  std::copy_backward(data_.begin() + right_, data_.end() - grow_size,
                      data_.end());
-  right_ += growSize;
+  right_ += grow_size;
 }
 
 void GapBuffer::Insert(ByteIndex pos, const ByteSpan bytes) {
@@ -78,14 +88,16 @@ void GapBuffer::Insert(ByteIndex pos, const ByteSpan bytes) {
           Len());
   DBC_GUARD_CLASS_INVARIANTS();
 
+  CheckedByteGrowth(Len(), bytes.size(), kMaxDocumentBytes);
+  const ByteCount count = CheckedByteCount(bytes.size(), kMaxDocumentBytes);
   if (bytes.empty()) {
     return;
   }
 
   MoveGapTo(pos);
-  GrowGap(bytes.size());
+  GrowGap(count);
   std::memcpy(data_.data() + left_, bytes.data(), bytes.size());
-  left_ += bytes.size();
+  left_ += count;
 }
 
 void GapBuffer::Delete(ByteIndex pos, ByteCount count) noexcept(
@@ -118,7 +130,7 @@ ByteIndex GapBuffer::AppendRange(ByteIndex start, ByteCount count,
 
   const ByteCount copied = std::min(count, Len() - start);
   const ByteIndex logicalEnd = start + copied;
-  out.reserve(out.size() + copied);
+  out.reserve(CheckedAdd(out.size(), copied, out.max_size()));
 
   ByteIndex pos = start;
   if (pos < left_) {
@@ -139,6 +151,8 @@ ByteIndex GapBuffer::AppendRange(ByteIndex start, ByteCount count,
 
 ByteCount GapBuffer::GapSize() const noexcept { return right_ - left_; }
 
-ByteCount GapBuffer::Len() const noexcept { return data_.size() - GapSize(); }
+ByteCount GapBuffer::Len() const noexcept {
+  return static_cast<ByteCount>(data_.size() - GapSize());
+}
 
 bool GapBuffer::IsValid(ByteIndex pos) const noexcept { return pos < Len(); }

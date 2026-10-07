@@ -43,9 +43,6 @@ class GapBuffer {
   bool IsValid(ByteIndex pos) const noexcept;
 
  private:
-  static constexpr ByteCount InitialGapSize = 4;
-  static constexpr ByteCount GrowDivisor = 8;
-
   void GrowGap(ByteCount needed);
   void MoveGapTo(ByteIndex pos) noexcept(!kGapBufferContractExceptionsEnabled);
   [[nodiscard]] ByteCount GapSize() const noexcept;

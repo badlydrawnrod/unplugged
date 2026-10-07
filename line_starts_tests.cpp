@@ -25,6 +25,44 @@ TEST(LineStartsTest, ConstructFromVectorTransfersContent) {
   EXPECT_EQ(view.StartOfLine(2), 10);
 }
 
+TEST(LineStartsTest, RejectsUnrepresentableDocumentOffsetsOnConstruction) {
+  EXPECT_THROW((LineStarts{std::vector<ByteIndex>{0, kMaxDocumentBytes + 1}}),
+               std::length_error);
+}
+
+TEST(LineStartsTest, RejectsGrowthBeforeChangingExistingStarts) {
+  LineStarts lines{std::vector<ByteIndex>{0, kMaxDocumentBytes}};
+  EXPECT_THROW(lines.UpdateOnInsert(0, AsByteSpan("x")), std::length_error);
+  ASSERT_EQ(lines.NumLines(), 2u);
+  EXPECT_EQ(lines.StartOfLine(0), 0u);
+  EXPECT_EQ(lines.StartOfLine(1), kMaxDocumentBytes);
+}
+
+TEST(LineStartsTest, NewLineStartCanReachButNotExceedSizeLimit) {
+  LineStarts lines{std::vector<ByteIndex>{0}};
+  lines.UpdateOnInsert(kMaxDocumentBytes - 1, AsByteSpan("\n"));
+  ASSERT_EQ(lines.NumLines(), 2u);
+  EXPECT_EQ(lines.StartOfLine(1), kMaxDocumentBytes);
+
+  EXPECT_THROW(lines.UpdateOnInsert(kMaxDocumentBytes, AsByteSpan("\n")),
+               std::length_error);
+  ASSERT_EQ(lines.NumLines(), 2u);
+  EXPECT_EQ(lines.StartOfLine(1), kMaxDocumentBytes);
+}
+
+TEST(LineStartsTest, DeletionEndCannotWrapOrExceedSizeLimit) {
+  LineStarts lines{std::vector<ByteIndex>{0, kMaxDocumentBytes}};
+  EXPECT_THROW(lines.UpdateOnDelete(kMaxDocumentBytes, 1), std::length_error);
+  EXPECT_THROW(lines.UpdateOnDelete(kMaxDocumentBytes, kMaxDocumentBytes),
+               std::length_error);
+  ASSERT_EQ(lines.NumLines(), 2u);
+  EXPECT_EQ(lines.StartOfLine(1), kMaxDocumentBytes);
+
+  lines.UpdateOnDelete(kMaxDocumentBytes - 1, 1);
+  EXPECT_EQ(lines.NumLines(), 1u);
+  EXPECT_EQ(lines.StartOfLine(0), 0u);
+}
+
 TEST(LineStartsTest, UpdateOnInsertShiftsExistingLineStartsAndAddsNew) {
   LineStarts view{std::vector<ByteIndex>{0, 5, 10}};
 

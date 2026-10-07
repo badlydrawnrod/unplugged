@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "gap_buffer.h"
 #include "line_starts.h"
 #include "logical_line_range.h"
@@ -21,16 +23,20 @@ class DocumentView;
 class Document {
  public:
   using LineNumber = LineStarts::LineNumber;
+  static_assert(static_cast<std::uintmax_t>(kMaxDocumentBytes) + 1 <=
+                std::numeric_limits<LineNumber>::max());
 
   // Every document has at least one logical line, starting at byte 0. An empty
   // document has one empty line; each newline adds another logical line.
   Document();
 
+  // Throws std::length_error if the byte length exceeds kMaxDocumentBytes.
   Document(std::vector<Byte> &&buffer);
 
   [[nodiscard]] unplugged::dbc::InvariantResult check_invariants() const;
 
   // Mutation.
+  // Oversized results throw std::length_error before changing the document.
   void Edit(ByteIndex pos, ByteCount delete_count, const ByteSpan insert_bytes);
   // void Undo();
   // void Redo();
