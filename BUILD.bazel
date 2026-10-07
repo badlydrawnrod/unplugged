@@ -146,6 +146,20 @@ cc_test(
 )
 
 cc_test(
+    name = "edit_failure_tests",
+    srcs = [
+        "edit_failure_tests.cpp",
+        "internal/test_support/allocation_failure.cpp",
+        "internal/test_support/allocation_failure.h",
+    ],
+    copts = TEST_COPTS,
+    deps = [
+        ":document_model_test",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "document_tests",
     srcs = ["document_tests.cpp"],
     copts = TEST_COPTS,

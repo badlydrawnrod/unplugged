@@ -1,6 +1,6 @@
 # Align with engineering guidance
 
-Status: in progress; the first four items of part 1 are implemented.
+Status: in progress; the first five items of part 1 are implemented.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -56,10 +56,11 @@ each increment, and update this plan with completed work and remaining issues.
 - [x] Make wrapped-row counting safe against integer overflow.
   Nonempty content uses `1 + (content_count - 1) / width`, avoiding the
   overflowing rounding addition. Empty content still produces one row.
-- [ ] Define edit failure guarantees. Review allocation-capable
-  `LineStarts::UpdateOnInsert` and the sequential storage/index mutations
-  in `Document::Edit`. Ensure
-  the implementation matches the intended failure policy.
+- [x] Define edit failure guarantees. Allocation and size-limit errors
+  propagate without changing document bytes or line queries. Byte replacement
+  finishes allocation before mutation, and a prepared line index is committed
+  with a compile-time-verified nonthrowing move. Standalone line-index insertion
+  reserves before mutation. Deletion and no-op edits remain allocation-free.
 - [ ] Prevent contradictory text/special-key states in `Key`, using
   encapsulated construction or a discriminated representation. Keep the
   solution proportionate to current requirements.
@@ -252,8 +253,38 @@ and debug builds passed. Optimized wrapped-row behavior tests also passed
 (excluding the zero-width test, which requires enabled contracts).
 Formatting checks for changed code and `git diff --check` passed.
 
-Continue with edit failure guarantees, the fifth item of part 1. The earlier
-size-limit change already removed `noexcept` from line-index mutators; general
-allocation failure and sequential mutation guarantees still need review.
+The fifth item of part 1 is complete. Valid edits have the strong failure
+guarantee: allocation and size-limit exceptions leave bytes, line queries,
+and existing views unchanged. `Document::Edit` stages a copy of the line index,
+updates it independently, replaces bytes through `GapBuffer::Replace`, and
+commits the index with a nonthrowing move checked at compile time.
+`GapBuffer::Replace` allocates only the growth not covered by deletion, before
+modifying logical bytes. `LineStarts::UpdateOnInsert` reserves its final size
+before shifting starts or inserting entries. Exceptions propagate normally;
+the earlier size-limit change already removed the erroneous `noexcept`.
+
+Tradeoff: edits with inserted bytes temporarily copy the line index, adding
+memory and work proportional to the number of lines, while byte storage is
+not copied. Pure deletions and no-op edits retain their allocation-free path.
+The public contracts, implementation ordering, compile-time check, and
+acceptance scenarios preserve the failure policy beyond this temporary plan.
+
+`edit_failure_tests.cpp` is an isolated test executable with scoped allocation
+failure injection. It discovers allocation points through the supported APIs,
+checks unchanged state and successful retry for each failure, and verifies
+retained document views plus allocation-free deletion/no-op behavior.
+Standalone gap replacement and line-index insertion are also covered. No
+production test hooks or private-state access were added. Document scenarios
+are persisted in `features/document_edit_failures.feature` with test bindings.
+
+Validation for item 5: focused editing/failure tests and all nine suites in
+default and debug builds passed. `bazel test -c opt //:edit_failure_tests`
+passed against optimized libraries with contracts disabled, and
+`bazel build -c opt //:editor` passed. The test allocator is compiled separately
+from its clients to avoid GCC inlining-related new/delete warnings; no warning
+exceptions were added. Formatting checks for changed code, scenario bindings,
+and `git diff --check` passed.
+
+Continue with contradictory key states, the sixth item of part 1.
 Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).

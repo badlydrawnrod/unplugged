@@ -1,8 +1,13 @@
 #include "document.h"
 
+#include <type_traits>
+
 #include "document_view.h"
 #include "internal/size_limits.h"
 #include "logical_line_range.h"
+
+static_assert(std::is_nothrow_move_assignable_v<LineStarts>,
+              "committing a prepared line index must not throw");
 
 [[nodiscard]] unplugged::dbc::InvariantResult Document::check_invariants()
     const {
@@ -111,11 +116,22 @@ void Document::Edit(ByteIndex pos, ByteCount delete_count,
   unplugged::internal::CheckedByteGrowth(
       Len() - delete_count, insert_bytes.size(), kMaxDocumentBytes);
 
-  buffer_.Delete(pos, delete_count);
-  line_starts_.UpdateOnDelete(pos, delete_count);
+  // These operations do not allocate, and the validated deletion range cannot
+  // fail the line-index size checks. Preserve allocation-free deletion/no-op.
+  if (insert_bytes.empty()) {
+    buffer_.Delete(pos, delete_count);
+    line_starts_.UpdateOnDelete(pos, delete_count);
+    return;
+  }
 
-  buffer_.Insert(pos, insert_bytes);
-  line_starts_.UpdateOnInsert(pos, insert_bytes);
+  // Prepare the index independently. Until byte replacement succeeds, both
+  // observable document components remain unchanged if an allocation fails.
+  auto next_line_starts = line_starts_;
+  next_line_starts.UpdateOnDelete(pos, delete_count);
+  next_line_starts.UpdateOnInsert(pos, insert_bytes);
+
+  buffer_.Replace(pos, delete_count, insert_bytes);
+  line_starts_ = std::move(next_line_starts);
 }
 
 DocumentView Document::View() const noexcept {

@@ -37,6 +37,8 @@ class Document {
 
   // Mutation.
   // Oversized results throw std::length_error before changing the document.
+  // Allocation errors propagate; a failed edit leaves bytes and line queries
+  // unchanged. Existing views remain usable after a failed edit.
   void Edit(ByteIndex pos, ByteCount delete_count, const ByteSpan insert_bytes);
   // void Undo();
   // void Redo();

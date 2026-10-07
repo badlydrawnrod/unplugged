@@ -28,6 +28,10 @@ class GapBuffer {
   // Pre: pos <= Len().
   void Insert(ByteIndex pos, const ByteSpan bytes);
 
+  // Pre: pos <= Len() && delete_count <= Len() - pos.
+  // Size-limit and allocation errors propagate without changing logical bytes.
+  void Replace(ByteIndex pos, ByteCount delete_count, ByteSpan insert_bytes);
+
   // Pre: pos <= Len() && count <= Len() - pos.
   void Delete(ByteIndex pos, ByteCount count = 1) noexcept(
       !kGapBufferContractExceptionsEnabled);

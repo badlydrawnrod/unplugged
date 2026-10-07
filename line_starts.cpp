@@ -61,8 +61,12 @@ void LineStarts::UpdateOnInsert(ByteIndex pos, ByteSpan bytes) {
     CheckedByteGrowth(line_starts_.back(), count, kMaxDocumentBytes);
   }
   const auto newline_count = std::ranges::count(bytes, Byte{'\n'});
-  CheckedAdd(line_starts_.size(), static_cast<size_t>(newline_count),
-             std::numeric_limits<LineNumber>::max());
+  const size_t new_num_lines =
+      CheckedAdd(line_starts_.size(), static_cast<size_t>(newline_count),
+                 std::numeric_limits<LineNumber>::max());
+  // ByteIndex insertion cannot throw once capacity is available. Allocate
+  // before shifting offsets or adding entries so failure leaves them intact.
+  line_starts_.reserve(new_num_lines);
 
   // Update line starts from the line after the one that contains pos.
   auto shift_begin =

@@ -83,20 +83,36 @@ void GapBuffer::GrowGap(ByteCount needed) {
 }
 
 void GapBuffer::Insert(ByteIndex pos, const ByteSpan bytes) {
+  Replace(pos, 0, bytes);
+}
+
+void GapBuffer::Replace(ByteIndex pos, ByteCount delete_count,
+                        ByteSpan insert_bytes) {
   DBC_PRE(pos <= Len(),
           "position cannot exceed buffer logical length. pos={}, Len()={}", pos,
           Len());
   DBC_GUARD_CLASS_INVARIANTS();
 
-  CheckedByteGrowth(Len(), bytes.size(), kMaxDocumentBytes);
-  const ByteCount count = CheckedByteCount(bytes.size(), kMaxDocumentBytes);
-  if (bytes.empty()) {
+  DBC_PRE(delete_count <= Len() - pos,
+          "cannot delete beyond the end of the buffer. pos={}, count={}, "
+          "Len()={}",
+          pos, delete_count, Len());
+  CheckedByteGrowth(Len() - delete_count, insert_bytes.size(),
+                    kMaxDocumentBytes);
+  const ByteCount count =
+      CheckedByteCount(insert_bytes.size(), kMaxDocumentBytes);
+  if (count == 0 && delete_count == 0) {
     return;
   }
 
+  // Deletion contributes space to the gap. Finish allocating before modifying
+  // logical bytes; the remaining operations on Byte cannot throw.
+  GrowGap(count > delete_count ? count - delete_count : 0);
   MoveGapTo(pos);
-  GrowGap(count);
-  std::memcpy(data_.data() + left_, bytes.data(), bytes.size());
+  right_ += delete_count;
+  if (count != 0) {
+    std::memcpy(data_.data() + left_, insert_bytes.data(), count);
+  }
   left_ += count;
 }
 

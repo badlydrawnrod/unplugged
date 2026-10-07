@@ -30,7 +30,7 @@ class LineStarts {
   [[nodiscard]] LineNumber LineFromPos(ByteIndex pos) const
       noexcept(!kLineStartsContractExceptionsEnabled);
 
-  // Size-limit errors throw std::length_error before changing the index.
+  // Size-limit and allocation errors propagate without changing the index.
   void UpdateOnInsert(ByteIndex pos, ByteSpan bytes);
 
   void UpdateOnDelete(ByteIndex pos, ByteCount count);
