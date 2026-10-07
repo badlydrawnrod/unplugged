@@ -1,6 +1,6 @@
 # Align with engineering guidance
 
-Status: planned; implementation has not started.
+Status: in progress; the empty-document contract is implemented.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -42,10 +42,10 @@ each increment, and update this plan with completed work and remaining issues.
 
 ### 1. Correctness and state guarantees
 
-- [ ] Define and implement a consistent empty-document contract.
-  `Document{}` currently has zero lines, while construction from an empty
-  vector has one. Cover subsequent edits as well as construction, and update
-  existing tests to reflect the chosen contract.
+- [x] Define and implement a consistent empty-document contract.
+  Both default and empty-vector construction now yield one empty logical
+  line at byte zero. Tests cover subsequent edits, including deletion of
+  all content and insertion into the resulting empty document.
 - [ ] Strengthen document invariants to verify that the line index agrees
   with the document's newline bytes. The current checker only validates the
   storage and line index separately. Keep expensive checks appropriate to
@@ -178,8 +178,21 @@ where practical, so review remains straightforward.
 
 ## Resume notes
 
-No implementation work has been performed under this plan. Begin by reading
-the current `AGENTS.md`, checking the working tree, and confirming the relevant
-contracts and baseline before starting item 1. Do not overwrite unrelated
-work. Coordinate layout changes with the separate
+The first item of part 1 is complete. Every document contains one initial
+logical line at byte zero; each newline adds another line. Default construction
+now delegates to empty-vector construction. API tests cover both construction
+paths, empty edits, insertion of text and newlines, deletion of all content,
+and editing again after deletion. Logical-line iteration exposes one empty
+view for an empty document. Acceptance scenarios and their executable bindings
+are persisted in `features/empty_document.feature` and `document_tests.cpp`.
+
+Validation: focused document and logical-line tests passed; `bazel test //...`
+and `bazel test -c dbg //...` passed all six suites and built the editor.
+Formatting checks passed for the changed header and test files, and
+`git diff --check` passed. Existing GoogleTest signedness warnings remain
+covered by the documented exception.
+
+Continue with document/line-index agreement invariants, the second item of
+part 1. Do not overwrite unrelated work. Coordinate layout changes with the
+separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).

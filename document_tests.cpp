@@ -16,10 +16,90 @@ void ExpectPreconditionViolation(F &&fn) {
 }
 #endif
 
-TEST(DocumentTest, ConstructEmpty) {
-  Document doc{};
+namespace {
 
-  EXPECT_EQ(doc.Len(), 0);
+void ExpectEmptyDocument(const Document &doc) {
+  EXPECT_EQ(doc.Len(), 0u);
+  ASSERT_EQ(doc.NumLines(), 1u);
+  EXPECT_TRUE(doc.IsValidLineNumber(0));
+  EXPECT_FALSE(doc.IsValidLineNumber(1));
+  EXPECT_EQ(doc.StartOfLine(0), 0u);
+  EXPECT_EQ(doc.LineFromPos(0), 0u);
+  EXPECT_TRUE(doc.View().empty());
+  EXPECT_EQ(doc.View().begin(), doc.View().end());
+  EXPECT_EQ(doc.Lines().line_count(), 1u);
+  EXPECT_TRUE((*doc.Lines().begin()).empty());
+}
+
+class EmptyDocumentTest : public testing::TestWithParam<bool> {
+ protected:
+  Document MakeDocument() const {
+    return GetParam() ? Document{std::vector<Byte>{}} : Document{};
+  }
+};
+
+// Exercise the same contract for default and empty-vector construction.
+INSTANTIATE_TEST_SUITE_P(ConstructionPaths, EmptyDocumentTest, testing::Bool());
+
+}  // namespace
+
+// Feature: features/empty_document.feature
+// Scenario: An empty document contains one empty logical line
+TEST_P(EmptyDocumentTest, ConstructionHasOneEmptyLine) {
+  auto doc = MakeDocument();
+  ExpectEmptyDocument(doc);
+}
+
+// Feature: features/empty_document.feature
+// Scenario: An empty edit preserves the empty logical line
+TEST_P(EmptyDocumentTest, EmptyEditPreservesOneEmptyLine) {
+  auto doc = MakeDocument();
+  doc.Edit(0, 0, {});
+  ExpectEmptyDocument(doc);
+}
+
+// Feature: features/empty_document.feature
+// Scenario: Text and newlines can be inserted into an empty document
+TEST_P(EmptyDocumentTest, InsertTextAndNewlinesIntoEmptyDocument) {
+  auto doc = MakeDocument();
+  doc.Edit(0, 0, AsByteSpan("a"));
+  ASSERT_EQ(doc.Len(), 1u);
+  EXPECT_EQ(doc.At(0), 'a');
+  ASSERT_EQ(doc.NumLines(), 1u);
+  EXPECT_EQ(doc.StartOfLine(0), 0u);
+  EXPECT_EQ(doc.LineFromPos(doc.Len()), 0u);
+
+  doc.Edit(1, 0, AsByteSpan("\n\n"));
+  ASSERT_EQ(doc.Len(), 3u);
+  EXPECT_EQ(doc.At(0), 'a');
+  EXPECT_EQ(doc.At(1), '\n');
+  EXPECT_EQ(doc.At(2), '\n');
+  ASSERT_EQ(doc.NumLines(), 3u);
+  EXPECT_EQ(doc.StartOfLine(0), 0u);
+  EXPECT_EQ(doc.StartOfLine(1), 2u);
+  EXPECT_EQ(doc.StartOfLine(2), 3u);
+  EXPECT_EQ(doc.LineFromPos(doc.Len()), 2u);
+  EXPECT_TRUE((*doc.LinesFrom(2).begin()).empty());
+}
+
+// Feature: features/empty_document.feature
+// Scenario: Deleting all content leaves an editable empty logical line
+TEST_P(EmptyDocumentTest, DeleteAllContentAndInsertAgain) {
+  auto doc = MakeDocument();
+  doc.Edit(0, 0, AsByteSpan("a\n\nb\n"));
+  doc.Edit(0, doc.Len(), {});
+  ExpectEmptyDocument(doc);
+
+  doc.Edit(0, 0, AsByteSpan("\n"));
+  ASSERT_EQ(doc.Len(), 1u);
+  EXPECT_EQ(doc.At(0), '\n');
+  ASSERT_EQ(doc.NumLines(), 2u);
+  EXPECT_EQ(doc.StartOfLine(0), 0u);
+  EXPECT_EQ(doc.StartOfLine(1), 1u);
+  EXPECT_EQ(doc.LineFromPos(doc.Len()), 1u);
+
+  doc.Edit(0, 1, {});
+  ExpectEmptyDocument(doc);
 }
 
 TEST(DocumentTest, ConstructFromVectorTransfersContent) {
@@ -58,16 +138,6 @@ TEST(DocumentTest, LineFromPos) {
   EXPECT_EQ(doc.LineFromPos(4), 1);
   EXPECT_EQ(doc.LineFromPos(5), 1);
   EXPECT_EQ(doc.LineFromPos(6), 2);
-}
-
-TEST(DocumentTest, LineFromPosThrowsWhenLineStartsIsEmpty) {
-  Document doc{};
-
-#ifdef CONTRACT_EXCEPTIONS
-  ExpectPreconditionViolation([&] { std::ignore = doc.LineFromPos(0); });
-#else
-  EXPECT_DEATH({ std::ignore = doc.LineFromPos(0); }, "PRECONDITION FAILED");
-#endif
 }
 
 TEST(DocumentTest, EditInserts) {

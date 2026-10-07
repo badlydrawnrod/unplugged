@@ -22,7 +22,9 @@ class Document {
  public:
   using LineNumber = LineStarts::LineNumber;
 
-  Document() = default;
+  // Every document has at least one logical line, starting at byte 0. An empty
+  // document has one empty line; each newline adds another logical line.
+  Document();
 
   Document(std::vector<Byte> &&buffer);
 

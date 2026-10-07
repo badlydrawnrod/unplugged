@@ -32,6 +32,8 @@ std::vector<ByteIndex> FindLineStarts(const GapBuffer &buffer) {
   return line_starts;
 }
 
+Document::Document() : Document(std::vector<Byte>{}) {}
+
 Document::Document(std::vector<Byte> &&buffer)
     : buffer_(std::move(buffer)), line_starts_(FindLineStarts(buffer_)) {}
 

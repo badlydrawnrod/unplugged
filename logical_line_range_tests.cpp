@@ -14,14 +14,23 @@ std::vector<Byte> Collect(DocumentView view) {
   return out;
 }
 
-TEST(LogicalLineRangeTest, EmptyDocumentHasNoLines) {
+TEST(LogicalLineRangeTest, EmptyDocumentHasOneEmptyLine) {
   Document doc{};
 
   auto lines = doc.Lines();
 
-  EXPECT_TRUE(lines.empty());
-  EXPECT_EQ(lines.line_count(), 0u);
-  EXPECT_EQ(lines.begin(), lines.end());
+  EXPECT_FALSE(lines.empty());
+  EXPECT_EQ(lines.line_count(), 1u);
+  auto it = lines.begin();
+  ASSERT_NE(it, lines.end());
+  EXPECT_EQ(it.line_number(), 0u);
+  EXPECT_TRUE((*it).empty());
+  ++it;
+  EXPECT_EQ(it, lines.end());
+
+  EXPECT_EQ(doc.LinesFrom(0).line_count(), 1u);
+  EXPECT_TRUE(doc.LinesFrom(1).empty());
+  EXPECT_TRUE(doc.LinesFrom(10).empty());
 }
 
 TEST(LogicalLineRangeTest, IteratesLogicalLinesAsDocumentViews) {
