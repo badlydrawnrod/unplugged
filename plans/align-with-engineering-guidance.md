@@ -1,6 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; the empty-document contract is implemented.
+Status: in progress; the empty-document contract and document/line-index
+agreement invariants are implemented.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -46,10 +47,10 @@ each increment, and update this plan with completed work and remaining issues.
   Both default and empty-vector construction now yield one empty logical
   line at byte zero. Tests cover subsequent edits, including deletion of
   all content and insertion into the resulting empty document.
-- [ ] Strengthen document invariants to verify that the line index agrees
-  with the document's newline bytes. The current checker only validates the
-  storage and line index separately. Keep expensive checks appropriate to
-  their build mode.
+- [x] Strengthen document invariants to verify that the line index agrees
+  with the document's newline bytes. The checker verifies the initial start
+  at zero, a matching start after every newline, and no extra entries.
+  The allocation-free full scan is compiled out when `NDEBUG` is defined.
 - [ ] Enforce supported document-size limits before narrowing sizes to
   32-bit `ByteIndex` and `ByteCount`. Check growth and offset arithmetic too.
 - [ ] Make wrapped-row counting safe against integer overflow.
@@ -192,7 +193,20 @@ Formatting checks passed for the changed header and test files, and
 `git diff --check` passed. Existing GoogleTest signedness warnings remain
 covered by the documented exception.
 
-Continue with document/line-index agreement invariants, the second item of
-part 1. Do not overwrite unrelated work. Coordinate layout changes with the
-separate
+The second item of part 1 is complete. The document checker now verifies exact
+agreement between newline bytes and line starts, including the initial start
+at zero and absence of missing or extra entries. It reads through storage APIs
+to avoid recursive document guards, allocates no temporary index, and compiles
+the full scan out under `NDEBUG`. Construction now guards document invariants
+as well as edits and partial views. API tests exercise every replacement range
+in short documents with leading, adjacent, and trailing newlines, checking
+content, line starts, and invariants after each edit. No private state or
+test-only access was added.
+
+Validation for item 2: focused document tests and all six suites in default
+and debug builds passed. `bazel build -c opt //:editor` passed with the scan
+disabled. Formatting checks for changed code and `git diff --check` passed.
+
+Continue with supported document-size limits, the third item of part 1.
+Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).

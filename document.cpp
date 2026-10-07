@@ -15,6 +15,36 @@
     return line_starts_invariants;
   }
 
+#if !defined(NDEBUG)
+  // This full scan is only for contract-enabled builds. Use storage directly:
+  // document views invoke the document invariant guard themselves.
+  const size_t num_lines = line_starts_.NumLines();
+  DBC_INVARIANT(num_lines > 0, "a document must contain its initial line");
+  DBC_INVARIANT(line_starts_.StartOfLine(0) == 0,
+                "the initial document line must start at byte zero");
+
+  size_t next_line = 1;
+  const ByteCount len = buffer_.Len();
+  for (ByteIndex pos = 0; pos < len; ++pos) {
+    if (buffer_.At(pos) != '\n') {
+      continue;
+    }
+    DBC_INVARIANT(next_line < num_lines,
+                  "newline at byte {} has no following line start", pos);
+    const ByteIndex start =
+        line_starts_.StartOfLine(static_cast<LineNumber>(next_line));
+    DBC_INVARIANT(start == pos + 1,
+                  "line {} must start immediately after newline at byte {}; "
+                  "actual start={}",
+                  next_line, pos, start);
+    ++next_line;
+  }
+  DBC_INVARIANT(next_line == num_lines,
+                "line index contains entries without corresponding newlines; "
+                "expected {} lines, actual={}",
+                next_line, num_lines);
+#endif
+
   return {};
 }
 
@@ -35,7 +65,9 @@ std::vector<ByteIndex> FindLineStarts(const GapBuffer &buffer) {
 Document::Document() : Document(std::vector<Byte>{}) {}
 
 Document::Document(std::vector<Byte> &&buffer)
-    : buffer_(std::move(buffer)), line_starts_(FindLineStarts(buffer_)) {}
+    : buffer_(std::move(buffer)), line_starts_(FindLineStarts(buffer_)) {
+  DBC_GUARD_CLASS_INVARIANTS();
+}
 
 ByteCount Document::Len() const noexcept { return buffer_.Len(); }
 

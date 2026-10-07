@@ -354,6 +354,49 @@ TEST(DocumentTest, BackspaceOnEmptyLineDeletesOnlyOneNewline) {
   EXPECT_EQ(doc.At(2), 'B');
 }
 
+TEST(DocumentTest, LineIndexAgreesWithBytesAcrossEdits) {
+  // Cover every replacement range in short documents with leading, adjacent,
+  // and trailing newlines, including no-op edits and deletion of all content.
+  const std::vector<std::string> texts{"",    "a",    "\n",   "a\n",
+                                       "\na", "\n\n", "a\nb", "a\n\nb\n"};
+  for (const auto &initial : texts) {
+    for (const auto &insert : texts) {
+      for (size_t pos = 0; pos <= initial.size(); ++pos) {
+        for (size_t count = 0; count <= initial.size() - pos; ++count) {
+          SCOPED_TRACE(testing::Message()
+                       << "initial=" << testing::PrintToString(initial)
+                       << ", insert=" << testing::PrintToString(insert)
+                       << ", pos=" << pos << ", count=" << count);
+          Document doc{std::vector<Byte>(initial.begin(), initial.end())};
+          ASSERT_FALSE(doc.check_invariants().has_value());
+
+          doc.Edit(static_cast<ByteIndex>(pos), static_cast<ByteCount>(count),
+                   AsByteSpan(insert));
+          const std::string expected =
+              initial.substr(0, pos) + insert + initial.substr(pos + count);
+          ASSERT_EQ(doc.Len(), expected.size());
+          for (ByteIndex i = 0; i < doc.Len(); ++i) {
+            EXPECT_EQ(doc.At(i), static_cast<Byte>(expected[i]));
+          }
+
+          std::vector<ByteIndex> expected_starts{0};
+          for (size_t i = 0; i < expected.size(); ++i) {
+            if (expected[i] == '\n') {
+              expected_starts.push_back(static_cast<ByteIndex>(i + 1));
+            }
+          }
+          ASSERT_EQ(doc.NumLines(), expected_starts.size());
+          for (Document::LineNumber line = 0; line < doc.NumLines(); ++line) {
+            EXPECT_EQ(doc.StartOfLine(line), expected_starts[line]);
+          }
+          EXPECT_EQ(doc.LineFromPos(doc.Len()), expected_starts.size() - 1);
+          EXPECT_FALSE(doc.check_invariants().has_value());
+        }
+      }
+    }
+  }
+}
+
 #ifdef CONTRACT_EXCEPTIONS
 TEST(DocumentTest, PartialViewRejectsOutOfRangeSlices) {
   Document doc{std::vector<Byte>{'a', 'b', 'c'}};
