@@ -1,6 +1,6 @@
 # Align with engineering guidance
 
-Status: in progress; part 1 is implemented and verified.
+Status: in progress; parts 1 and 2 are implemented and verified.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -10,8 +10,9 @@ particularly explicit component boundaries, deterministic behavioral tests,
 persisted acceptance behavior, and mechanically enforced invariants.
 
 This is a temporary implementation plan. Update its checkboxes and record
-relevant decisions as work proceeds. Commit it alongside the changes, then
-remove it in the final cleanup commit. Preserve enduring intent in code,
+relevant decisions as work proceeds. Prepare changes for user review and commit
+them alongside the plan only after approval, then remove it in the final cleanup
+commit. Preserve enduring intent in code,
 tests, acceptance scenarios, or `AGENTS.md` before removing the plan.
 
 ## Starting point
@@ -72,14 +73,14 @@ Relevant files: `document.{h,cpp}`, `line_starts.{h,cpp}`, `gap_buffer.{h,cpp}`,
 
 ### 2. A testable editor component
 
-- [ ] Extract editing commands, navigation, viewport state, and frame
+- [x] Extract editing commands, navigation, viewport state, and frame
   construction from `editor.cpp` behind a narrow supported API.
-- [ ] Leave the application entry point responsible for connecting input,
+- [x] Leave the application entry point responsible for connecting input,
   terminal output, file loading, and the editor component.
-- [ ] Add deterministic API-level tests for insertion, deletion, Backspace,
+- [x] Add deterministic API-level tests for insertion, deletion, Backspace,
   line/document navigation, preferred-column behavior, scrolling, wrapping,
   and cursor visibility. Define expected edge-case behavior explicitly.
-- [ ] Preserve existing intended behavior during extraction. Separate
+- [x] Preserve existing intended behavior during extraction. Separate
   intentional behavior fixes from mechanical movement where practical.
 
 ### 3. Terminal adapters and resource ownership
@@ -101,7 +102,7 @@ Avoid introducing a general plugin or dependency-injection framework.
 - [ ] Add deterministic `.feature` scenarios under the owning component's
   `features/` directory for significant document editing behavior, including
   replacement and newline handling.
-- [ ] Add editor scenarios for significant navigation, scrolling, and
+- [x] Add editor scenarios for significant navigation, scrolling, and
   editing commands after the editor API exists.
 - [ ] Bind every persisted scenario to executable tests through the
   supported component API, keeping the relationship traceable.
@@ -306,6 +307,53 @@ Validation for item 6: focused key tests and all ten suites in default and debug
 builds passed. `bazel build //:editor`, formatting checks for changed C++ files,
 and `git diff --check` passed.
 
-Continue with extraction of a testable editor component, the first item of part 2.
+Part 2 is complete. `//editor_core:api` exposes `unplugged::Editor`, which owns
+one document and its cursor, preferred column, and viewport. Commands are applied
+through `HandleKey`; queries expose only read-only document access, the cursor
+byte offset, and the viewport's top wrapped row. `CreateFrame` is a const query
+returning owned row strings and one-based terminal cursor coordinates. Snapshots
+remain valid after later edits. Layout row metadata and navigation helpers are
+private. The component depends on the document and key libraries, with no file,
+stdin, terminal, or raw-mode dependency. Bazel visibility restricts the new API
+to its application consumer; tests depend on `:api`.
+
+The application retains file loading, stdin acquisition, raw-mode setup, terminal
+row-difference caching/output, and shutdown. Editing dispatch, navigation,
+wrapping, gutter/filler construction, and cursor positioning moved into the
+component. A `false` result from `HandleKey` preserves Alt+Escape exit handling.
+The component owns layout calculation, so the document remains independent of
+presentation. The shared-layout cache proposal records the new location and API;
+cache implementation, document sharing, and resizing remain future work.
+
+Behavior was preserved, including byte-wise insertion/deletion/navigation,
+Home/End on logical rather than wrapped lines, modifier-subset command matching,
+one-row page overlap, and selecting row starts at vertical viewport boundaries.
+Up at the first document row and Down at the final full viewport row also retain
+the existing row-start selection behavior. Tests record these cases rather than
+silently changing them during extraction. Full-width EOF cursor coordinates
+remain clamped to the last visible text cell. The private vertical direction is
+typed and row arithmetic uses size_t rather than narrowing through int.
+
+The new constructor accepts viewport dimensions for deterministic testing.
+Zero height and unrepresentable text widths throw `std::invalid_argument`;
+widths below five preserve the four-cell gutter plus minimum one-cell text area.
+The application continues using its existing 80-by-25 viewport. No terminal
+adapter behavior was changed.
+
+Nineteen API tests cover commands, empty-document and EOF boundaries, UTF-8 byte
+behavior, preferred-column restoration/reset, scrolling, wrapping, normalization
+after edits, owned snapshots, exit, and viewport dimensions. Seven significant
+editing/navigation scenarios are persisted under `editor_core/features/`, with
+unique executable bindings in `editor_core/editor_tests.cpp`.
+
+Validation for part 2: focused editor tests and all eleven suites in default
+and debug builds passed. Optimized editor API tests passed against production
+libraries with contracts disabled, and the optimized application built. A PTY
+smoke test verified initial rendering, text insertion, Enter, Alt+Escape exit,
+and restoration of terminal attributes on normal exit. Formatting checks,
+scenario binding checks, and `git diff --check` passed. The extraction and plan
+updates are left uncommitted for user review.
+
+Continue with deterministic byte decoding, the first item of part 3.
 Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).

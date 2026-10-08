@@ -1,0 +1,34 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+COMMON_COPTS = [
+    "-std=c++23",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+]
+
+cc_library(
+    name = "api",
+    srcs = ["editor.cpp"],
+    hdrs = ["editor.h"],
+    copts = COMMON_COPTS,
+    visibility = ["//:__pkg__"],
+    deps = [
+        "//:document_model",
+        "//:key",
+    ],
+)
+
+cc_test(
+    name = "editor_tests",
+    srcs = ["editor_tests.cpp"],
+    # GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
+    copts = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"],
+    deps = [
+        ":api",
+        "@googletest//:gtest_main",
+    ],
+)

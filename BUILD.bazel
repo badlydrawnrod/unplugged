@@ -40,6 +40,7 @@ DOCUMENT_MODEL_HDRS = [
 
 cc_library(
     name = "document_model",
+    visibility = ["//editor_core:__pkg__"],
     srcs = DOCUMENT_MODEL_SRCS,
     hdrs = DOCUMENT_MODEL_HDRS,
     copts = COMMON_COPTS,
@@ -61,6 +62,7 @@ cc_library(
 
 cc_library(
     name = "key",
+    visibility = ["//editor_core:__pkg__"],
     srcs = ["key.cpp"],
     hdrs = ["key.h"],
     copts = COMMON_COPTS,
@@ -105,7 +107,7 @@ cc_binary(
     deps = [
         ":document_model",
         ":editor_support",
-        ":key",
+        "//editor_core:api",
     ],
 )
 
