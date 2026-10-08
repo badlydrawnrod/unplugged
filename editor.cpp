@@ -3,7 +3,6 @@
 #include <unistd.h>
 
 #include <exception>
-#include <gsl/gsl>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -76,16 +75,7 @@ int main(int argc, char* argv[]) {
     terminal::Output output(STDOUT_FILENO);
     terminal::RawMode raw_mode(STDIN_FILENO);
     {
-      bool protocol_active = true;
-      const auto protocol_cleanup = gsl::finally([&] {
-        if (!protocol_active) return;
-        try {
-          DisableInputProtocol(output);
-        } catch (...) {
-          // Preserve the primary failure and allow raw-mode restoration.
-        }
-      });
-      EnableInputProtocol(output);
+      terminal::InputProtocol input_protocol(output);
       output.Clear();
       Draw(output, frame, render_cache);
 
@@ -101,8 +91,7 @@ int main(int argc, char* argv[]) {
       }
 
       output.Clear();
-      DisableInputProtocol(output);
-      protocol_active = false;
+      input_protocol.Restore();
     }
     raw_mode.Restore();
     output.RestoreSignal();

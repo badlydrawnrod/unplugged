@@ -154,8 +154,9 @@ frame snapshots live behind `//editor_core:api` in
 `//key_decoder:api` in `key_decoder/decoder.{h,cpp}`; `read_key.cpp` adapts stdin
 to its byte-source interface. Both packages contain API tests and acceptance
 scenarios. `terminal::RawMode` in `raw_mode.{h,cpp}` owns scoped terminal settings
-behind `//:raw_mode`; its tests use isolated PTYs. The legacy keyboard-protocol
-probe lives separately in `input_protocol.{h,cpp}`. Checked descriptor I/O lives
+behind `//:raw_mode`; its tests use isolated PTYs. `terminal::InputProtocol` in
+`input_protocol.{h,cpp}` requests scoped keyboard enhancement without probing
+stdin, behind `//:input_protocol`. Checked descriptor I/O lives
 behind `//terminal_io:api`; `//:read_key` exposes key/NoKey/EOF results, and
 `//:terminal_output` exposes buffered rendering with checked writes and scoped
 SIGPIPE handling. Document and editing primitives live in root-level pairs such as
@@ -180,7 +181,8 @@ Run one test target with `bazel test //:gap_buffer_tests` (or another
 `*_tests` target). Run editor API tests with
 `bazel test //editor_core:editor_tests`, and decoder API tests with
 `bazel test //key_decoder:decoder_tests`. Run terminal lifetime tests with
-`bazel test //:raw_mode_tests`. Run input/output adapter tests with
+`bazel test //:raw_mode_tests`, and protocol-session tests with
+`bazel test //:input_protocol_tests`. Run input/output adapter tests with
 `bazel test //:read_key_tests //:terminal_tests`, and focused syscall implementation
 tests with `bazel test //terminal_io:syscall_tests`. The project uses C++23, GoogleTest,
 and Microsoft GSL; the editor relies on POSIX terminal APIs.

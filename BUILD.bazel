@@ -150,20 +150,36 @@ cc_test(
 )
 
 cc_library(
+    name = "input_protocol",
+    srcs = ["input_protocol.cpp"],
+    hdrs = ["input_protocol.h"],
+    copts = COMMON_COPTS,
+    deps = [":terminal_output"],
+)
+
+cc_test(
+    name = "input_protocol_tests",
+    srcs = ["input_protocol_tests.cpp"],
+    copts = COMMON_COPTS + ["-UNDEBUG"],
+    deps = [
+        ":input_protocol",
+        ":posix_test_endpoints",
+        ":terminal_output",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "editor_support",
     srcs = [
         "gap_loader.cpp",
-        "input_protocol.cpp",
     ],
     hdrs = [
         "gap_loader.h",
-        "input_protocol.h",
     ],
     copts = COMMON_COPTS,
     deps = [
         ":document_model",
-        ":terminal_output",
-        "//terminal_io:api",
         "@gsl//:gsl",
     ],
 )
@@ -175,11 +191,11 @@ cc_binary(
     deps = [
         ":document_model",
         ":editor_support",
+        ":input_protocol",
         ":raw_mode",
         ":read_key",
         ":terminal_output",
         "//editor_core:api",
-        "@gsl//:gsl",
     ],
 )
 

@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1 and 2 are implemented and verified. Part 3 now
-only needs replacement of the legacy input-protocol probe.
+Status: in progress; parts 1–3 are implemented and verified. Next: document
+acceptance behavior in part 4.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -91,7 +91,7 @@ Relevant files: `document.{h,cpp}`, `line_starts.{h,cpp}`, `gap_buffer.{h,cpp}`,
 - [x] Replace global saved terminal state and `atexit` handling in
   `raw_mode.cpp` with scoped terminal ownership and restoration.
 - [x] Check terminal system-call failures and define their handling.
-- [ ] Separate input-protocol negotiation from raw-mode setup; remove the
+- [x] Separate input-protocol negotiation from raw-mode setup; remove the
   existing probe/debug-output hack as part of implementing that boundary.
 - [x] Make terminal output testable through a suitably small adapter where
   needed to verify rendering behavior.
@@ -182,320 +182,26 @@ where practical, so review remains straightforward.
 - [ ] Record enduring decisions in their owning artifacts and remove this
   temporary plan in the final cleanup commit.
 
-## Resume notes
+## Remaining implementation context
 
-The first item of part 1 is complete. Every document contains one initial
-logical line at byte zero; each newline adds another line. Default construction
-now delegates to empty-vector construction. API tests cover both construction
-paths, empty edits, insertion of text and newlines, deletion of all content,
-and editing again after deletion. Logical-line iteration exposes one empty
-view for an empty document. Acceptance scenarios and their executable bindings
-are persisted in `features/empty_document.feature` and `document_tests.cpp`.
+Protocol setup follows the kitty quickstart: push escape-code disambiguation
+at startup and pop at teardown, without querying support or consuming stdin.
+`terminal::InputProtocol` owns this scope independently of raw mode; normal
+restoration reports failures and destruction cleans up best effort. Terminals
+that ignore these requests continue using legacy decoding. API tests and
+`features/input_protocol.feature` cover setup and cleanup behavior. All seventeen
+suites pass in default and debug builds. PTY checks cover legacy/kitty input,
+startup without replies, early input, normal restoration, read errors, and
+broken output pipes; formatting and scenario bindings also pass.
 
-Validation: focused document and logical-line tests passed; `bazel test //...`
-and `bazel test -c dbg //...` passed all six suites and built the editor.
-Formatting checks passed for the changed header and test files, and
-`git diff --check` passed. Existing GoogleTest signedness warnings remain
-covered by the documented exception.
+Next: persist significant document editing scenarios and their API test bindings
+in part 4, reusing the existing scenarios and tests where applicable.
 
-The second item of part 1 is complete. The document checker now verifies exact
-agreement between newline bytes and line starts, including the initial start
-at zero and absence of missing or extra entries. It reads through storage APIs
-to avoid recursive document guards, allocates no temporary index, and compiles
-the full scan out under `NDEBUG`. Construction now guards document invariants
-as well as edits and partial views. API tests exercise every replacement range
-in short documents with leading, adjacent, and trailing newlines, checking
-content, line starts, and invariants after each edit. No private state or
-test-only access was added.
+The decoder extraction preserved existing parsing behavior. UTF-8 scalar
+validity is not fully checked, legacy Alt fallback supports only two/three-byte
+UTF-8, the event suffix is ignored, and the `uint8_t` modifier parser cannot
+represent protocol field 256. Treat fixes to these limitations as explicit
+behavior changes rather than incidental negotiation refactoring.
 
-Validation for item 2: focused document tests and all six suites in default
-and debug builds passed. `bazel build -c opt //:editor` passed with the scan
-disabled. Formatting checks for changed code and `git diff --check` passed.
-
-The third item of part 1 is complete. `kMaxDocumentBytes` is the smaller of
-the 32-bit byte-count maximum and iterator difference-type maximum, minus one.
-The reserved value accommodates the initial logical line and exclusive
-line-range end even for all-newline content. A compile-time check ties this
-limit to the document line-number type. Physical gap storage may use the
-reserved byte, but spare capacity growth is capped to keep all offsets
-representable.
-
-Always-on checked arithmetic in the private `internal/size_limits.h` rejects
-oversized counts before narrowing and checks addition by subtraction.
-Oversized construction and edits throw `std::length_error`; edits check the
-post-deletion size before mutation. Line-index updates validate shifted starts,
-new starts, line counts, and deletion ends before mutation. Their `noexcept`
-specifications were removed so size-limit errors can propagate. General
-allocation/edit failure guarantees remain a later item of part 1.
-
-File loading rejects oversized files before allocating or narrowing their
-length. The scenario in `features/document_size.feature` is bound to a sparse
-file test through `gap_loader::Load`. Arithmetic boundary tests exercise actual
-limits without allocating huge buffers; line-index API tests exercise offsets
-at and beyond the supported limit.
-
-Validation for item 3: `bazel test //...` and `bazel test -c dbg //...` passed
-all eight suites. The size-limit and loader suites and the four new line-index
-boundary tests also passed against optimized libraries with contracts disabled.
-`bazel build -c opt //:editor`, formatting checks for changed code, and
-`git diff --check` passed. Existing GoogleTest signedness warnings remain covered
-by the documented exception.
-
-The fourth item of part 1 is complete. Wrapped-row counting rounds up without
-adding width to content length. Compile-time checks cover maximum byte counts,
-width one, width two, maximum width, and empty content, and ensure the row-index
-type can represent every possible count. API tests verify short-line content
-and iteration at the two largest widths, empty documents at maximum width,
-and exact-width multiples without an extra empty row. The wide-viewport
-acceptance scenario is persisted in `features/wrapped_rows.feature` and bound
-in `wrapped_row_range_tests.cpp`.
-
-Validation for item 4: focused wrapped-row tests and all eight suites in default
-and debug builds passed. Optimized wrapped-row behavior tests also passed
-(excluding the zero-width test, which requires enabled contracts).
-Formatting checks for changed code and `git diff --check` passed.
-
-The fifth item of part 1 is complete. Valid edits have the strong failure
-guarantee: allocation and size-limit exceptions leave bytes, line queries,
-and existing views unchanged. `Document::Edit` stages a copy of the line index,
-updates it independently, replaces bytes through `GapBuffer::Replace`, and
-commits the index with a nonthrowing move checked at compile time.
-`GapBuffer::Replace` allocates only the growth not covered by deletion, before
-modifying logical bytes. `LineStarts::UpdateOnInsert` reserves its final size
-before shifting starts or inserting entries. Exceptions propagate normally;
-the earlier size-limit change already removed the erroneous `noexcept`.
-
-Tradeoff: edits with inserted bytes temporarily copy the line index, adding
-memory and work proportional to the number of lines, while byte storage is
-not copied. Pure deletions and no-op edits retain their allocation-free path.
-The public contracts, implementation ordering, compile-time check, and
-acceptance scenarios preserve the failure policy beyond this temporary plan.
-
-`edit_failure_tests.cpp` is an isolated test executable with scoped allocation
-failure injection. It discovers allocation points through the supported APIs,
-checks unchanged state and successful retry for each failure, and verifies
-retained document views plus allocation-free deletion/no-op behavior.
-Standalone gap replacement and line-index insertion are also covered. No
-production test hooks or private-state access were added. Document scenarios
-are persisted in `features/document_edit_failures.feature` with test bindings.
-
-Validation for item 5: focused editing/failure tests and all nine suites in
-default and debug builds passed. `bazel test -c opt //:edit_failure_tests`
-passed against optimized libraries with contracts disabled, and
-`bazel build -c opt //:editor` passed. The test allocator is compiled separately
-from its clients to avoid GCC inlining-related new/delete warnings; no warning
-exceptions were added. Formatting checks for changed code, scenario bindings,
-and `git diff --check` passed.
-
-The sixth item of part 1 is complete. `Key` uses encapsulated construction:
-text and typed special-key factories are the only construction paths, all state
-is private, and the untyped category/code factory is private. Default and
-aggregate construction are unavailable. Copy and assignment replace the whole
-key; `WithMods` preserves identity while replacing modifiers. Existing UTF-8
-encoding, empty text for special keys, and modifier-subset matching are preserved.
-Queries and modifier replacement are constexpr, retaining compile-time decoder
-tables and allowing compile-time behavioral checks without additional machinery.
-
-`key_tests.cpp` checks construction restrictions at compile time and exercises
-UTF-8 encoding boundaries, special-category separation, modifier replacement,
-and assignment between text and special keys through the supported API.
-A small `:key` library lets tests depend only on key behavior; terminal support
-and the editor depend on it explicitly. No input acquisition or command dispatch
-was changed. These are type/state guarantees, so no Gherkin scenario was added.
-The focused tests accumulated across part 1 also complete its final testing item.
-
-Validation for item 6: focused key tests and all ten suites in default and debug
-builds passed. `bazel build //:editor`, formatting checks for changed C++ files,
-and `git diff --check` passed.
-
-Part 2 is complete. `//editor_core:api` exposes `unplugged::Editor`, which owns
-one document and its cursor, preferred column, and viewport. Commands are applied
-through `HandleKey`; queries expose only read-only document access, the cursor
-byte offset, and the viewport's top wrapped row. `CreateFrame` is a const query
-returning owned row strings and one-based terminal cursor coordinates. Snapshots
-remain valid after later edits. Layout row metadata and navigation helpers are
-private. The component depends on the document and key libraries, with no file,
-stdin, terminal, or raw-mode dependency. Bazel visibility restricts the new API
-to its application consumer; tests depend on `:api`.
-
-The application retains file loading, stdin acquisition, raw-mode setup, terminal
-row-difference caching/output, and shutdown. Editing dispatch, navigation,
-wrapping, gutter/filler construction, and cursor positioning moved into the
-component. A `false` result from `HandleKey` preserves Alt+Escape exit handling.
-The component owns layout calculation, so the document remains independent of
-presentation. The shared-layout cache proposal records the new location and API;
-cache implementation, document sharing, and resizing remain future work.
-
-Behavior was preserved, including byte-wise insertion/deletion/navigation,
-Home/End on logical rather than wrapped lines, modifier-subset command matching,
-one-row page overlap, and selecting row starts at vertical viewport boundaries.
-Up at the first document row and Down at the final full viewport row also retain
-the existing row-start selection behavior. Tests record these cases rather than
-silently changing them during extraction. Full-width EOF cursor coordinates
-remain clamped to the last visible text cell. The private vertical direction is
-typed and row arithmetic uses size_t rather than narrowing through int.
-
-The new constructor accepts viewport dimensions for deterministic testing.
-Zero height and unrepresentable text widths throw `std::invalid_argument`;
-widths below five preserve the four-cell gutter plus minimum one-cell text area.
-The application continues using its existing 80-by-25 viewport. No terminal
-adapter behavior was changed.
-
-Nineteen API tests cover commands, empty-document and EOF boundaries, UTF-8 byte
-behavior, preferred-column restoration/reset, scrolling, wrapping, normalization
-after edits, owned snapshots, exit, and viewport dimensions. Seven significant
-editing/navigation scenarios are persisted under `editor_core/features/`, with
-unique executable bindings in `editor_core/editor_tests.cpp`.
-
-Validation for part 2: focused editor tests and all eleven suites in default
-and debug builds passed. Optimized editor API tests passed against production
-libraries with contracts disabled, and the optimized application built. A PTY
-smoke test verified initial rendering, text insertion, Enter, Alt+Escape exit,
-and restoration of terminal attributes on normal exit. Formatting checks,
-scenario binding checks, and `git diff --check` passed. The extraction and plan
-updates were committed as `b3f29c6` after user approval.
-
-The first item of part 3 is complete. `//key_decoder:api` exposes a stateless
-`DecodeKey(ByteSource&)` function and a small byte-acquisition port. `ByteReadResult`
-is a discriminated byte-or-status value; NUL is a byte and timeout, EOF, and
-acquisition error are separate outcomes. The decoder depends only on `:key`
-and the standard library. Protocol tables and helpers have local linkage.
-`read_key.cpp` implements the port with POSIX stdin reads and delegates decoding;
-its supported `ReadKey()` signature is unchanged. No decoder test needs stdin,
-a terminal, sleeping, or protocol negotiation.
-
-This increment preserves existing parsing and consumption behavior. Escape plus
-a timeout produces bare Escape; Escape plus EOF/error produces no key. Unsupported
-or interrupted sequences produce no key and discard their consumed prefixes.
-Legacy controls, Alt uppercase normalization, UTF-8, CSI, SS3, kitty mappings,
-modifier fields, and optional event suffix handling moved without protocol-policy
-changes. Parser limitations remain: UTF-8 scalar validity is not fully checked,
-legacy Alt fallback supports only two/three-byte UTF-8, the event suffix is ignored,
-and the existing uint8_t modifier parser cannot represent the protocol field 256.
-These issues are separate behavior decisions rather than extraction changes.
-Error details and terminal system-call handling remain later work in part 3.
-
-Fifteen deterministic API tests cover supported input forms, normalization,
-Unicode text, high modifier bits, special keys, NUL, Escape timing, initial
-non-byte outcomes, interrupted sequences, unsupported/malformed input, and
-subsequent keys after discarded prefixes. Three significant input scenarios
-are persisted in `key_decoder/features/decoding.feature` and uniquely bound in
-`key_decoder/decoder_tests.cpp`. Test assertions use only the decoded key API;
-no implementation headers or test hooks were added. Repository guidance records
-the package and focused-test command.
-
-Validation for the decoder extraction: focused tests and all twelve suites in
-default and debug builds passed. Optimized decoder tests and the editor build
-passed. A PTY smoke test verified rendering, insertion, Enter, Alt+Escape exit,
-and normal terminal restoration through the stdin adapter. Formatting checks,
-scenario binding checks, and `git diff --check` passed. Decoder changes were
-committed as `c70ebb2` after user approval.
-
-The second item of part 3 is complete. `terminal::RawMode` owns a saved terminal
-attribute snapshot for a borrowed descriptor. The descriptor must outlive the
-scope. Construction acquires and applies raw settings; the nonthrowing destructor
-restores during normal scope exit and exception unwinding. Copy and move are
-deleted, and compile-time checks enforce these ownership guarantees. Each object
-has its own saved settings; independent terminals and nested LIFO scopes work
-without global state or `atexit`. `//:raw_mode` is the supported library target;
-its tests do not depend on document, key decoding, or terminal rendering.
-
-Termios acquisition/setup failures throw `std::system_error`. Interrupted
-termios calls retry. Failed setup attempts rollback before propagating the
-original error. Explicit `Restore()` reports errors and retains pending
-restoration on failure, allowing destructor retry. Successful restoration disarms
-the destructor and repeated restoration is a no-op. Destructor restoration is
-best effort and never throws; a disconnected/unusable terminal can still prevent
-restoration. The application explicitly restores on normal shutdown and reports
-exceptions with exit status 1 after scoped cleanup. Nonterminal stdin now fails
-before input probing or screen output instead of continuing with invalid state.
-These are the local termios checks required for reliable resource ownership;
-remaining stdin/output failure handling is still the next item of part 3.
-
-The existing keyboard probe moved mechanically to `input_protocol.{h,cpp}` so
-raw-mode setup performs no stdin/stdout I/O. The application's protocol cleanup
-runs before raw-mode restoration, including during exception unwinding, and
-cannot throw. The probe's existing debug output and parsing hack are deliberately
-retained until the protocol-negotiation item; that checkbox is not complete.
-
-Nine API-level tests use isolated PTYs to verify raw settings, full restoration,
-exception unwinding, independent/nested sessions, explicit restore/disarming,
-acquisition errors, and disconnected-terminal restoration failures. Five
-significant scenarios are persisted in `features/raw_mode.feature` and uniquely
-bound in `raw_mode_tests.cpp`. No production fault-injection hooks were added.
-
-Validation for scoped raw mode: focused tests and all thirteen suites in default
-and debug builds passed. Optimized raw-mode tests and the editor build passed.
-A PTY application smoke test covered rendering, insertion, Enter, normal exit,
-and attribute restoration. A temporary external preload shim forced one restore
-system-call failure; the application reported the error with status 1 and the
-destructor retry restored the terminal attributes before error handling. A
-nonterminal startup smoke test confirmed status 1 and a diagnostic with no
-protocol or screen output. Formatting checks, scenario bindings, and
-`git diff --check` passed. This increment was committed as `02eb6f4` after
-user approval.
-
-The third item of part 3 is complete. `//terminal_io:api` centralizes checked
-POSIX reads, writes, endpoint classification, and hangup polling. Read/write/poll
-and isatty interruptions retry; other failures propagate as `std::system_error`
-with the operation and original error code. Nonterminal classification (`ENOTTY`)
-is an expected result. Poll invalid-descriptor/endpoint errors are reported;
-hangup is EOF. Writes handle partial progress and reject zero progress with an
-I/O error. Syscall counts are capped to the signed count range before passing
-them to POSIX. The application's error handler reports failures with status 1
-after resource cleanup. Diagnostics use the checked output adapter best effort;
-a broken stderr pipe cannot bypass cleanup or change the status to SIGPIPE
-termination.
-
-`//:read_key` now returns `KeyReadResult`, a discriminated Key/NoKey/EOF result,
-with an overload for a borrowed descriptor and the usual stdin overload.
-Timeouts and unsupported sequences are NoKey; EOF is explicit even during an
-incomplete sequence or terminal hangup. Acquisition failures throw instead of
-being flattened into NoKey. The application no longer polls isatty to decide
-whether to keep looping, preventing input failures from becoming busy loops.
-Pure protocol decoding and its existing mappings remain unchanged.
-
-`//:terminal_output` exposes a buffered `terminal::Output` adapter. Rendering
-bytes remain unchanged, but flush now checks writes and discards submitted bytes
-on failure to prevent replay of partially emitted frames during cleanup. The
-adapter owns scoped process-wide SIGPIPE suppression so a broken pipe becomes
-an EPIPE exception rather than bypassing raw-mode restoration. Output scopes must
-nest in LIFO order. Checked signal restoration flushes pending output, ends the
-session, and is idempotent; further output requests throw `std::logic_error`.
-Acquisition/restoration errors propagate, while destruction restores signals
-best effort and never flushes or throws. The application restores raw settings
-before explicitly restoring signal handling on normal shutdown.
-
-The legacy probe now uses checked I/O and the same output adapter. Normal
-protocol reset failures propagate; cleanup during unwinding catches reset errors
-to preserve the primary failure and permit raw-mode restoration. Its parsing and
-debug-output hack remain for the next item. No general I/O framework was added.
-The output adapter and deterministic command-byte tests also complete the last
-item of part 3; frame content and cursor placement are already covered through
-the editor API.
-
-Six input tests use real pipes/PTYs, including zero-read timeout without sleeping
-and terminal hangup. Eight output tests cover command ordering, binary text,
-flush lifecycle, broken pipes, and signal ownership/error handling. Ten focused
-POSIX implementation tests inject syscall outcomes using isolated linker wrappers
-and static test linkage. They verify delivered bytes and error results through
-`:api`, not private structure or incidental call counts. No production test hooks
-were added. Shared pipe/PTY ownership lives in a test-only helper; existing
-raw-mode tests still use their supported library API. Six significant input and
-output scenarios are persisted in `features/terminal_{input,output}.feature`
-and uniquely bound in their test suites.
-
-Validation for checked I/O: all sixteen suites passed in default and debug
-builds. The three new suites also passed with optimized libraries, and the editor
-built. PTY application smoke tests covered normal rendering/editing/exit,
-injected read failure, and a broken stdout pipe; failures reported status 1 and
-restored terminal settings, with no SIGPIPE termination. A shared broken
-stdout/stderr pipe also returned status 1 with attributes restored. The earlier injected
-termios restoration failure smoke still passed. Formatting, scenario bindings
-(including existing raw-mode scenarios), and `git diff --check` passed. This
-increment was committed after user approval.
-
-Continue with replacement of the legacy input-protocol probe, the fourth item
-of part 3.
-Do not overwrite unrelated work. Coordinate layout changes with the separate
+Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).
