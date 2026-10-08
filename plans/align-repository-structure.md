@@ -1,6 +1,6 @@
 # Align repository structure with component ownership
 
-Status: steps 1–6 complete; step 7 remains proposed.
+Status: steps 1–6 complete; steps 7–8 remain proposed.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -75,7 +75,8 @@ Repository-visible components use:
 <component>/
   BUILD.bazel
   include/<component>/*.h
-  src/*.cpp
+  *.cpp
+  impl/                         # only where private implementation headers exist
   tests/
     BUILD.bazel
     *_tests.cpp
@@ -86,7 +87,9 @@ Repository-visible components use:
     BUILD.bazel
     <name>.h
     <name>.cpp
-    *_tests.cpp
+    tests/
+      BUILD.bazel
+      *_tests.cpp
     impl/                       # only where implementation details exist
 ```
 
@@ -94,7 +97,15 @@ External includes remain `<component>/<header>.h`, with Bazel include-prefix
 configuration mapping physical `include/` paths to those logical paths.
 Implementation headers are not exported as supported API. Keep flat API layouts
 for internal subcomponents and ports; do not add recursively nested `internal/`
-directories. Retain `BUILD.bazel` and existing `*_tests.cpp` naming.
+directories. Implementation sources live at their owning component or
+subcomponent root; executable component tests live in `tests/`. Private
+implementation headers belong under `impl/`; preserve the document's documented
+inline `detail/` representation. Header-only packages need no empty source or
+test directories. Retain `BUILD.bazel` and existing `*_tests.cpp` naming.
+
+This simplified layout supersedes the `src/` convention applied in step 6.
+Step 7 implements the revised convention; earlier results remain a record of
+what was verified at each increment.
 
 Proposed ownership:
 
@@ -250,7 +261,42 @@ Acceptance: physical structure communicates API, implementation, and test owners
 logical consumer includes remain stable; no implementation visibility is widened
 to compensate for a file move.
 
-### 7. Preserve durable intent and finish
+### 7. Simplify source placement and standardize test directories
+
+- [ ] Move implementation `.cpp` files from `src/` to their owning component
+  roots in document, editor core, decoder, key, terminal, terminal I/O, and file
+  loader. Remove empty `src/` directories. Keep application composition at
+  `applications/editor/main.cpp` and existing internal sources at their roots.
+- [ ] Keep repository-visible API headers under `include/<component>/`, with
+  their existing logical include paths. Keep internal subcomponent and port API
+  headers at their package roots. Keep private implementation headers under
+  `impl/` and preserve document's inline `detail/` declarations and layout targets.
+- [ ] Move executable internal-subcomponent tests into local `tests/` packages,
+  including gap buffer, line starts, and size limits. Retain existing component
+  test directories and public-header compile checks. Keep reusable test helpers
+  behind their narrow test-only targets; do not create empty directories for
+  packages without implementation sources or executable tests.
+- [ ] Update Bazel source paths, test dependencies, and precise visibility lists
+  together. New internal test packages consume their owning supported `:api` or
+  `:test_api`; they do not gain access to implementation or layout targets.
+  Replace obsolete test-helper consumers with the new exact test packages.
+- [ ] Preserve `CONTRACT_EXCEPTIONS` coherence, conditional `noexcept`, static
+  failure-test linking, always-linked allocation overrides, syscall/signal
+  wrapping, and acceptance annotations. Make these mechanical moves in coherent
+  increments, preserving all C++ contents and observable behavior.
+- [ ] Record the categorical convention in `AGENTS.md`: root implementation
+  sources, `tests/` for executable tests, `include/` for repository-visible APIs,
+  and root API headers for internal subcomponents and ports. Update affected test
+  commands and the layout-cache proposal's editor source path. Remove obsolete
+  references and targets; retain only compatibility aliases with actual consumers.
+
+Acceptance: no component uses a `src/` level; executable component and internal
+subcomponent tests have an owning `tests/` directory. Logical includes, supported
+boundaries, inline storage ownership, contract configurations, and behavior remain
+unchanged. Run the verification for every coherent increment below, including
+Bazel dependency/visibility inspection and PTY smoke checks after terminal moves.
+
+### 8. Preserve durable intent and finish
 
 - [ ] Add concise component specifications only for contracts that need more
   explanation than API comments and scenarios provide. Cover document edit/view
@@ -493,15 +539,18 @@ to compensate for a file move.
   and kitty exits, scoped protocol push/reset, and exact terminal restoration.
   Broken output pipes at startup and after editing returned error status 1 with
   diagnostics and restored terminal attributes. Temporary smoke files were not
-  retained. Step 7's durable-documentation and final cleanup work remains.
+  retained. Steps 7–8's layout simplification, durable documentation, and final cleanup
+  work remain.
 
 ## Completion criteria
 
 - External document consumers cannot reach storage subcomponent APIs.
 - Provided component APIs, required ports, internal subcomponents, and application
   composition have explicit ownership and appropriately restricted Bazel targets.
-- Repository-visible components follow the documented API/source/test layout;
-  internal packages remain flat and proportionate.
+- Implementation sources live at component/subcomponent roots and executable
+  tests live in owning `tests/` directories. Repository-visible APIs use
+  `include/`; internal and port APIs remain at their roots, with proportionate
+  helper packages and no `src/` directories.
 - Every persisted acceptance scenario belongs to its exercised component, has
   at least one executable binding, and passes a persisted traceability check.
 - Existing behavior, failure guarantees, copy/move guarantees, decoder limitations,
