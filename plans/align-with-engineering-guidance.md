@@ -1,6 +1,6 @@
 # Align with engineering guidance
 
-Status: in progress; the first five items of part 1 are implemented.
+Status: in progress; part 1 is implemented and verified.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -61,10 +61,10 @@ each increment, and update this plan with completed work and remaining issues.
   finishes allocation before mutation, and a prepared line index is committed
   with a compile-time-verified nonthrowing move. Standalone line-index insertion
   reserves before mutation. Deletion and no-op edits remain allocation-free.
-- [ ] Prevent contradictory text/special-key states in `Key`, using
+- [x] Prevent contradictory text/special-key states in `Key`, using
   encapsulated construction or a discriminated representation. Keep the
   solution proportionate to current requirements.
-- [ ] Add focused behavioral and boundary tests for these changes, using
+- [x] Add focused behavioral and boundary tests for these changes, using
   compile-time checks and assertions where they provide stronger guarantees.
 
 Relevant files: `document.{h,cpp}`, `line_starts.{h,cpp}`, `gap_buffer.{h,cpp}`,
@@ -285,6 +285,27 @@ from its clients to avoid GCC inlining-related new/delete warnings; no warning
 exceptions were added. Formatting checks for changed code, scenario bindings,
 and `git diff --check` passed.
 
-Continue with contradictory key states, the sixth item of part 1.
+The sixth item of part 1 is complete. `Key` uses encapsulated construction:
+text and typed special-key factories are the only construction paths, all state
+is private, and the untyped category/code factory is private. Default and
+aggregate construction are unavailable. Copy and assignment replace the whole
+key; `WithMods` preserves identity while replacing modifiers. Existing UTF-8
+encoding, empty text for special keys, and modifier-subset matching are preserved.
+Queries and modifier replacement are constexpr, retaining compile-time decoder
+tables and allowing compile-time behavioral checks without additional machinery.
+
+`key_tests.cpp` checks construction restrictions at compile time and exercises
+UTF-8 encoding boundaries, special-category separation, modifier replacement,
+and assignment between text and special keys through the supported API.
+A small `:key` library lets tests depend only on key behavior; terminal support
+and the editor depend on it explicitly. No input acquisition or command dispatch
+was changed. These are type/state guarantees, so no Gherkin scenario was added.
+The focused tests accumulated across part 1 also complete its final testing item.
+
+Validation for item 6: focused key tests and all ten suites in default and debug
+builds passed. `bazel build //:editor`, formatting checks for changed C++ files,
+and `git diff --check` passed.
+
+Continue with extraction of a testable editor component, the first item of part 2.
 Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).

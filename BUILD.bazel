@@ -60,17 +60,32 @@ cc_library(
 )
 
 cc_library(
+    name = "key",
+    srcs = ["key.cpp"],
+    hdrs = ["key.h"],
+    copts = COMMON_COPTS,
+)
+
+cc_test(
+    name = "key_tests",
+    srcs = ["key_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        ":key",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "editor_support",
     srcs = [
         "gap_loader.cpp",
-        "key.cpp",
         "raw_mode.cpp",
         "read_key.cpp",
         "terminal.cpp",
     ],
     hdrs = [
         "gap_loader.h",
-        "key.h",
         "raw_mode.h",
         "read_key.h",
         "terminal.h",
@@ -78,6 +93,7 @@ cc_library(
     copts = COMMON_COPTS,
     deps = [
         ":document_model",
+        ":key",
         "@gsl//:gsl",
     ],
 )
@@ -89,6 +105,7 @@ cc_binary(
     deps = [
         ":document_model",
         ":editor_support",
+        ":key",
     ],
 )
 

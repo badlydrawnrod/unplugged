@@ -1,10 +1,9 @@
 #include "key.h"
 
-// Encodes the codepoint to UTF-8. Only valid when IsText() == true.
 std::string Key::Text() const {
-  if (!isText) return {};
+  if (!IsText()) return {};
   std::string out;
-  uint32_t cp = codepoint;
+  uint32_t cp = codepoint_;
   if (cp <= 0x7f) {
     out += static_cast<char>(cp);
   } else if (cp <= 0x7ff) {
