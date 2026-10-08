@@ -16,7 +16,7 @@ cc_library(
     hdrs = ["line_starts.h"],
     copts = COMMON_COPTS,
     deps = [
-        "//:size_limits",
+        "//document/internal/size_limits:api",
         "//contracts:checks",
         "//document:line_starts_layout",
     ],
@@ -39,7 +39,7 @@ cc_library(
     copts = COMMON_COPTS,
     deps = [
         "//:contract_test_mode",
-        "//:size_limits",
+        "//document/internal/size_limits:api",
         "//contracts:checks",
         "//document:line_starts_layout",
     ],

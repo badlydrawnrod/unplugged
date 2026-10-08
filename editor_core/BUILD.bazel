@@ -15,10 +15,10 @@ cc_library(
     srcs = ["editor.cpp"],
     hdrs = ["editor.h"],
     copts = COMMON_COPTS,
-    visibility = ["//:__pkg__"],
+    visibility = ["//applications/editor:__pkg__"],
     deps = [
         "//document:api",
-        "//:key",
+        "//key:api",
     ],
 )
 

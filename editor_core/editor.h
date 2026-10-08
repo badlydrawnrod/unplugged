@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "document/document.h"
-#include "key.h"
+#include "key/key.h"
 
 namespace unplugged {
 

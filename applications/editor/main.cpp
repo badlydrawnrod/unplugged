@@ -1,5 +1,3 @@
-#include "editor_core/editor.h"
-
 #include <unistd.h>
 
 #include <exception>
@@ -9,11 +7,12 @@
 #include <vector>
 
 #include "document/document.h"
+#include "editor_core/editor.h"
 #include "file_loader/load.h"
-#include "input_protocol.h"
-#include "raw_mode.h"
-#include "read_key.h"
-#include "terminal.h"
+#include "terminal/input_protocol.h"
+#include "terminal/output.h"
+#include "terminal/raw_mode.h"
+#include "terminal/read_key.h"
 
 namespace {
 

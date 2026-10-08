@@ -6,8 +6,8 @@ cc_library(
     name = "api",
     hdrs = ["types.h"],
     visibility = [
-        "//:__pkg__",
         "//document:__pkg__",
+        "//document/internal/size_limits:__pkg__",
         "//file_loader:__pkg__",
         "//file_loader/tests:__pkg__",
     ],

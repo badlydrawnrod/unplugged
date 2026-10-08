@@ -1,6 +1,6 @@
 # Align repository structure with component ownership
 
-Status: steps 1–3 complete; steps 4–7 remain proposed.
+Status: steps 1–4 complete; steps 5–7 remain proposed.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -50,11 +50,15 @@ in an authorized cleanup commit.
   The oversized-file feature and binding live under `file_loader/`, exercised
   through `//file_loader:api`. File loading has API/source/test directories and
   depends only on supported document byte/size declarations.
-- The root Bazel package combines key types, terminal adapters,
-  application composition, test support, and document helpers. Package visibility
-  cannot distinguish these responsibilities.
+- Application composition lives in `applications/editor/main.cpp`; key and
+  terminal components have API/source/test layouts behind their supported `:api`
+  targets. The root package retains only repository build configuration, the
+  shared contract test policy, and the compatibility `//:editor` alias.
+- Checked arithmetic lives in `document/internal/size_limits/` with visibility
+  restricted to its document/storage consumers. Shared POSIX test endpoints live
+  in `test_support/` behind a test-only target visible only to terminal tests.
 - `ByteSource` is already owned by the decoder. `FdByteSource` implements it in
-  `read_key.cpp`, and decoder tests provide a deterministic stream. Dependency
+  `terminal/src/read_key.cpp`, and decoder tests provide a deterministic stream. Dependency
   direction is correct; port layout and independent conformance checks are absent.
 - Public document headers include unsupported concrete `detail/` declarations
   to retain inline ownership. Preserve this documented extension of the guide's
@@ -182,18 +186,18 @@ checker passes; application loading does not regain storage dependencies.
 
 ### 4. Separate composition, terminal adapters, and shared key types
 
-- [ ] Extract shared key types to `//key:api` and update direct consumers.
-- [ ] Move existing terminal lifetime/output/protocol/input-adapter facilities
+- [x] Extract shared key types to `//key:api` and update direct consumers.
+- [x] Move existing terminal lifetime/output/protocol/input-adapter facilities
   into `terminal/` behind a supported API, preserving their current contracts.
   Keep checked descriptor operations behind `//terminal_io:api`.
-- [ ] Move their tests and features to the owning component. Preserve isolated
+- [x] Move their tests and features to the owning component. Preserve isolated
   PTY tests and focused syscall/signal wrapping tests with their link options.
-- [ ] Move the main loop and application-specific rendering to
+- [x] Move the main loop and application-specific rendering to
   `applications/editor/main.cpp`. Compose editor, file loading, and terminal
   facilities there; core components must not depend on the application.
-- [ ] Keep `//:editor` as a compatibility alias if useful. Remove obsolete root
+- [x] Keep `//:editor` as a compatibility alias if useful. Remove obsolete root
   implementation targets and update legitimate visibility lists explicitly.
-- [ ] Move shared PTY test support into test-only helper packages and document
+- [x] Move shared PTY test support into test-only helper packages and document
   their consumers. Do not create a broad production support aggregate.
 
 Acceptance: root production code is reduced to genuine repository configuration
@@ -355,6 +359,49 @@ to compensate for a file move.
   closure against `//document/internal/...` returned no targets. Storage
   visibility remains restricted. PTY smoke checks remain for step 4's
   application/terminal moves.
+
+### Step 4 results (2026-10-08)
+
+- Step 3 was committed as `6fc7c64`
+  (`Extract file loading and align feature ownership`).
+- Moved shared key types and tests into `key/` with API/source/test directories
+  behind `//key:api`; consumers include `key/key.h` and use the supported target.
+- Moved terminal lifetimes, keyboard protocol scope, output, and FD key-input
+  adapter into `terminal/` behind `//terminal:api`. API headers are mapped from
+  `include/terminal/` to logical `terminal/*.h` includes; sources, tests, and
+  acceptance features have distinct owning directories. Preserved isolated PTY
+  tests, static output-test linking, and `--wrap=sigaction`; focused descriptor
+  syscall wrapping remains unchanged in `terminal_io/`.
+- Moved composition, the main loop, and frame rendering into
+  `applications/editor/main.cpp` behind `//applications/editor:editor`. Kept
+  `//:editor` as a compatibility alias and removed obsolete root implementation
+  and test targets. Legitimate component visibility now names the application,
+  terminal, and new tests packages explicitly.
+- Moved shared POSIX endpoints to `test_support/posix_endpoints.h` behind the
+  test-only `//test_support:posix_endpoints` target, visible only to terminal
+  tests. Allocation support remains separate with its existing narrow consumers.
+- Additional local cleanup required by this step's root-package acceptance:
+  moved checked arithmetic and its focused tests to
+  `document/internal/size_limits/` behind a restricted `:api`, updating its
+  document/storage consumers. This completes the helper move anticipated in
+  step 1. Root now holds only build configuration, shared test policy, and the
+  editor alias; no C++ sources or headers remain there.
+- Focused tests passed (7 targets). Full default/debug tests passed (19 targets
+  each), as did `bazel build //:editor`, `python3 tools/verify.py` (42 scenarios,
+  42 bindings, 20 checker tests, 60 formatted C++ files), and `git diff --check`.
+  Compared moved implementations/tests/features to their originals: changes are
+  limited to include/annotation paths and formatting.
+- Temporary real-PTY smoke checks passed for startup, text insertion and line
+  splitting, legacy double-Escape exit, and kitty Alt+Escape exit. Both normal
+  exits emitted one protocol push and one reset, without a support probe, and
+  restored saved terminal attributes exactly. Broken output pipes at startup
+  and after editing returned error status 1 with diagnostics instead of SIGPIPE
+  termination, and restored saved terminal attributes exactly. The temporary
+  smoke script was removed afterward.
+- Dependency queries confirm only the root alias references the application,
+  only terminal tests consume POSIX test support, and arithmetic has only local
+  tests and document/storage consumers. The decoder dependency closure has no
+  terminal/terminal-I/O targets. Updated `AGENTS.md` with ownership and commands.
 
 ## Completion criteria
 

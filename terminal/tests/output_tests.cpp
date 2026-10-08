@@ -8,8 +8,8 @@
 #include <system_error>
 #include <type_traits>
 
-#include "internal/test_support/posix_endpoints.h"
-#include "terminal.h"
+#include "terminal/output.h"
+#include "test_support/posix_endpoints.h"
 
 namespace {
 int signal_failures = 0;
@@ -49,7 +49,7 @@ std::string ReadAvailable(int fd) {
   return std::string(buffer.data(), static_cast<size_t>(count));
 }
 
-// Feature: features/terminal_output.feature
+// Feature: terminal/features/terminal_output.feature
 // Scenario: A flushed frame emits cursor movement and row text in order
 TEST(TerminalTest, FlushEmitsRenderingCommandsInOrder) {
   Pipe pipe;
@@ -82,7 +82,7 @@ TEST(TerminalTest, FlushPreservesEmbeddedNulAndDoesNotReplayRows) {
   EXPECT_EQ(ReadAvailable(pipe.Reader()), "x");
 }
 
-// Feature: features/terminal_output.feature
+// Feature: terminal/features/terminal_output.feature
 // Scenario: A broken output pipe reports an error instead of terminating
 TEST(TerminalTest, BrokenPipeReportsEpipeWithSignalRestoredAfterScope) {
   struct sigaction original{};

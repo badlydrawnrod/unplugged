@@ -1,4 +1,4 @@
-#include "key.h"
+#include "key/key.h"
 
 std::string Key::Text() const {
   if (!IsText()) return {};

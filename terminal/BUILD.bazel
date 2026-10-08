@@ -1,0 +1,30 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_library(
+    name = "api",
+    srcs = [
+        "src/input_protocol.cpp",
+        "src/output.cpp",
+        "src/raw_mode.cpp",
+        "src/read_key.cpp",
+    ],
+    hdrs = [
+        "include/terminal/input_protocol.h",
+        "include/terminal/output.h",
+        "include/terminal/raw_mode.h",
+        "include/terminal/read_key.h",
+    ],
+    strip_include_prefix = "include",
+    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
+    visibility = [
+        "//applications/editor:__pkg__",
+        "//terminal/tests:__pkg__",
+    ],
+    deps = [
+        "//key:api",
+        "//key_decoder:api",
+        "//terminal_io:api",
+    ],
+)

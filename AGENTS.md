@@ -147,19 +147,33 @@ When existing code conflicts with these principles, improve it locally where saf
 
 ## Project Structure & Modules
 
-This is a small C++23 terminal editor. The application entry point and terminal
-wiring are in `editor.cpp`. Editing commands, navigation, viewport state, and
-frame snapshots live behind `//editor_core:api` in
-`editor_core/editor.{h,cpp}`. Input-protocol decoding lives behind
-`//key_decoder:api` in `key_decoder/decoder.{h,cpp}`; `read_key.cpp` adapts stdin
-to its byte-source interface. Both packages contain API tests and acceptance
-scenarios. `terminal::RawMode` in `raw_mode.{h,cpp}` owns scoped terminal settings
-behind `//:raw_mode`; its tests use isolated PTYs. `terminal::InputProtocol` in
-`input_protocol.{h,cpp}` requests scoped keyboard enhancement without probing
-stdin, behind `//:input_protocol`. Checked descriptor I/O lives
-behind `//terminal_io:api`; `//:read_key` exposes key/NoKey/EOF results, and
-`//:terminal_output` exposes buffered rendering with checked writes and scoped
-SIGPIPE handling. The document model and its byte, logical-line, and wrapped-row
+This is a small C++23 terminal editor. Application composition, the main loop,
+and frame rendering live in `applications/editor/main.cpp` behind
+`//applications/editor:editor`; `//:editor` is a compatibility build/run alias.
+Components never depend on the application. Editing commands, navigation,
+viewport state, and frame snapshots live behind `//editor_core:api` in
+`editor_core/editor.{h,cpp}`. Shared key value types live behind `//key:api`,
+with headers in `key/include/key/`, implementation in `key/src/`, and tests in
+`key/tests/`; consumers include `key/key.h`.
+
+Input-protocol decoding lives behind `//key_decoder:api` in
+`key_decoder/decoder.{h,cpp}`. The concrete FD byte-source adapter in
+`terminal/src/read_key.cpp` implements the decoder-owned port; the decoder has
+no terminal or POSIX I/O dependency. Both core packages contain API tests and
+acceptance scenarios. POSIX terminal lifetimes, protocol scope, key acquisition,
+and buffered output live behind `//terminal:api`, with headers in
+`terminal/include/terminal/`, implementation in `terminal/src/`, tests in
+`terminal/tests/`, and scenarios in `terminal/features/`. Consumers include
+`terminal/raw_mode.h`, `terminal/input_protocol.h`, `terminal/read_key.h`, and
+`terminal/output.h`. `terminal::RawMode` owns scoped terminal settings;
+`terminal::InputProtocol` requests scoped keyboard enhancement without probing
+stdin; `ReadKey()` exposes key/NoKey/EOF results; `terminal::Output` provides
+checked buffered writes and scoped SIGPIPE handling. Checked descriptor I/O
+remains behind `//terminal_io:api`. Terminal tests use isolated PTYs and pipes
+from the narrowly visible, test-only `//test_support:posix_endpoints` target;
+output and syscall wrapping tests retain static linking and their link options.
+
+The document model and its byte, logical-line, and wrapped-row
 views live in `document/` behind `//document:api`; its API tests and acceptance
 scenarios are kept in that package. `//document:test_api` exposes the same API
 with the debug throwing-contract configuration for tests. Storage primitives
@@ -180,7 +194,10 @@ only the document and their owning storage implementations. Logical-line
 ordinals are owned by `document/line_number.h`. Invariant diagnostic types live
 behind `//contracts:api`; checks remain in `contracts/impl/checks.h` behind a
 restricted implementation target. Shared byte types and size-limit helpers
-live behind `//document/types:api` and `//:size_limits`, respectively. Allocation
+live behind `//document/types:api` and `//document/internal/size_limits:api`,
+respectively. The arithmetic helper is restricted to document/storage consumers
+and has focused tests in its own package. The root package contains only build
+configuration, the shared contract test policy, and the editor alias. Allocation
 failure tests live with document and each storage package, using their supported
 `:test_api` targets. Shared injection and failure discovery live behind the
 narrowly visible, test-only `//test_support:allocation_failure` target; isolated
@@ -212,11 +229,14 @@ Run document allocation-failure scenarios with
 `bazel test //document:document_tests` and view tests with
 `bazel test //document:all`. Run editor API tests with
 `bazel test //editor_core:editor_tests`, and decoder API tests with
-`bazel test //key_decoder:decoder_tests`. Run terminal lifetime tests with
-`bazel test //:raw_mode_tests`, and protocol-session tests with
-`bazel test //:input_protocol_tests`. Run input/output adapter tests with
-`bazel test //:read_key_tests //:terminal_tests`, and focused syscall implementation
-tests with `bazel test //terminal_io:syscall_tests`. The project uses C++23, GoogleTest,
+`bazel test //key_decoder:decoder_tests`. Run shared key tests with
+`bazel test //key/tests:key_tests` and arithmetic helper tests with
+`bazel test //document/internal/size_limits:size_limits_tests`.
+Run terminal lifetime tests with `bazel test //terminal/tests:raw_mode_tests`,
+protocol-session tests with `bazel test //terminal/tests:input_protocol_tests`,
+and input/output tests with
+`bazel test //terminal/tests:read_key_tests //terminal/tests:output_tests`.
+Run focused syscall tests with `bazel test //terminal_io:syscall_tests`. The project uses C++23, GoogleTest,
 and Microsoft GSL; the editor relies on POSIX terminal APIs.
 
 ## Repository Verification

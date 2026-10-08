@@ -15,8 +15,8 @@ cc_library(
     srcs = ["decoder.cpp"],
     hdrs = ["decoder.h"],
     copts = COMMON_COPTS,
-    visibility = ["//:__pkg__"],
-    deps = ["//:key"],
+    visibility = ["//terminal:__pkg__"],
+    deps = ["//key:api"],
 )
 
 cc_test(

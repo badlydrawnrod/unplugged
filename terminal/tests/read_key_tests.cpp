@@ -6,14 +6,14 @@
 #include <cerrno>
 #include <system_error>
 
-#include "internal/test_support/posix_endpoints.h"
-#include "read_key.h"
+#include "terminal/read_key.h"
+#include "test_support/posix_endpoints.h"
 
 namespace {
 using unplugged::test_support::Pipe;
 using unplugged::test_support::PseudoTerminal;
 
-// Feature: features/terminal_input.feature
+// Feature: terminal/features/terminal_input.feature
 // Scenario: Finite input ends after its last decoded key
 TEST(ReadKeyTest, FiniteInputReportsKeysThenEof) {
   Pipe pipe;
@@ -29,7 +29,7 @@ TEST(ReadKeyTest, FiniteInputReportsKeysThenEof) {
             KeyReadStatus::Eof);
 }
 
-// Feature: features/terminal_input.feature
+// Feature: terminal/features/terminal_input.feature
 // Scenario: EOF during a sequence remains EOF
 TEST(ReadKeyTest, IncompleteEscapeSequenceReportsEof) {
   Pipe pipe;
@@ -50,7 +50,7 @@ TEST(ReadKeyTest, UnsupportedSequenceIsDistinctFromEof) {
             KeyReadStatus::Eof);
 }
 
-// Feature: features/terminal_input.feature
+// Feature: terminal/features/terminal_input.feature
 // Scenario: Acquisition failures report an error
 TEST(ReadKeyTest, InvalidInputDescriptorReportsSystemError) {
   try {
@@ -73,7 +73,7 @@ TEST(ReadKeyTest, TerminalZeroReadIsNoKeyWithoutSleeping) {
             KeyReadStatus::NoKey);
 }
 
-// Feature: features/terminal_input.feature
+// Feature: terminal/features/terminal_input.feature
 // Scenario: A terminal hangup ends input
 TEST(ReadKeyTest, TerminalHangupReportsEof) {
   PseudoTerminal terminal;

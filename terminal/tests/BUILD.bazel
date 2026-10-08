@@ -1,0 +1,52 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+COMMON_COPTS = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"] + ["-UNDEBUG"]
+
+cc_test(
+    name = "raw_mode_tests",
+    srcs = ["raw_mode_tests.cpp"],
+    copts = COMMON_COPTS,
+    deps = [
+        "//terminal:api",
+        "//test_support:posix_endpoints",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "input_protocol_tests",
+    srcs = ["input_protocol_tests.cpp"],
+    copts = COMMON_COPTS,
+    deps = [
+        "//terminal:api",
+        "//test_support:posix_endpoints",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "read_key_tests",
+    srcs = ["read_key_tests.cpp"],
+    copts = COMMON_COPTS,
+    deps = [
+        "//terminal:api",
+        "//test_support:posix_endpoints",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "output_tests",
+    srcs = ["output_tests.cpp"],
+    # Wrapping must resolve the output implementation's signal calls.
+    linkstatic = True,
+    linkopts = ["-Wl,--wrap=sigaction"],
+    copts = COMMON_COPTS,
+    deps = [
+        "//terminal:api",
+        "//test_support:posix_endpoints",
+        "@googletest//:gtest_main",
+    ],
+)

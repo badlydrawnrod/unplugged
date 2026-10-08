@@ -2,7 +2,7 @@
 
 #include <limits>
 
-#include "internal/size_limits.h"
+#include "document/internal/size_limits/size_limits.h"
 
 namespace unplugged::internal {
 namespace {

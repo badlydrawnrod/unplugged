@@ -1,0 +1,17 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_binary(
+    name = "editor",
+    srcs = ["main.cpp"],
+    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
+    visibility = ["//:__pkg__"],
+    deps = [
+        "//document:api",
+        "//editor_core:api",
+        "//file_loader:api",
+        "//key:api",
+        "//terminal:api",
+    ],
+)

@@ -4,7 +4,7 @@
 #include <cstring>
 
 #include "contracts/impl/checks.h"
-#include "internal/size_limits.h"
+#include "document/internal/size_limits/size_limits.h"
 
 using unplugged::internal::CheckedAdd;
 using unplugged::internal::CheckedByteCount;

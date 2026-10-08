@@ -8,9 +8,9 @@
 #include <system_error>
 #include <type_traits>
 
-#include "input_protocol.h"
-#include "internal/test_support/posix_endpoints.h"
-#include "terminal.h"
+#include "terminal/input_protocol.h"
+#include "terminal/output.h"
+#include "test_support/posix_endpoints.h"
 
 namespace {
 using unplugged::test_support::Pipe;
@@ -34,7 +34,7 @@ std::string ReadAvailable(int fd) {
   return std::string(buffer.data(), static_cast<size_t>(count));
 }
 
-// Feature: features/input_protocol.feature
+// Feature: terminal/features/input_protocol.feature
 // Scenario: Startup requests disambiguation without a support probe
 TEST(InputProtocolTest, StartupFlushesOnlyTheEnhancementRequest) {
   Pipe pipe;
@@ -43,7 +43,7 @@ TEST(InputProtocolTest, StartupFlushesOnlyTheEnhancementRequest) {
   EXPECT_EQ(ReadAvailable(pipe.Reader()), "\x1b[>1u");
 }
 
-// Feature: features/input_protocol.feature
+// Feature: terminal/features/input_protocol.feature
 // Scenario: Normal shutdown restores the previous keyboard mode once
 TEST(InputProtocolTest, ExplicitRestoreDisarmsCleanup) {
   Pipe pipe;
@@ -66,7 +66,7 @@ TEST(InputProtocolTest, NormalScopeExitRestoresPreviousMode) {
   EXPECT_EQ(ReadAvailable(pipe.Reader()), "\x1b[>1u\x1b[<u");
 }
 
-// Feature: features/input_protocol.feature
+// Feature: terminal/features/input_protocol.feature
 // Scenario: An application failure restores the previous keyboard mode
 TEST(InputProtocolTest, ExceptionUnwindingRestoresPreviousMode) {
   Pipe pipe;
@@ -103,7 +103,7 @@ TEST(InputProtocolTest, FailedAcquisitionPropagatesOriginalError) {
   }
 }
 
-// Feature: features/input_protocol.feature
+// Feature: terminal/features/input_protocol.feature
 // Scenario: A reset failure is reported without preventing cleanup
 TEST(InputProtocolTest, FailedRestoreReportsErrorAndDestructorDoesNotThrow) {
   Pipe pipe;

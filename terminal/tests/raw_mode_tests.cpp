@@ -8,8 +8,8 @@
 #include <system_error>
 #include <type_traits>
 
-#include "internal/test_support/posix_endpoints.h"
-#include "raw_mode.h"
+#include "terminal/raw_mode.h"
+#include "test_support/posix_endpoints.h"
 
 namespace {
 
@@ -61,7 +61,7 @@ TEST(RawModeTest, DisablesCanonicalEchoAndSignalProcessingWithTimedReads) {
   EXPECT_EQ(raw.c_cc[VTIME], cc_t{1});
 }
 
-// Feature: features/raw_mode.feature
+// Feature: terminal/features/raw_mode.feature
 // Scenario: Leaving raw mode restores the previous terminal settings
 TEST(RawModeTest, ScopeExitRestoresEverySavedTerminalSetting) {
   PseudoTerminal terminal;
@@ -78,7 +78,7 @@ TEST(RawModeTest, ScopeExitRestoresEverySavedTerminalSetting) {
   EXPECT_GE(fcntl(terminal.Slave(), F_GETFD), 0);
 }
 
-// Feature: features/raw_mode.feature
+// Feature: terminal/features/raw_mode.feature
 // Scenario: An exception restores the terminal before error handling
 TEST(RawModeTest, ExceptionUnwindingRestoresTerminalSettings) {
   PseudoTerminal terminal;
@@ -91,7 +91,7 @@ TEST(RawModeTest, ExceptionUnwindingRestoresTerminalSettings) {
   ExpectSame(Attributes(terminal.Slave()), original);
 }
 
-// Feature: features/raw_mode.feature
+// Feature: terminal/features/raw_mode.feature
 // Scenario: Independent terminal sessions restore their own settings
 TEST(RawModeTest, IndependentTerminalsDoNotOverwriteSavedSettings) {
   PseudoTerminal first;
@@ -150,7 +150,7 @@ TEST(RawModeTest, InvalidDescriptorReportsAcquisitionFailure) {
   }
 }
 
-// Feature: features/raw_mode.feature
+// Feature: terminal/features/raw_mode.feature
 // Scenario: Raw mode rejects nonterminal input
 TEST(RawModeTest, NonterminalDescriptorReportsAcquisitionFailure) {
   const int fd = open("/dev/null", O_RDONLY);
@@ -159,7 +159,7 @@ TEST(RawModeTest, NonterminalDescriptorReportsAcquisitionFailure) {
   close(fd);
 }
 
-// Feature: features/raw_mode.feature
+// Feature: terminal/features/raw_mode.feature
 // Scenario: Restoration failure is reported without throwing during scope exit
 TEST(RawModeTest,
      DisconnectedTerminalReportsRestoreFailureWithoutThrowingOnExit) {

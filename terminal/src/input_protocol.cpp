@@ -1,6 +1,6 @@
-#include "input_protocol.h"
+#include "terminal/input_protocol.h"
 
-#include "terminal.h"
+#include "terminal/output.h"
 
 namespace terminal {
 

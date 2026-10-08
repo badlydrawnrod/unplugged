@@ -1,4 +1,4 @@
-#include "terminal.h"
+#include "terminal/output.h"
 
 #include <cerrno>
 #include <format>

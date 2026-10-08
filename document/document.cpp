@@ -6,8 +6,8 @@
 #include "document/document_view.h"
 #include "document/internal/gap_buffer/gap_buffer.h"
 #include "document/internal/line_starts/line_starts.h"
+#include "document/internal/size_limits/size_limits.h"
 #include "document/logical_line_range.h"
-#include "internal/size_limits.h"
 
 static_assert(std::is_nothrow_move_assignable_v<LineStarts>,
               "committing a prepared line index must not throw");

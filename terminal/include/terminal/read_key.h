@@ -2,7 +2,7 @@
 
 #include <variant>
 
-#include "key.h"
+#include "key/key.h"
 
 enum class KeyReadStatus { NoKey, Eof };
 using KeyReadResult = std::variant<Key, KeyReadStatus>;
