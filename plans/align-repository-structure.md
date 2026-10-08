@@ -1,6 +1,6 @@
 # Align repository structure with component ownership
 
-Status: step 1 complete; steps 2–7 remain proposed.
+Status: steps 1–2 complete; steps 3–7 remain proposed.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -43,8 +43,9 @@ in an authorized cleanup commit.
 - Allocation-failure suites live in document and each storage package and consume
   their supported test APIs. Shared injection and failure discovery use the
   narrowly visible, test-only `//test_support:allocation_failure` target.
-- There are 42 persisted scenarios with 42 valid executable bindings. Validation
-  has been performed through temporary scripts; no repository checker exists.
+- There are 42 persisted scenarios with 42 valid executable bindings. The
+  persisted checker in `tools/acceptance/` validates at least one binding per
+  scenario; it permits multiple bindings and documents supported syntax.
 - Root `features/empty_document.feature` and `features/wrapped_rows.feature`
   describe document behavior. The oversized-file scenario lives under document
   but is bound to the file loader's API.
@@ -141,20 +142,20 @@ build that must fail visibility analysis, removing the probe afterward.
 
 ### 2. Persist acceptance traceability validation
 
-- [ ] Add `tools/acceptance/check_traceability.py`, runnable from any working
+- [x] Add `tools/acceptance/check_traceability.py`, runnable from any working
   directory and discovering repository files without following generated output.
-- [ ] Recognize the supported Gherkin/test forms actually used, including
+- [x] Recognize the supported Gherkin/test forms actually used, including
   `TEST`, `TEST_F`, and `TEST_P`; require immediately adjacent feature/scenario
   annotations with exact titles and repository-relative paths.
-- [ ] Fail for unbound scenarios, nonexistent feature/scenario references,
+- [x] Fail for unbound scenarios, nonexistent feature/scenario references,
   duplicate scenario identities, and malformed or detached annotations.
   Allow multiple executable bindings for one scenario, as the guide requires
   at least one. Do not enforce today's one-to-one count as a permanent contract.
-- [ ] Report feature/test paths and line numbers on failure. Document supported
+- [x] Report feature/test paths and line numbers on failure. Document supported
   syntax explicitly; do not silently ignore unsupported Gherkin constructs.
-- [ ] Add focused checker tests using temporary fixtures for success, each
+- [x] Add focused checker tests using temporary fixtures for success, each
   rejection, parameterized bindings, and multiple bindings per scenario.
-- [ ] Add a repeatable repository verification entry point for traceability and
+- [x] Add a repeatable repository verification entry point for traceability and
   formatting; document it in `AGENTS.md`. If CI is introduced, have it invoke
   these checks rather than duplicating their logic. Prefer existing tooling;
   justify any new runner dependency before adding it.
@@ -302,6 +303,29 @@ to compensate for a file move.
 - Small tooling correction: the formatting checker now skips deleted cached Git
   paths so uncommitted file moves can pass the required check. It still checks
   active tracked and untracked sources and excludes ignored build output.
+
+### Step 2 results (2026-10-08)
+
+- Step 1 was committed as `295b4e8` (`Close document storage boundaries`).
+- Added `tools/acceptance/check_traceability.py` with Git-based discovery of
+  active tracked/untracked feature and C++ files, skipping deleted paths,
+  ignored output, and symlinks. Invocation is independent of working directory.
+- Documented the supported English Gherkin subset and GoogleTest definition
+  forms in `tools/acceptance/README.md`. Unsupported constructs, duplicate
+  identities, unbound scenarios, invalid references, and malformed/detached
+  annotations fail with file/line diagnostics. Comments and string literals do
+  not provide executable bindings; multiple bindings per scenario are allowed.
+- Added 20 standard-library unittest tests with temporary fixtures, including
+  parameterized and multiline test definitions, every rejection category,
+  multiple bindings, discovery through file moves, ignored generated output,
+  CLI failure diagnostics, and invocation from another directory.
+- Added `python3 tools/verify.py` to run formatting, repository traceability,
+  and focused checker tests, and documented it in `AGENTS.md`. No dependencies
+  or CI runner were added. Python tooling caches are ignored.
+- Verification passed: all 42 persisted scenarios and 42 current bindings;
+  20 checker tests; formatting for 60 C++ files; `git diff --check`;
+  `bazel test //...` and `bazel test -c dbg //...` (19 targets each);
+  `bazel build //:editor`. No production behavior or Bazel boundaries changed.
 
 ## Completion criteria
 

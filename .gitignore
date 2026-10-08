@@ -11,3 +11,6 @@
 
 # Local tooling cache
 .cache/
+
+# Python tooling cache
+__pycache__/

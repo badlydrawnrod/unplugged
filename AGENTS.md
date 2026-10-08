@@ -195,7 +195,7 @@ bazel build //:editor
 bazel test //...
 bazel test -c dbg //...
 bazel run //:editor -- [file]
-python3 tools/check_format.py
+python3 tools/verify.py
 ```
 
 Run storage tests with
@@ -213,6 +213,25 @@ Run document allocation-failure scenarios with
 `bazel test //:read_key_tests //:terminal_tests`, and focused syscall implementation
 tests with `bazel test //terminal_io:syscall_tests`. The project uses C++23, GoogleTest,
 and Microsoft GSL; the editor relies on POSIX terminal APIs.
+
+## Repository Verification
+
+Run `python3 tools/verify.py` for formatting, persisted acceptance traceability,
+and the checker's temporary-fixture tests. It accepts
+`--clang-format /path/to/clang-format`. The scripts resolve repository paths from
+their own locations and can run from any directory using absolute script paths.
+They use Python's standard library and introduce no runner dependency.
+
+Run `python3 tools/acceptance/check_traceability.py` for traceability alone, or
+`python3 tools/acceptance/check_traceability_tests.py` for its focused tests.
+The checker discovers active tracked and untracked Git files, excludes ignored
+output, and does not follow symlinks. It requires at least one immediately
+adjacent `TEST`, `TEST_F`, or `TEST_P` binding per persisted scenario; multiple
+bindings are allowed. Unsupported Gherkin constructs, duplicate scenario
+identities, malformed annotations, and missing references fail with path/line
+diagnostics. Supported syntax and limits are documented in
+[tools/acceptance/README.md](tools/acceptance/README.md). Continue running the
+Bazel build and default/debug test suites separately.
 
 ## Coding Style & File Conventions
 
