@@ -1,8 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1–4 are implemented and verified. Part 5 has
-started: document/editor and internal storage APIs are established, with
-public headers separated from internal APIs and contract-check machinery.
+Status: in progress; parts 1–5 are implemented and verified. Naming,
+formatting, and mechanical checks in part 6 are next.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -155,8 +154,11 @@ TEST(...) {
 - [x] Replace `LineStarts::LineNumber` in document and logical-line public
   contracts with an appropriately owned document-domain type. Both alias
   `unplugged::document::LineNumber`, owned by `document/line_number.h`.
-- [ ] Keep implementation helpers local; review helpers such as
-  `FindLineStarts` for unnecessary external linkage.
+- [x] Keep implementation helpers local; review helpers such as
+  `FindLineStarts` for unnecessary external linkage. The document constructor's
+  helper now has internal linkage through an anonymous namespace. Other
+  source-local helpers already use anonymous namespaces; shared header helpers
+  remain inline/constexpr or templates behind their implementation targets.
 - [x] Preserve the existing contract-test configuration coherently across
   translation units while splitting targets. `//:contract_test_mode`
   propagates the debug throwing-contract policy to both storage test APIs,
@@ -214,9 +216,9 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: keep implementation helpers local, including `FindLineStarts`, then
-proceed to naming and mechanical checks in part 6. Supported document headers
-now include only supported diagnostic/domain types and unsupported `detail/`
+Next: apply custom API naming conventions in part 6, updating contract
+machinery and consumers together. Supported document headers now include only
+supported diagnostic/domain types and unsupported `detail/`
 representation declarations. The detail declarations preserve inline storage
 and the existing copy/move behavior, without adding allocation or indirection.
 Internal storage APIs expose aliases to those concrete types for their own
@@ -230,12 +232,21 @@ and their consumers. The mixed allocation-failure suite remains in the root,
 using supported document and storage test APIs. API tests no longer include
 contract-check machinery.
 
-This increment passed nine focused suites, all seventeen suites in default and
-debug configurations, and `bazel build //:editor`. Compile-time boundary checks
+The header-separation increment passed nine focused suites, all seventeen
+suites in default and debug configurations, and `bazel build //:editor`.
+Compile-time boundary checks
 verify that supported document headers expose neither storage API aliases nor
 contract macros. Header-include and Bazel visibility checks, scenario bindings,
 formatting of new headers, and `git diff --check` also passed. No document,
 editor, or terminal behavior changed.
+
+The final part-5 increment gives `FindLineStarts` internal linkage and confirms
+that other source-local helpers already remain local. Symbol inspection shows
+a local (`t`) anonymous-namespace symbol, with no global definition. Five focused
+document suites, all seventeen suites in default and debug configurations, and
+`bazel build //:editor` passed. Scenario bindings and `git diff --check` also
+passed. This changes linkage only; document behavior and supported APIs remain
+unchanged.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte

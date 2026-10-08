@@ -57,6 +57,7 @@ static_assert(std::is_nothrow_move_assignable_v<LineStarts>,
   return {};
 }
 
+namespace {
 std::vector<ByteIndex> FindLineStarts(const GapBuffer &buffer) {
   std::vector<ByteIndex> line_starts;
   line_starts.push_back(0);  // The first line always starts at position 0.
@@ -70,6 +71,7 @@ std::vector<ByteIndex> FindLineStarts(const GapBuffer &buffer) {
 
   return line_starts;
 }
+}  // namespace
 
 Document::Document() : Document(std::vector<Byte>{}) {}
 
