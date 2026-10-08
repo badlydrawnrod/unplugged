@@ -166,8 +166,12 @@ with the debug throwing-contract configuration for tests. Storage primitives
 and their tests live in
 `document/internal/gap_buffer/` and `document/internal/line_starts/`, each behind
 its own `:api` target with package-private implementation targets. The document
-package is the only external consumer of both storage APIs; the root file
-loader depends directly on `//document/types:api` and cannot access storage.
+package is the only external consumer of both storage APIs. File loading lives
+behind `//file_loader:api`, with its API in `file_loader/include/file_loader/`,
+implementation in `file_loader/src/`, tests in `file_loader/tests/`, and
+size-limit scenario in `file_loader/features/`. Consumers include
+`file_loader/load.h`; the loader depends directly on `//document/types:api` and
+cannot access storage.
 Each storage package exposes `:test_api` with the shared debug throwing-contract
 configuration from `//:contract_test_mode`. Unsupported concrete storage
 declarations live in `document/detail/` so the document keeps inline ownership
@@ -198,6 +202,7 @@ bazel run //:editor -- [file]
 python3 tools/verify.py
 ```
 
+Run file-loader API tests with `bazel test //file_loader/tests:load_tests`.
 Run storage tests with
 `bazel test //document/internal/gap_buffer:gap_buffer_tests` and
 `bazel test //document/internal/line_starts:line_starts_tests` (or another

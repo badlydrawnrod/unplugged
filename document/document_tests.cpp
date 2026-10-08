@@ -45,14 +45,14 @@ INSTANTIATE_TEST_SUITE_P(ConstructionPaths, EmptyDocumentTest, testing::Bool());
 
 }  // namespace
 
-// Feature: features/empty_document.feature
+// Feature: document/features/empty_document.feature
 // Scenario: An empty document contains one empty logical line
 TEST_P(EmptyDocumentTest, ConstructionHasOneEmptyLine) {
   auto doc = MakeDocument();
   ExpectEmptyDocument(doc);
 }
 
-// Feature: features/empty_document.feature
+// Feature: document/features/empty_document.feature
 // Scenario: An empty edit preserves the empty logical line
 TEST_P(EmptyDocumentTest, EmptyEditPreservesOneEmptyLine) {
   auto doc = MakeDocument();
@@ -60,7 +60,7 @@ TEST_P(EmptyDocumentTest, EmptyEditPreservesOneEmptyLine) {
   ExpectEmptyDocument(doc);
 }
 
-// Feature: features/empty_document.feature
+// Feature: document/features/empty_document.feature
 // Scenario: Text and newlines can be inserted into an empty document
 TEST_P(EmptyDocumentTest, InsertTextAndNewlinesIntoEmptyDocument) {
   auto doc = MakeDocument();
@@ -84,7 +84,7 @@ TEST_P(EmptyDocumentTest, InsertTextAndNewlinesIntoEmptyDocument) {
   EXPECT_TRUE((*doc.LinesFrom(2).begin()).empty());
 }
 
-// Feature: features/empty_document.feature
+// Feature: document/features/empty_document.feature
 // Scenario: Deleting all content leaves an editable empty logical line
 TEST_P(EmptyDocumentTest, DeleteAllContentAndInsertAgain) {
   auto doc = MakeDocument();

@@ -7,11 +7,11 @@
 #include <string>
 
 #include "document/types/types.h"
-#include "gap_loader.h"
+#include "file_loader/load.h"
 
-// Feature: document/features/document_size.feature
+// Feature: file_loader/features/document_size.feature
 // Scenario: Oversized files cannot be loaded for editing
-TEST(GapLoaderTest, RejectsOversizedFileBeforeAllocatingContent) {
+TEST(FileLoaderTest, RejectsOversizedFileBeforeAllocatingContent) {
   // A sparse file exercises the real boundary without allocating gigabytes.
   std::string filename = testing::TempDir() + "unplugged-size-limit-XXXXXX";
   const int fd = mkstemp(filename.data());
@@ -22,5 +22,5 @@ TEST(GapLoaderTest, RejectsOversizedFileBeforeAllocatingContent) {
   });
   ASSERT_EQ(ftruncate(fd, static_cast<off_t>(kMaxDocumentBytes) + 1), 0);
 
-  EXPECT_THROW(gap_loader::Load(filename.c_str()), std::length_error);
+  EXPECT_THROW(file_loader::Load(filename.c_str()), std::length_error);
 }

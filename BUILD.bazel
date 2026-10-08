@@ -154,27 +154,13 @@ cc_test(
     ],
 )
 
-cc_library(
-    name = "editor_support",
-    srcs = [
-        "gap_loader.cpp",
-    ],
-    hdrs = [
-        "gap_loader.h",
-    ],
-    copts = COMMON_COPTS,
-    deps = [
-        "//document/types:api",
-    ],
-)
-
 cc_binary(
     name = "editor",
     srcs = ["editor.cpp"],
     copts = COMMON_COPTS,
     deps = [
         "//document:api",
-        ":editor_support",
+        "//file_loader:api",
         ":input_protocol",
         ":raw_mode",
         ":read_key",
@@ -192,17 +178,5 @@ cc_test(
     deps = [
         ":size_limits",
         "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "gap_loader_tests",
-    srcs = ["gap_loader_tests.cpp"],
-    copts = TEST_COPTS,
-    deps = [
-        ":editor_support",
-        "//document/types:api",
-        "@googletest//:gtest_main",
-        "@gsl//:gsl",
     ],
 )

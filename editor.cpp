@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "document/document.h"
-#include "gap_loader.h"
+#include "file_loader/load.h"
 #include "input_protocol.h"
 #include "raw_mode.h"
 #include "read_key.h"
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    unplugged::Editor editor(Document{gap_loader::Load(argv[1])});
+    unplugged::Editor editor(Document{file_loader::Load(argv[1])});
     RenderCache render_cache;
     const auto frame = editor.CreateFrame();
     terminal::Output output(STDOUT_FILENO);

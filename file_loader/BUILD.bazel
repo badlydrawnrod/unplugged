@@ -4,11 +4,13 @@ package(default_visibility = ["//visibility:private"])
 
 cc_library(
     name = "api",
-    hdrs = ["types.h"],
+    srcs = ["src/load.cpp"],
+    hdrs = ["include/file_loader/load.h"],
+    strip_include_prefix = "include",
+    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
     visibility = [
         "//:__pkg__",
-        "//document:__pkg__",
-        "//file_loader:__pkg__",
         "//file_loader/tests:__pkg__",
     ],
+    deps = ["//document/types:api"],
 )

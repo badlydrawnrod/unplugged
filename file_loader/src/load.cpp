@@ -1,4 +1,4 @@
-#include "gap_loader.h"
+#include "file_loader/load.h"
 
 #include <fstream>
 #include <stdexcept>
@@ -6,7 +6,7 @@
 
 #include "document/types/types.h"
 
-namespace gap_loader {
+namespace file_loader {
 
 std::vector<uint8_t> Load(const char *filename) {
   // Read the entire file into a buffer.
@@ -29,4 +29,4 @@ std::vector<uint8_t> Load(const char *filename) {
   return {};
 }
 
-}  // namespace gap_loader
+}  // namespace file_loader

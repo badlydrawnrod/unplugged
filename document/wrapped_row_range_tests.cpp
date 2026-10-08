@@ -113,7 +113,7 @@ TEST(WrappedRowRangeTest, WidthOneProducesOneBytePerRow) {
   EXPECT_EQ(it, rows.end());
 }
 
-// Feature: features/wrapped_rows.feature
+// Feature: document/features/wrapped_rows.feature
 // Scenario: A wide viewport shows a short line in one row
 TEST(WrappedRowRangeTest, LargeWidthsPreserveOneRowAndItsContent) {
   Document doc{std::vector<Byte>{'a', 'b', 'c', '\n'}};

@@ -1,6 +1,6 @@
 # Align repository structure with component ownership
 
-Status: steps 1–2 complete; steps 3–7 remain proposed.
+Status: steps 1–3 complete; steps 4–7 remain proposed.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -46,10 +46,11 @@ in an authorized cleanup commit.
 - There are 42 persisted scenarios with 42 valid executable bindings. The
   persisted checker in `tools/acceptance/` validates at least one binding per
   scenario; it permits multiple bindings and documents supported syntax.
-- Root `features/empty_document.feature` and `features/wrapped_rows.feature`
-  describe document behavior. The oversized-file scenario lives under document
-  but is bound to the file loader's API.
-- The root Bazel package combines key types, loading, terminal adapters,
+- Empty-document and wrapped-row features live under `document/features/`.
+  The oversized-file feature and binding live under `file_loader/`, exercised
+  through `//file_loader:api`. File loading has API/source/test directories and
+  depends only on supported document byte/size declarations.
+- The root Bazel package combines key types, terminal adapters,
   application composition, test support, and document helpers. Package visibility
   cannot distinguish these responsibilities.
 - `ByteSource` is already owned by the decoder. `FdByteSource` implements it in
@@ -166,14 +167,14 @@ persisted checker.
 
 ### 3. Correct acceptance ownership and extract file loading
 
-- [ ] Move empty-document and wrapped-row features under `document/features/`.
-- [ ] Move the oversized-file feature and its executable test under a new
+- [x] Move empty-document and wrapped-row features under `document/features/`.
+- [x] Move the oversized-file feature and its executable test under a new
   `file_loader/` component with supported `:api` target.
-- [ ] Move document allocation-failure bindings into the document test package
+- [x] Move document allocation-failure bindings into the document test package
   if not already completed in step 1.
-- [ ] Update every annotation and dependency together. Preserve scenario titles
+- [x] Update every annotation and dependency together. Preserve scenario titles
   and observable expectations during mechanical moves.
-- [ ] Give file loading the repository-visible API/source/test layout and direct
+- [x] Give file loading the repository-visible API/source/test layout and direct
   dependencies on supported byte/size declarations only.
 
 Acceptance: features are owned by the component API they exercise; the traceability
@@ -326,6 +327,34 @@ to compensate for a file move.
   20 checker tests; formatting for 60 C++ files; `git diff --check`;
   `bazel test //...` and `bazel test -c dbg //...` (19 targets each);
   `bazel build //:editor`. No production behavior or Bazel boundaries changed.
+
+### Step 3 results (2026-10-08)
+
+- Step 2 was committed as `213b2d5` (`Persist acceptance traceability validation`).
+- Moved empty-document and wrapped-row features to `document/features/` and
+  updated their existing document API test annotations. Feature content,
+  scenario titles, and observable expectations are unchanged.
+- Extracted loading into `//file_loader:api`, with physical API headers under
+  `include/file_loader/`, implementation under `src/`, and tests under `tests/`.
+  Bazel's include-prefix mapping exposes `file_loader/load.h`. The application
+  now calls `file_loader::Load()`; the loader implementation is otherwise
+  unchanged, including size-limit rejection before narrowing or allocation.
+- Moved the oversized-file feature to
+  `file_loader/features/document_size.feature`, with its binding in
+  `file_loader/tests/load_tests.cpp` consuming the supported API. Removed root
+  loader sources and obsolete `:editor_support` / `:gap_loader_tests` targets.
+- Document allocation-failure bindings were already moved in step 1 and remain
+  in the document package. Updated `AGENTS.md` for loader ownership and commands.
+- Focused tests passed (6 targets). `python3 tools/verify.py` passed with all
+  42 scenarios and 42 bindings, 20 checker tests, and 60 formatted C++ files.
+  `bazel test //...` and `bazel test -c dbg //...` passed (19 targets each), as
+  did `bazel build //:editor` and `git diff --check`.
+- Direct dependency queries show the loader's sole explicit production
+  dependency is `//document/types:api`; its tests consume `//file_loader:api`
+  and supported size declarations. Querying the loader's complete dependency
+  closure against `//document/internal/...` returned no targets. Storage
+  visibility remains restricted. PTY smoke checks remain for step 4's
+  application/terminal moves.
 
 ## Completion criteria
 
