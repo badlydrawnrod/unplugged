@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "gap_buffer.h"
+#include "document/internal/gap_buffer/gap_buffer.h"
 
 namespace gap_loader {
 // Load a file into a byte buffer.

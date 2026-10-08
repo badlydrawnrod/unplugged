@@ -1,8 +1,8 @@
 # Align with engineering guidance
 
 Status: in progress; parts 1–4 are implemented and verified. Part 5 has
-started: document/editor API targets are established; storage subcomponent
-boundaries are next.
+started: document/editor and internal storage API targets are established;
+separating document API headers from storage and contract machinery is next.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -132,11 +132,16 @@ TEST(...) {
   supported target. Document API tests and scenarios moved with the component.
   `//document:test_api` preserves the existing test contract configuration,
   inherited from the matching storage variant across translation units.
-- [ ] Give internal storage subcomponents their own `:api` targets and
-  restrict implementation targets to legitimate consumers.
+- [x] Give internal storage subcomponents their own `:api` targets and
+  restrict implementation targets to legitimate consumers. Gap buffer and line
+  index now live in `document/internal/gap_buffer/` and
+  `document/internal/line_starts/`. Supported aliases expose package-private
+  implementation targets. Production line-index access is document-only; gap
+  buffer access also permits the root file loader. Tests moved beside storage
+  and depend on supported `:test_api` variants.
 - [ ] Separate supported API headers from implementation headers. The
   document API still transitively exports storage primitives and contract
-  machinery through the transitional storage aggregate.
+  machinery through the storage API targets and transitional shared support.
 - [ ] Make boundary tests depend on the supported component target and
   storage tests on their supported subcomponent targets. Reserve direct
   implementation dependencies for tests of implementation properties.
@@ -144,8 +149,10 @@ TEST(...) {
   contracts with an appropriately owned document-domain type.
 - [ ] Keep implementation helpers local; review helpers such as
   `FindLineStarts` for unnecessary external linkage.
-- [ ] Preserve the existing contract-test configuration coherently across
-  translation units while splitting targets.
+- [x] Preserve the existing contract-test configuration coherently across
+  translation units while splitting targets. `//:storage_support_test`
+  propagates the debug throwing-contract policy to both storage test APIs,
+  document implementation, and their consumers.
 
 The current private package visibility is a useful starting point, but does
 not distinguish consumers within the root package. Introduce packages and
@@ -199,17 +206,22 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: give storage subcomponents their own `:api` targets in part 5, then
-separate supported headers from implementation and contract machinery. The
-root `//:document_storage` and test variant are transitional aggregates,
-restricted to root/document consumers; editor consumers use `//document:api`.
-Document boundary tests use `//document:test_api` with the same supported
-headers. The mixed allocation-failure suite remains in the root and explicitly
-depends on both document and storage APIs until storage tests are separated.
-This increment passed nine focused suites, all seventeen suites in default and
-debug configurations, and `bazel build //:editor`. Scenario bindings and
-`git diff --check` also passed. Moved C++ files changed only include paths and
-scenario annotations.
+Next: separate supported document headers from storage representation and
+contract machinery. The root storage aggregate has been removed. Shared types,
+contracts, and size-limit helpers remain in transitional `//:storage_support`
+and `//:storage_support_test` targets. Document and loader consumers use storage
+`:api` aliases; storage implementations are package-private. Bazel visibility
+is package-granular, so root access accommodates the existing loader and mixed
+allocation-failure suite. The latter explicitly depends on both storage test
+APIs and `//document:test_api` until storage failure tests are separated.
+Document boundary tests continue to use the same supported document headers.
+
+Storage sources and tests moved with only include-path changes. This increment
+passed eight focused suites, all seventeen suites in default and debug
+configurations, and `bazel build //:editor`. Visibility queries confirmed that
+document consumers see only the supported storage aliases and editor-core
+consumers cannot directly access storage. Scenario bindings and
+`git diff --check` also passed. No editor or terminal behavior changed.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte

@@ -13,7 +13,7 @@
 #include <tuple>
 #include <vector>
 
-#include "gap_buffer.h"
+#include "document/internal/gap_buffer/gap_buffer.h"
 
 namespace {
 std::string Snapshot(const GapBuffer &buffer) {

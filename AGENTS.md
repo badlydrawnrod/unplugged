@@ -163,9 +163,14 @@ SIGPIPE handling. The document model and its byte, logical-line, and wrapped-row
 views live in `document/` behind `//document:api`; its API tests and acceptance
 scenarios are kept in that package. `//document:test_api` exposes the same API
 with the debug throwing-contract configuration for tests. Storage primitives
-remain in root-level pairs `gap_buffer.{h,cpp}` and `line_starts.{h,cpp}`, behind
-the transitional `//:document_storage` aggregate, visible only to the root and
-document packages. Tests are kept beside the code as `*_tests.cpp`.
+and their tests live in
+`document/internal/gap_buffer/` and `document/internal/line_starts/`, each behind
+its own `:api` target with package-private implementation targets. The document
+package consumes both APIs; the root file loader also consumes the gap buffer.
+Each storage package exposes `:test_api` with the shared debug throwing-contract
+configuration. Shared types and contract machinery remain in the transitional
+root `//:storage_support` and `//:storage_support_test` targets. Tests are kept
+beside the code as `*_tests.cpp`.
 `old_20260924/` contains archived experiments;
 do not add new production code there. Bazel dependencies are declared in
 `MODULE.bazel`.
@@ -182,7 +187,9 @@ bazel test //...
 bazel run //:editor -- [file]
 ```
 
-Run one test target with `bazel test //:gap_buffer_tests` (or another
+Run storage tests with
+`bazel test //document/internal/gap_buffer:gap_buffer_tests` and
+`bazel test //document/internal/line_starts:line_starts_tests` (or another
 `*_tests` target). Run document API tests with
 `bazel test //document:document_tests` and view tests with
 `bazel test //document:all`. Run editor API tests with

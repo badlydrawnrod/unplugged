@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <iterator>
 
-#include "line_starts.h"
+#include "document/internal/line_starts/line_starts.h"
 
 class Document;
 class DocumentView;

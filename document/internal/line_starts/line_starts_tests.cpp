@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "dsl.h"
-#include "line_starts.h"
+#include "document/internal/line_starts/line_starts.h"
 
 #ifdef CONTRACT_EXCEPTIONS
 template <typename F>

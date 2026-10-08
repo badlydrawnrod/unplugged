@@ -1,4 +1,4 @@
-#include "line_starts.h"
+#include "document/internal/line_starts/line_starts.h"
 
 #include <algorithm>
 #include <limits>

@@ -1,4 +1,4 @@
-#include "gap_buffer.h"
+#include "document/internal/gap_buffer/gap_buffer.h"
 
 #include <algorithm>
 #include <cstring>

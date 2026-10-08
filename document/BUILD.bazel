@@ -32,11 +32,15 @@ cc_library(
         "//:__pkg__",
         "//editor_core:__pkg__",
     ],
-    deps = ["//:document_storage"],
+    deps = [
+        "//:storage_support",
+        "//document/internal/gap_buffer:api",
+        "//document/internal/line_starts:api",
+    ],
 )
 
 # Supported API with the existing debug-only throwing contract policy. The
-# storage dependency propagates that policy through all translation units.
+# shared support dependency propagates that policy through all translation units.
 cc_library(
     name = "test_api",
     testonly = True,
@@ -44,7 +48,11 @@ cc_library(
     hdrs = DOCUMENT_HDRS,
     copts = COMMON_COPTS,
     visibility = ["//:__pkg__"],
-    deps = ["//:document_storage_test"],
+    deps = [
+        "//:storage_support_test",
+        "//document/internal/gap_buffer:test_api",
+        "//document/internal/line_starts:test_api",
+    ],
 )
 
 # GoogleTest assertion templates trigger signedness diagnostics under GCC 15.

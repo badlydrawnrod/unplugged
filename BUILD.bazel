@@ -18,26 +18,22 @@ config_setting(
     values = {"compilation_mode": "dbg"},
 )
 
-# Transitional storage aggregate; the document package owns the supported API.
-# Split these primitives into internal subcomponent APIs in the next increment.
-DOCUMENT_STORAGE_SRCS = [
-    "gap_buffer.cpp",
-    "internal/size_limits.h",
-    "line_starts.cpp",
-]
-
-DOCUMENT_STORAGE_HDRS = [
+# Shared types and contract machinery remain transitional until document API
+# headers are separated from their storage representation.
+STORAGE_SUPPORT_HDRS = [
     "dsl.h",
-    "gap_buffer.h",
-    "line_starts.h",
+    "internal/size_limits.h",
     "types.h",
 ]
 
 cc_library(
-    name = "document_storage",
-    visibility = ["//document:__pkg__"],
-    srcs = DOCUMENT_STORAGE_SRCS,
-    hdrs = DOCUMENT_STORAGE_HDRS,
+    name = "storage_support",
+    visibility = [
+        "//document:__pkg__",
+        "//document/internal/gap_buffer:__pkg__",
+        "//document/internal/line_starts:__pkg__",
+    ],
+    hdrs = STORAGE_SUPPORT_HDRS,
     copts = COMMON_COPTS,
     deps = ["@gsl//:gsl"],
 )
@@ -45,11 +41,14 @@ cc_library(
 # Propagate the contract mode to every test translation unit and dependent
 # document implementation, so inline definitions and noexcept agree.
 cc_library(
-    name = "document_storage_test",
+    name = "storage_support_test",
     testonly = True,
-    visibility = ["//document:__pkg__"],
-    srcs = DOCUMENT_STORAGE_SRCS,
-    hdrs = DOCUMENT_STORAGE_HDRS,
+    visibility = [
+        "//document:__pkg__",
+        "//document/internal/gap_buffer:__pkg__",
+        "//document/internal/line_starts:__pkg__",
+    ],
+    hdrs = STORAGE_SUPPORT_HDRS,
     copts = COMMON_COPTS,
     defines = select({
         ":debug_build": ["CONTRACT_EXCEPTIONS"],
@@ -177,7 +176,7 @@ cc_library(
     ],
     copts = COMMON_COPTS,
     deps = [
-        ":document_storage",
+        "//document/internal/gap_buffer:api",
         "@gsl//:gsl",
     ],
 )
@@ -221,36 +220,6 @@ cc_test(
 )
 
 cc_test(
-    name = "gap_buffer_tests",
-    srcs = ["gap_buffer_tests.cpp"],
-    copts = TEST_COPTS,
-    defines = select({
-        ":debug_build": ["CONTRACT_EXCEPTIONS"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":document_storage_test",
-        "@googletest//:gtest_main",
-        "@gsl//:gsl",
-    ],
-)
-
-cc_test(
-    name = "line_starts_tests",
-    srcs = ["line_starts_tests.cpp"],
-    copts = TEST_COPTS,
-    defines = select({
-        ":debug_build": ["CONTRACT_EXCEPTIONS"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":document_storage_test",
-        "@googletest//:gtest_main",
-        "@gsl//:gsl",
-    ],
-)
-
-cc_test(
     name = "edit_failure_tests",
     srcs = [
         "edit_failure_tests.cpp",
@@ -259,7 +228,8 @@ cc_test(
     ],
     copts = TEST_COPTS,
     deps = [
-        ":document_storage_test",
+        "//document/internal/gap_buffer:test_api",
+        "//document/internal/line_starts:test_api",
         "//document:test_api",
         "@googletest//:gtest_main",
     ],

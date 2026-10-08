@@ -2,8 +2,8 @@
 
 #include <limits>
 
-#include "gap_buffer.h"
-#include "line_starts.h"
+#include "document/internal/gap_buffer/gap_buffer.h"
+#include "document/internal/line_starts/line_starts.h"
 #include "document/logical_line_range.h"
 
 #if defined(CONTRACT_EXCEPTIONS)

@@ -6,9 +6,9 @@
 
 #include "document/document.h"
 #include "document/document_view.h"
-#include "gap_buffer.h"
+#include "document/internal/gap_buffer/gap_buffer.h"
+#include "document/internal/line_starts/line_starts.h"
 #include "internal/test_support/allocation_failure.h"
-#include "line_starts.h"
 
 using unplugged::testing::FailAllocationAfter;
 
