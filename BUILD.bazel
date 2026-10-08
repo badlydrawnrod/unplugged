@@ -18,43 +18,37 @@ config_setting(
     values = {"compilation_mode": "dbg"},
 )
 
-# Shared types and contract machinery remain transitional until document API
-# headers are separated from their storage representation.
-STORAGE_SUPPORT_HDRS = [
-    "dsl.h",
-    "internal/size_limits.h",
-    "types.h",
-]
+cc_library(
+    name = "document_types",
+    hdrs = ["types.h"],
+    visibility = ["//document:__pkg__"],
+)
 
 cc_library(
-    name = "storage_support",
+    name = "size_limits",
+    hdrs = ["internal/size_limits.h"],
     visibility = [
         "//document:__pkg__",
         "//document/internal/gap_buffer:__pkg__",
         "//document/internal/line_starts:__pkg__",
     ],
-    hdrs = STORAGE_SUPPORT_HDRS,
-    copts = COMMON_COPTS,
-    deps = ["@gsl//:gsl"],
+    deps = [":document_types"],
 )
 
-# Propagate the contract mode to every test translation unit and dependent
-# document implementation, so inline definitions and noexcept agree.
+# One transitive policy keeps test inline definitions and noexcept consistent
+# across document, storage, and their consumers.
 cc_library(
-    name = "storage_support_test",
+    name = "contract_test_mode",
     testonly = True,
     visibility = [
         "//document:__pkg__",
         "//document/internal/gap_buffer:__pkg__",
         "//document/internal/line_starts:__pkg__",
     ],
-    hdrs = STORAGE_SUPPORT_HDRS,
-    copts = COMMON_COPTS,
     defines = select({
         ":debug_build": ["CONTRACT_EXCEPTIONS"],
         "//conditions:default": [],
     }),
-    deps = ["@gsl//:gsl"],
 )
 
 cc_library(
@@ -177,7 +171,6 @@ cc_library(
     copts = COMMON_COPTS,
     deps = [
         "//document/internal/gap_buffer:api",
-        "@gsl//:gsl",
     ],
 )
 
@@ -199,12 +192,11 @@ cc_binary(
 cc_test(
     name = "size_limits_tests",
     srcs = [
-        "internal/size_limits.h",
         "internal/size_limits_tests.cpp",
-        "types.h",
     ],
     copts = TEST_COPTS,
     deps = [
+        ":size_limits",
         "@googletest//:gtest_main",
     ],
 )
@@ -216,6 +208,7 @@ cc_test(
     deps = [
         ":editor_support",
         "@googletest//:gtest_main",
+        "@gsl//:gsl",
     ],
 )
 

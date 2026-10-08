@@ -4,7 +4,6 @@
 
 #include "document/document.h"
 #include "document/document_view.h"
-#include "dsl.h"
 
 std::vector<Byte> Collect(DocumentView view) {
   std::vector<Byte> out;

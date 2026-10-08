@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "dsl.h"
+#include <stdexcept>
+#include <string>
+
 #include "document/internal/line_starts/line_starts.h"
 
 #ifdef CONTRACT_EXCEPTIONS

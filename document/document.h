@@ -1,10 +1,14 @@
 #pragma once
 
 #include <limits>
+#include <vector>
 
-#include "document/internal/gap_buffer/gap_buffer.h"
-#include "document/internal/line_starts/line_starts.h"
+#include "contracts/invariant_result.h"
+#include "document/detail/gap_buffer.h"
+#include "document/detail/line_starts.h"
+#include "document/line_number.h"
 #include "document/logical_line_range.h"
+#include "types.h"
 
 #if defined(CONTRACT_EXCEPTIONS)
 inline constexpr bool kDocumentContractExceptionsEnabled = true;
@@ -14,15 +18,10 @@ inline constexpr bool kDocumentContractExceptionsEnabled = false;
 
 class DocumentView;
 
-// Ethos: Narrow, deep interfaces. The Document class is a narrow interface that
-// provides a deep abstraction over the underlying data structures (GapBuffer
-// and LineStarts). It exposes only the necessary operations for manipulating
-// the document, while encapsulating the complexity of the underlying data
-// structures. This design promotes separation of concerns, making it easier to
-// maintain and extend the codebase.
+// Byte edits and document views over privately owned inline storage.
 class Document {
  public:
-  using LineNumber = LineStarts::LineNumber;
+  using LineNumber = unplugged::document::LineNumber;
   static_assert(static_cast<std::uintmax_t>(kMaxDocumentBytes) + 1 <=
                 std::numeric_limits<LineNumber>::max());
 
@@ -48,11 +47,10 @@ class Document {
   [[nodiscard]] Byte At(ByteIndex pos) const
       noexcept(!kDocumentContractExceptionsEnabled);
   [[nodiscard]] size_t NumLines() const noexcept;
-  [[nodiscard]] ByteIndex StartOfLine(LineStarts::LineNumber line_number) const
+  [[nodiscard]] ByteIndex StartOfLine(LineNumber line_number) const
       noexcept(!kDocumentContractExceptionsEnabled);
-  [[nodiscard]] bool IsValidLineNumber(
-      LineStarts::LineNumber line_number) const noexcept;
-  [[nodiscard]] LineStarts::LineNumber LineFromPos(ByteIndex pos) const
+  [[nodiscard]] bool IsValidLineNumber(LineNumber line_number) const noexcept;
+  [[nodiscard]] LineNumber LineFromPos(ByteIndex pos) const
       noexcept(!kDocumentContractExceptionsEnabled);
 
   // Byte-based views.
@@ -66,6 +64,6 @@ class Document {
       noexcept(!kDocumentContractExceptionsEnabled);
 
  private:
-  GapBuffer buffer_{};
-  LineStarts line_starts_{};
+  unplugged::document_detail::GapBuffer buffer_{};
+  unplugged::document_detail::LineStarts line_starts_{};
 };

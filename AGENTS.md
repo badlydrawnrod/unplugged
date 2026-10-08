@@ -168,9 +168,15 @@ and their tests live in
 its own `:api` target with package-private implementation targets. The document
 package consumes both APIs; the root file loader also consumes the gap buffer.
 Each storage package exposes `:test_api` with the shared debug throwing-contract
-configuration. Shared types and contract machinery remain in the transitional
-root `//:storage_support` and `//:storage_support_test` targets. Tests are kept
-beside the code as `*_tests.cpp`.
+configuration from `//:contract_test_mode`. Unsupported concrete storage
+declarations live in `document/detail/` so the document keeps inline ownership
+without including internal storage API headers. Private layout targets serve
+only the document and their owning storage implementations. Logical-line
+ordinals are owned by `document/line_number.h`. Invariant diagnostic types live
+behind `//contracts:api`; checks remain in `contracts/impl/checks.h` behind a
+restricted implementation target. Shared byte types and size-limit helpers
+have separate root targets `//:document_types` and `//:size_limits`. Tests are
+kept beside the code as `*_tests.cpp`.
 `old_20260924/` contains archived experiments;
 do not add new production code there. Bazel dependencies are declared in
 `MODULE.bazel`.

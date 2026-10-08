@@ -1,0 +1,24 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_library(
+    name = "api",
+    hdrs = ["invariant_result.h"],
+    visibility = ["//document:__pkg__"],
+)
+
+# Contract checks are implementation machinery, never included by API headers.
+cc_library(
+    name = "checks",
+    hdrs = ["impl/checks.h"],
+    visibility = [
+        "//document:__pkg__",
+        "//document/internal/gap_buffer:__pkg__",
+        "//document/internal/line_starts:__pkg__",
+    ],
+    deps = [
+        ":api",
+        "@gsl//:gsl",
+    ],
+)

@@ -3,11 +3,14 @@
 #include <algorithm>
 #include <limits>
 
+#include "contracts/impl/checks.h"
 #include "internal/size_limits.h"
 
 using unplugged::internal::CheckedAdd;
 using unplugged::internal::CheckedByteCount;
 using unplugged::internal::CheckedByteGrowth;
+
+namespace unplugged::document_detail {
 
 [[nodiscard]] unplugged::dbc::InvariantResult LineStarts::check_invariants()
     const {
@@ -116,3 +119,5 @@ void LineStarts::UpdateOnDelete(ByteIndex pos, ByteCount count) {
     *it -= count;
   }
 }
+
+}  // namespace unplugged::document_detail

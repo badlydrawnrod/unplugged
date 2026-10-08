@@ -4,7 +4,7 @@
 
 #include "document/document.h"
 #include "document/document_view.h"
-#include "dsl.h"
+#include "contracts/impl/checks.h"
 
 namespace {
 constexpr WrappedRowRange::RowIndex ComputeRowCount(ByteCount content_count,

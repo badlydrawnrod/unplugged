@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <stdexcept>
+#include <string>
+
 #include "document/document.h"
 #include "document/document_view.h"
-#include "dsl.h"
 
 #ifdef CONTRACT_EXCEPTIONS
 template <typename F>

@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <stdexcept>
+#include <string>
+
 #include <limits>
 #include <vector>
 
 #include "document/document.h"
 #include "document/document_view.h"
-#include "dsl.h"
 #include "document/wrapped_row_range.h"
 
 #ifdef CONTRACT_EXCEPTIONS

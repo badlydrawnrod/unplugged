@@ -19,9 +19,32 @@ DOCUMENT_SRCS = [
 DOCUMENT_HDRS = [
     "document.h",
     "document_view.h",
+    "line_number.h",
     "logical_line_range.h",
     "wrapped_row_range.h",
 ]
+
+# Complete member declarations keep storage inline without exposing the
+# supported internal storage APIs. Only owning implementations depend here.
+cc_library(
+    name = "gap_buffer_layout",
+    hdrs = ["detail/gap_buffer.h"],
+    visibility = ["//document/internal/gap_buffer:__pkg__"],
+    deps = [
+        "//:document_types",
+        "//contracts:api",
+    ],
+)
+
+cc_library(
+    name = "line_starts_layout",
+    hdrs = ["detail/line_starts.h"],
+    visibility = ["//document/internal/line_starts:__pkg__"],
+    deps = [
+        "//:document_types",
+        "//contracts:api",
+    ],
+)
 
 cc_library(
     name = "api",
@@ -33,14 +56,18 @@ cc_library(
         "//editor_core:__pkg__",
     ],
     deps = [
-        "//:storage_support",
+        ":gap_buffer_layout",
+        ":line_starts_layout",
+        "//:document_types",
+        "//:size_limits",
+        "//contracts:checks",
         "//document/internal/gap_buffer:api",
         "//document/internal/line_starts:api",
     ],
 )
 
 # Supported API with the existing debug-only throwing contract policy. The
-# shared support dependency propagates that policy through all translation units.
+# shared policy target propagates it through all translation units.
 cc_library(
     name = "test_api",
     testonly = True,
@@ -49,7 +76,12 @@ cc_library(
     copts = COMMON_COPTS,
     visibility = ["//:__pkg__"],
     deps = [
-        "//:storage_support_test",
+        ":gap_buffer_layout",
+        ":line_starts_layout",
+        "//:contract_test_mode",
+        "//:document_types",
+        "//:size_limits",
+        "//contracts:checks",
         "//document/internal/gap_buffer:test_api",
         "//document/internal/line_starts:test_api",
     ],
@@ -60,7 +92,10 @@ TEST_COPTS = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"]
 
 cc_test(
     name = "document_tests",
-    srcs = ["document_tests.cpp"],
+    srcs = [
+        "document_tests.cpp",
+        "public_headers_compile_test.cpp",
+    ],
     copts = TEST_COPTS,
     deps = [
         ":test_api",

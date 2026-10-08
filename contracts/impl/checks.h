@@ -5,23 +5,17 @@
 #include <exception>
 #include <format>
 #include <gsl/gsl>
+
 #include <iostream>
-#include <optional>
 #include <source_location>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
 
+#include "contracts/invariant_result.h"
+
 namespace unplugged::dbc {
-struct InvariantViolation {
-  const char *expression;
-  std::string details;
-  std::source_location invariant_location;
-};
-
-using InvariantResult = std::optional<InvariantViolation>;
-
 namespace detail {
 enum class FailureKind {
   Assertion,

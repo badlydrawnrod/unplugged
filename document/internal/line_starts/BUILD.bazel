@@ -15,7 +15,11 @@ cc_library(
     srcs = ["line_starts.cpp"],
     hdrs = ["line_starts.h"],
     copts = COMMON_COPTS,
-    deps = ["//:storage_support"],
+    deps = [
+        "//:size_limits",
+        "//contracts:checks",
+        "//document:line_starts_layout",
+    ],
 )
 
 alias(
@@ -33,7 +37,12 @@ cc_library(
     srcs = ["line_starts.cpp"],
     hdrs = ["line_starts.h"],
     copts = COMMON_COPTS,
-    deps = ["//:storage_support_test"],
+    deps = [
+        "//:contract_test_mode",
+        "//:size_limits",
+        "//contracts:checks",
+        "//document:line_starts_layout",
+    ],
 )
 
 alias(

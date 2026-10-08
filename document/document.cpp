@@ -2,7 +2,10 @@
 
 #include <type_traits>
 
+#include "contracts/impl/checks.h"
 #include "document/document_view.h"
+#include "document/internal/gap_buffer/gap_buffer.h"
+#include "document/internal/line_starts/line_starts.h"
 #include "internal/size_limits.h"
 #include "document/logical_line_range.h"
 
@@ -84,17 +87,17 @@ Byte Document::At(ByteIndex pos) const
 
 size_t Document::NumLines() const noexcept { return line_starts_.NumLines(); }
 
-ByteIndex Document::StartOfLine(LineStarts::LineNumber line_number) const
+ByteIndex Document::StartOfLine(Document::LineNumber line_number) const
     noexcept(!kDocumentContractExceptionsEnabled) {
   return line_starts_.StartOfLine(line_number);
 }
 
 bool Document::IsValidLineNumber(
-    LineStarts::LineNumber line_number) const noexcept {
+    Document::LineNumber line_number) const noexcept {
   return line_starts_.IsValidLineNumber(line_number);
 }
 
-LineStarts::LineNumber Document::LineFromPos(ByteIndex pos) const
+Document::LineNumber Document::LineFromPos(ByteIndex pos) const
     noexcept(!kDocumentContractExceptionsEnabled) {
   return line_starts_.LineFromPos(pos);
 }

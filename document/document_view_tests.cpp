@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "document/document_view.h"
-#include "dsl.h"
 
 TEST(DocumentViewTest, FullViewIteratesInLogicalOrder) {
   Document doc{std::vector<Byte>{'a', 'b', '\n', 'c', 'd'}};

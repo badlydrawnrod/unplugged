@@ -15,7 +15,11 @@ cc_library(
     srcs = ["gap_buffer.cpp"],
     hdrs = ["gap_buffer.h"],
     copts = COMMON_COPTS,
-    deps = ["//:storage_support"],
+    deps = [
+        "//:size_limits",
+        "//contracts:checks",
+        "//document:gap_buffer_layout",
+    ],
 )
 
 alias(
@@ -34,7 +38,12 @@ cc_library(
     srcs = ["gap_buffer.cpp"],
     hdrs = ["gap_buffer.h"],
     copts = COMMON_COPTS,
-    deps = ["//:storage_support_test"],
+    deps = [
+        "//:contract_test_mode",
+        "//:size_limits",
+        "//contracts:checks",
+        "//document:gap_buffer_layout",
+    ],
 )
 
 alias(

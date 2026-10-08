@@ -1,8 +1,8 @@
 # Align with engineering guidance
 
 Status: in progress; parts 1–4 are implemented and verified. Part 5 has
-started: document/editor and internal storage API targets are established;
-separating document API headers from storage and contract machinery is next.
+started: document/editor and internal storage APIs are established, with
+public headers separated from internal APIs and contract-check machinery.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -139,18 +139,26 @@ TEST(...) {
   implementation targets. Production line-index access is document-only; gap
   buffer access also permits the root file loader. Tests moved beside storage
   and depend on supported `:test_api` variants.
-- [ ] Separate supported API headers from implementation headers. The
-  document API still transitively exports storage primitives and contract
-  machinery through the storage API targets and transitional shared support.
-- [ ] Make boundary tests depend on the supported component target and
-  storage tests on their supported subcomponent targets. Reserve direct
-  implementation dependencies for tests of implementation properties.
-- [ ] Replace `LineStarts::LineNumber` in document and logical-line public
-  contracts with an appropriately owned document-domain type.
+- [x] Separate supported API headers from implementation headers. Document
+  headers use unsupported concrete declarations in `document/detail/` for
+  inline ownership, without exposing the internal storage API aliases.
+  Storage API headers remain at their subcomponent roots. Contract checks
+  moved to `contracts/impl/checks.h`; only invariant diagnostic types appear
+  in supported headers. Compile-time boundary checks reject exported storage
+  API aliases or contract macros and preserve document copy/move guarantees.
+- [x] Make boundary tests depend on the supported component target and
+  storage tests on their supported subcomponent targets. Document boundary
+  tests use `:test_api`, storage tests use their matching `:test_api` aliases,
+  and no behavioral test depends on layout or contract-check implementations.
+  The mixed allocation-failure suite explicitly uses all three supported APIs.
+  Size-limit implementation tests use their focused helper target.
+- [x] Replace `LineStarts::LineNumber` in document and logical-line public
+  contracts with an appropriately owned document-domain type. Both alias
+  `unplugged::document::LineNumber`, owned by `document/line_number.h`.
 - [ ] Keep implementation helpers local; review helpers such as
   `FindLineStarts` for unnecessary external linkage.
 - [x] Preserve the existing contract-test configuration coherently across
-  translation units while splitting targets. `//:storage_support_test`
+  translation units while splitting targets. `//:contract_test_mode`
   propagates the debug throwing-contract policy to both storage test APIs,
   document implementation, and their consumers.
 
@@ -206,22 +214,28 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: separate supported document headers from storage representation and
-contract machinery. The root storage aggregate has been removed. Shared types,
-contracts, and size-limit helpers remain in transitional `//:storage_support`
-and `//:storage_support_test` targets. Document and loader consumers use storage
-`:api` aliases; storage implementations are package-private. Bazel visibility
-is package-granular, so root access accommodates the existing loader and mixed
-allocation-failure suite. The latter explicitly depends on both storage test
-APIs and `//document:test_api` until storage failure tests are separated.
-Document boundary tests continue to use the same supported document headers.
+Next: keep implementation helpers local, including `FindLineStarts`, then
+proceed to naming and mechanical checks in part 6. Supported document headers
+now include only supported diagnostic/domain types and unsupported `detail/`
+representation declarations. The detail declarations preserve inline storage
+and the existing copy/move behavior, without adding allocation or indirection.
+Internal storage APIs expose aliases to those concrete types for their own
+consumers; document public contracts do not expose the aliases.
 
-Storage sources and tests moved with only include-path changes. This increment
-passed eight focused suites, all seventeen suites in default and debug
-configurations, and `bazel build //:editor`. Visibility queries confirmed that
-document consumers see only the supported storage aliases and editor-core
-consumers cannot directly access storage. Scenario bindings and
-`git diff --check` also passed. No editor or terminal behavior changed.
+The transitional support aggregate is gone. `//:document_types`,
+`//:size_limits`, `//contracts:api`, and the restricted `//contracts:checks`
+express separate responsibilities. `//:contract_test_mode` consistently
+propagates debug throwing contracts across document/storage test implementations
+and their consumers. The mixed allocation-failure suite remains in the root,
+using supported document and storage test APIs. API tests no longer include
+contract-check machinery.
+
+This increment passed nine focused suites, all seventeen suites in default and
+debug configurations, and `bazel build //:editor`. Compile-time boundary checks
+verify that supported document headers expose neither storage API aliases nor
+contract macros. Header-include and Bazel visibility checks, scenario bindings,
+formatting of new headers, and `git diff --check` also passed. No document,
+editor, or terminal behavior changed.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte

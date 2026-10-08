@@ -4,14 +4,14 @@
 #include <cstdint>
 #include <iterator>
 
-#include "document/internal/line_starts/line_starts.h"
+#include "document/line_number.h"
 
 class Document;
 class DocumentView;
 
 class LogicalLineRange {
  public:
-  using LineNumber = LineStarts::LineNumber;
+  using LineNumber = unplugged::document::LineNumber;
   using LineCount = uint32_t;
 
   class iterator {
