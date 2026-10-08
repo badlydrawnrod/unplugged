@@ -12,12 +12,10 @@ The current
 application has one window with fixed dimensions; multi-window ownership,
 resize handling, and inactive-width LRU eviction are proposed future behavior.
 
-This proposal overlaps with
-[the engineering alignment plan](align-with-engineering-guidance.md), which
-extracts a testable editor component and establishes component boundaries.
-The extracted editor boundary is `//editor_core:api`; layout helpers remain
+The editor boundary is `//editor_core:api`; layout helpers remain
 private to the editor and the document model has no presentation dependency.
-Coordinate the cache API with that work. Sharing layout per document does not
+Preserve the component boundaries described in [AGENTS.md](../AGENTS.md) when
+designing the cache API. Sharing layout per document does not
 necessarily require placing presentation-specific cache machinery inside the
 `Document` storage model; choose ownership and dependency direction explicitly.
 Use document identity rather than a filename alone to identify shared state.

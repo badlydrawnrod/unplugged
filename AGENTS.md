@@ -190,6 +190,7 @@ the pinned Bazel version from `.bazelversion`; dependencies are declared in
 ```sh
 bazel build //:editor
 bazel test //...
+bazel test -c dbg //...
 bazel run //:editor -- [file]
 python3 tools/check_format.py
 ```
@@ -225,6 +226,22 @@ on the corresponding module. Run `bazel test //...`; no coverage threshold is
 configured. Test targets relax only the
 `sign-compare` error for GCC 15 diagnostics emitted by GoogleTest assertion
 templates.
+
+Bind persisted acceptance scenarios with GoogleTest through the owning
+component's supported API. Place these annotations immediately above each
+binding, including parameterized tests:
+
+```cpp
+// Feature: <repo-relative-path-to-feature-file>
+// Scenario: <exact scenario title>
+TEST(...) {
+  ...
+}
+```
+
+Allocation-failure tests should discover allocation points without asserting
+their number or order, and verify unchanged observable state and subsequent
+successful editing.
 
 ## Commits & Pull Requests
 
