@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1 and 2 and the first two items of part 3 are implemented
-and verified.
+Status: in progress; parts 1 and 2 are implemented and verified. Part 3 now
+only needs replacement of the legacy input-protocol probe.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -90,10 +90,10 @@ Relevant files: `document.{h,cpp}`, `line_starts.{h,cpp}`, `gap_buffer.{h,cpp}`,
   input-protocol behavior can be tested with deterministic byte streams.
 - [x] Replace global saved terminal state and `atexit` handling in
   `raw_mode.cpp` with scoped terminal ownership and restoration.
-- [ ] Check terminal system-call failures and define their handling.
+- [x] Check terminal system-call failures and define their handling.
 - [ ] Separate input-protocol negotiation from raw-mode setup; remove the
   existing probe/debug-output hack as part of implementing that boundary.
-- [ ] Make terminal output testable through a suitably small adapter where
+- [x] Make terminal output testable through a suitably small adapter where
   needed to verify rendering behavior.
 
 Avoid introducing a general plugin or dependency-injection framework.
@@ -432,9 +432,70 @@ system-call failure; the application reported the error with status 1 and the
 destructor retry restored the terminal attributes before error handling. A
 nonterminal startup smoke test confirmed status 1 and a diagnostic with no
 protocol or screen output. Formatting checks, scenario bindings, and
-`git diff --check` passed. This increment remains uncommitted for user review.
+`git diff --check` passed. This increment was committed as `02eb6f4` after
+user approval.
 
-Continue with remaining terminal system-call failure handling, the third item
+The third item of part 3 is complete. `//terminal_io:api` centralizes checked
+POSIX reads, writes, endpoint classification, and hangup polling. Read/write/poll
+and isatty interruptions retry; other failures propagate as `std::system_error`
+with the operation and original error code. Nonterminal classification (`ENOTTY`)
+is an expected result. Poll invalid-descriptor/endpoint errors are reported;
+hangup is EOF. Writes handle partial progress and reject zero progress with an
+I/O error. Syscall counts are capped to the signed count range before passing
+them to POSIX. The application's error handler reports failures with status 1
+after resource cleanup. Diagnostics use the checked output adapter best effort;
+a broken stderr pipe cannot bypass cleanup or change the status to SIGPIPE
+termination.
+
+`//:read_key` now returns `KeyReadResult`, a discriminated Key/NoKey/EOF result,
+with an overload for a borrowed descriptor and the usual stdin overload.
+Timeouts and unsupported sequences are NoKey; EOF is explicit even during an
+incomplete sequence or terminal hangup. Acquisition failures throw instead of
+being flattened into NoKey. The application no longer polls isatty to decide
+whether to keep looping, preventing input failures from becoming busy loops.
+Pure protocol decoding and its existing mappings remain unchanged.
+
+`//:terminal_output` exposes a buffered `terminal::Output` adapter. Rendering
+bytes remain unchanged, but flush now checks writes and discards submitted bytes
+on failure to prevent replay of partially emitted frames during cleanup. The
+adapter owns scoped process-wide SIGPIPE suppression so a broken pipe becomes
+an EPIPE exception rather than bypassing raw-mode restoration. Output scopes must
+nest in LIFO order. Checked signal restoration flushes pending output, ends the
+session, and is idempotent; further output requests throw `std::logic_error`.
+Acquisition/restoration errors propagate, while destruction restores signals
+best effort and never flushes or throws. The application restores raw settings
+before explicitly restoring signal handling on normal shutdown.
+
+The legacy probe now uses checked I/O and the same output adapter. Normal
+protocol reset failures propagate; cleanup during unwinding catches reset errors
+to preserve the primary failure and permit raw-mode restoration. Its parsing and
+debug-output hack remain for the next item. No general I/O framework was added.
+The output adapter and deterministic command-byte tests also complete the last
+item of part 3; frame content and cursor placement are already covered through
+the editor API.
+
+Six input tests use real pipes/PTYs, including zero-read timeout without sleeping
+and terminal hangup. Eight output tests cover command ordering, binary text,
+flush lifecycle, broken pipes, and signal ownership/error handling. Ten focused
+POSIX implementation tests inject syscall outcomes using isolated linker wrappers
+and static test linkage. They verify delivered bytes and error results through
+`:api`, not private structure or incidental call counts. No production test hooks
+were added. Shared pipe/PTY ownership lives in a test-only helper; existing
+raw-mode tests still use their supported library API. Six significant input and
+output scenarios are persisted in `features/terminal_{input,output}.feature`
+and uniquely bound in their test suites.
+
+Validation for checked I/O: all sixteen suites passed in default and debug
+builds. The three new suites also passed with optimized libraries, and the editor
+built. PTY application smoke tests covered normal rendering/editing/exit,
+injected read failure, and a broken stdout pipe; failures reported status 1 and
+restored terminal settings, with no SIGPIPE termination. A shared broken
+stdout/stderr pipe also returned status 1 with attributes restored. The earlier injected
+termios restoration failure smoke still passed. Formatting, scenario bindings
+(including existing raw-mode scenarios), and `git diff --check` passed. This
+increment was committed after user approval.
+
+Continue with replacement of the legacy input-protocol probe, the fourth item
 of part 3.
 Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).

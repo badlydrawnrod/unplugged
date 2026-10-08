@@ -4,8 +4,8 @@
 
 #include <exception>
 #include <gsl/gsl>
-#include <iostream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -23,7 +23,8 @@ struct RenderCache {
   bool has_last_drawn_rows = false;
 };
 
-void Draw(const unplugged::EditorFrame& frame, RenderCache& cache) {
+void Draw(terminal::Output& output, const unplugged::EditorFrame& frame,
+          RenderCache& cache) {
   std::vector<std::string> next_rows;
   next_rows.reserve(frame.rows.size());
 
@@ -32,24 +33,39 @@ void Draw(const unplugged::EditorFrame& frame, RenderCache& cache) {
 
     if (!cache.has_last_drawn_rows || row >= cache.last_drawn_rows.size() ||
         next_rows[row] != cache.last_drawn_rows[row]) {
-      terminal::MoveTo(row + 1, 1);
-      terminal::PutString(next_rows[row]);
-      terminal::ClearToEol();
+      output.MoveTo(row + 1, 1);
+      output.PutString(next_rows[row]);
+      output.ClearToEol();
     }
   }
 
   cache.last_drawn_rows = std::move(next_rows);
   cache.has_last_drawn_rows = true;
 
-  terminal::MoveTo(frame.cursor_row, frame.cursor_column);
-  terminal::Flush();
+  output.MoveTo(frame.cursor_row, frame.cursor_column);
+  output.Flush();
+}
+
+void Report(std::string_view prefix, std::string_view detail,
+            std::string_view suffix) noexcept {
+  try {
+    terminal::Output diagnostic(STDERR_FILENO);
+    diagnostic.PutString(prefix);
+    diagnostic.PutString(detail);
+    diagnostic.PutString(suffix);
+    diagnostic.Flush();
+    diagnostic.RestoreSignal();
+  } catch (...) {
+    // Diagnostics are best effort; reporting failure must not change exit
+    // status.
+  }
 }
 
 }  // namespace
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <filename>\n";
+    Report("Usage: ", argv[0], " <filename>\n");
     return 1;
   }
 
@@ -57,33 +73,42 @@ int main(int argc, char* argv[]) {
     unplugged::Editor editor(Document{gap_loader::Load(argv[1])});
     RenderCache render_cache;
     const auto frame = editor.CreateFrame();
+    terminal::Output output(STDOUT_FILENO);
     terminal::RawMode raw_mode(STDIN_FILENO);
     {
-      const auto protocol_cleanup = gsl::finally(DisableInputProtocol);
-      EnableInputProtocol();
-      terminal::Clear();
-      Draw(frame, render_cache);
+      bool protocol_active = true;
+      const auto protocol_cleanup = gsl::finally([&] {
+        if (!protocol_active) return;
+        try {
+          DisableInputProtocol(output);
+        } catch (...) {
+          // Preserve the primary failure and allow raw-mode restoration.
+        }
+      });
+      EnableInputProtocol(output);
+      output.Clear();
+      Draw(output, frame, render_cache);
 
       while (true) {
-        const auto key = ReadKey();
+        const auto input = ReadKey();
+        const auto* key = std::get_if<Key>(&input);
         if (!key) {
-          if (!isatty(STDIN_FILENO)) {
-            break;
-          }
+          if (std::get<KeyReadStatus>(input) == KeyReadStatus::Eof) break;
           continue;
         }
-        if (!editor.HandleKey(*key)) {
-          break;
-        }
-        Draw(editor.CreateFrame(), render_cache);
+        if (!editor.HandleKey(*key)) break;
+        Draw(output, editor.CreateFrame(), render_cache);
       }
 
-      terminal::Clear();
+      output.Clear();
+      DisableInputProtocol(output);
+      protocol_active = false;
     }
     raw_mode.Restore();
+    output.RestoreSignal();
     return 0;
   } catch (const std::exception& error) {
-    std::cerr << "Editor error: " << error.what() << '\n';
+    Report("Editor error: ", error.what(), "\n");
     return 1;
   }
 }

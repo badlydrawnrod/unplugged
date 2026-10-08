@@ -8,6 +8,7 @@
 #include <system_error>
 #include <type_traits>
 
+#include "internal/test_support/posix_endpoints.h"
 #include "raw_mode.h"
 
 namespace {
@@ -19,40 +20,7 @@ static_assert(!std::is_move_constructible_v<terminal::RawMode>);
 static_assert(!std::is_move_assignable_v<terminal::RawMode>);
 static_assert(std::is_nothrow_destructible_v<terminal::RawMode>);
 
-// Each test owns an isolated PTY; no process stdin or user terminal is changed.
-class PseudoTerminal {
- public:
-  PseudoTerminal() {
-    master_ = posix_openpt(O_RDWR | O_NOCTTY);
-    if (master_ < 0) Fail();
-    if (grantpt(master_) < 0 || unlockpt(master_) < 0) Fail();
-    const char* name = ptsname(master_);
-    if (!name) Fail();
-    slave_ = open(name, O_RDWR | O_NOCTTY);
-    if (slave_ < 0) Fail();
-  }
-  ~PseudoTerminal() {
-    if (slave_ >= 0) close(slave_);
-    if (master_ >= 0) close(master_);
-  }
-  PseudoTerminal(const PseudoTerminal&) = delete;
-  PseudoTerminal& operator=(const PseudoTerminal&) = delete;
-
-  int Slave() const { return slave_; }
-  void Disconnect() {
-    close(master_);
-    master_ = -1;
-  }
-
- private:
-  [[noreturn]] void Fail() {
-    const int error = errno;
-    if (master_ >= 0) close(master_);
-    throw std::system_error(error, std::generic_category(), "create PTY");
-  }
-  int master_ = -1;
-  int slave_ = -1;
-};
+using unplugged::test_support::PseudoTerminal;
 
 termios Attributes(int fd) {
   termios attributes{};

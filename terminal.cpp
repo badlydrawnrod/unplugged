@@ -1,37 +1,68 @@
 #include "terminal.h"
 
+#include <cerrno>
 #include <format>
-#include <iostream>
+#include <stdexcept>
+#include <system_error>
+
+#include "terminal_io/io.h"
 
 namespace terminal {
 
-void Clear() {
-  // Clear the screen.
-  std::cout << "\x1b[2J";
-
-  // Move to top left.
-  std::cout << "\x1b[1;1H";
-  std::flush(std::cout);
+Output::Output(int fd) : fd_(fd) {
+  struct sigaction ignored{};
+  ignored.sa_handler = SIG_IGN;
+  if (sigemptyset(&ignored.sa_mask) < 0 ||
+      sigaction(SIGPIPE, &ignored, &saved_sigpipe_) < 0) {
+    throw std::system_error(errno, std::generic_category(), "suppress SIGPIPE");
+  }
+  signal_active_ = true;
 }
 
-void ClearToEol() {
-  // Clear to the end of the line.
-  std::cout << "\x1b[0K";
+Output::~Output() noexcept {
+  if (signal_active_) sigaction(SIGPIPE, &saved_sigpipe_, nullptr);
 }
 
-void MoveToStartOfNextLine() {
-  // Cursor to beginning of next line.
-  std::cout << "\x1b[E";
+void Output::RestoreSignal() {
+  if (!signal_active_) return;
+  Flush();
+  if (sigaction(SIGPIPE, &saved_sigpipe_, nullptr) < 0) {
+    throw std::system_error(errno, std::generic_category(), "restore SIGPIPE");
+  }
+  signal_active_ = false;
 }
 
-void MoveTo(size_t row, size_t column) {
-  // Cursor to row, column (both are 1-based).
-  std::cout << std::format("\x1b[{};{}H", row, column);
+void Output::Clear() {
+  PutString("\x1b[2J\x1b[1;1H");
+  Flush();
+}
+void Output::ClearToEol() { PutString("\x1b[0K"); }
+void Output::MoveToStartOfNextLine() { PutString("\x1b[E"); }
+void Output::MoveTo(size_t row, size_t column) {
+  PutString(std::format("\x1b[{};{}H", row, column));
+}
+void Output::CheckActive() const {
+  if (!signal_active_)
+    throw std::logic_error("terminal output session has ended");
+}
+void Output::PutChar(char c) {
+  CheckActive();
+  pending_.push_back(c);
+}
+void Output::PutString(std::string_view text) {
+  CheckActive();
+  pending_.append(text);
+}
+void Output::Flush() {
+  if (pending_.empty()) return;
+  CheckActive();
+  try {
+    io::WriteAll(fd_, pending_);
+  } catch (...) {
+    pending_.clear();
+    throw;
+  }
+  pending_.clear();
 }
 
-void PutChar(char c) { std::cout << c; }
-
-void PutString(std::string_view sv) { std::cout << sv; }
-
-void Flush() { std::flush(std::cout); }
 }  // namespace terminal

@@ -155,7 +155,10 @@ frame snapshots live behind `//editor_core:api` in
 to its byte-source interface. Both packages contain API tests and acceptance
 scenarios. `terminal::RawMode` in `raw_mode.{h,cpp}` owns scoped terminal settings
 behind `//:raw_mode`; its tests use isolated PTYs. The legacy keyboard-protocol
-probe lives separately in `input_protocol.{h,cpp}`. Document and editing primitives live in root-level pairs such as
+probe lives separately in `input_protocol.{h,cpp}`. Checked descriptor I/O lives
+behind `//terminal_io:api`; `//:read_key` exposes key/NoKey/EOF results, and
+`//:terminal_output` exposes buffered rendering with checked writes and scoped
+SIGPIPE handling. Document and editing primitives live in root-level pairs such as
 `document.{h,cpp}`, `gap_buffer.{h,cpp}`, and `line_starts.{h,cpp}`. Tests are kept
 beside the code as `*_tests.cpp`. `old_20260924/` contains archived experiments;
 do not add new production code there. Bazel dependencies are declared in
@@ -177,7 +180,9 @@ Run one test target with `bazel test //:gap_buffer_tests` (or another
 `*_tests` target). Run editor API tests with
 `bazel test //editor_core:editor_tests`, and decoder API tests with
 `bazel test //key_decoder:decoder_tests`. Run terminal lifetime tests with
-`bazel test //:raw_mode_tests`. The project uses C++23, GoogleTest,
+`bazel test //:raw_mode_tests`. Run input/output adapter tests with
+`bazel test //:read_key_tests //:terminal_tests`, and focused syscall implementation
+tests with `bazel test //terminal_io:syscall_tests`. The project uses C++23, GoogleTest,
 and Microsoft GSL; the editor relies on POSIX terminal APIs.
 
 ## Coding Style & File Conventions

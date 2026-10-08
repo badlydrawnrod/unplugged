@@ -82,6 +82,12 @@ cc_test(
 )
 
 cc_library(
+    name = "posix_test_endpoints",
+    testonly = True,
+    hdrs = ["internal/test_support/posix_endpoints.h"],
+)
+
+cc_library(
     name = "raw_mode",
     srcs = ["raw_mode.cpp"],
     hdrs = ["raw_mode.h"],
@@ -94,6 +100,51 @@ cc_test(
     copts = COMMON_COPTS + ["-UNDEBUG"],
     deps = [
         ":raw_mode",
+        ":posix_test_endpoints",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "read_key",
+    srcs = ["read_key.cpp"],
+    hdrs = ["read_key.h"],
+    copts = COMMON_COPTS,
+    deps = [
+        ":key",
+        "//key_decoder:api",
+        "//terminal_io:api",
+    ],
+)
+
+cc_library(
+    name = "terminal_output",
+    srcs = ["terminal.cpp"],
+    hdrs = ["terminal.h"],
+    copts = COMMON_COPTS,
+    deps = ["//terminal_io:api"],
+)
+
+cc_test(
+    name = "read_key_tests",
+    srcs = ["read_key_tests.cpp"],
+    copts = COMMON_COPTS + ["-UNDEBUG"],
+    deps = [
+        ":posix_test_endpoints",
+        ":read_key",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "terminal_tests",
+    linkstatic = True,
+    linkopts = ["-Wl,--wrap=sigaction"],
+    srcs = ["terminal_tests.cpp"],
+    copts = COMMON_COPTS + ["-UNDEBUG"],
+    deps = [
+        ":posix_test_endpoints",
+        ":terminal_output",
         "@googletest//:gtest_main",
     ],
 )
@@ -103,20 +154,16 @@ cc_library(
     srcs = [
         "gap_loader.cpp",
         "input_protocol.cpp",
-        "read_key.cpp",
-        "terminal.cpp",
     ],
     hdrs = [
         "gap_loader.h",
         "input_protocol.h",
-        "read_key.h",
-        "terminal.h",
     ],
     copts = COMMON_COPTS,
     deps = [
         ":document_model",
-        ":key",
-        "//key_decoder:api",
+        ":terminal_output",
+        "//terminal_io:api",
         "@gsl//:gsl",
     ],
 )
@@ -129,6 +176,8 @@ cc_binary(
         ":document_model",
         ":editor_support",
         ":raw_mode",
+        ":read_key",
+        ":terminal_output",
         "//editor_core:api",
         "@gsl//:gsl",
     ],
