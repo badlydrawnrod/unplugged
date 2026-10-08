@@ -57,16 +57,16 @@ void GapBuffer::MoveGapTo(ByteIndex pos) noexcept(
   if (pos == left_) {
     return;
   }
-  const ByteCount gapSize = GapSize();
+  const ByteCount gap_size = GapSize();
   if (pos < left_) {
     std::copy_backward(data_.begin() + pos, data_.begin() + left_,
-                       data_.begin() + left_ + gapSize);
+                       data_.begin() + left_ + gap_size);
   } else {
-    std::copy(data_.begin() + right_, data_.begin() + pos + gapSize,
+    std::copy(data_.begin() + right_, data_.begin() + pos + gap_size,
               data_.begin() + left_);
   }
   left_ = pos;
-  right_ = pos + gapSize;
+  right_ = pos + gap_size;
 }
 
 void GapBuffer::GrowGap(ByteCount needed) {
@@ -148,21 +148,21 @@ ByteIndex GapBuffer::AppendRange(ByteIndex start, ByteCount count,
   DBC_GUARD_CLASS_INVARIANTS();
 
   const ByteCount copied = std::min(count, Len() - start);
-  const ByteIndex logicalEnd = start + copied;
+  const ByteIndex logical_end = start + copied;
   out.reserve(CheckedAdd(out.size(), copied, out.max_size()));
 
   ByteIndex pos = start;
   if (pos < left_) {
-    const ByteIndex leftEnd = std::min(logicalEnd, left_);
-    out.insert(out.end(), data_.begin() + pos, data_.begin() + leftEnd);
-    pos = leftEnd;
+    const ByteIndex left_end = std::min(logical_end, left_);
+    out.insert(out.end(), data_.begin() + pos, data_.begin() + left_end);
+    pos = left_end;
   }
 
-  if (pos < logicalEnd) {
-    const ByteIndex physicalStart = pos + GapSize();
-    const ByteIndex physicalEnd = physicalStart + (logicalEnd - pos);
-    out.insert(out.end(), data_.begin() + physicalStart,
-               data_.begin() + physicalEnd);
+  if (pos < logical_end) {
+    const ByteIndex physical_start = pos + GapSize();
+    const ByteIndex physical_end = physical_start + (logical_end - pos);
+    out.insert(out.end(), data_.begin() + physical_start,
+               data_.begin() + physical_end);
   }
 
   return copied;

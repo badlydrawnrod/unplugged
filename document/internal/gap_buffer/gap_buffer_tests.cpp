@@ -125,27 +125,27 @@ struct Op {
   return fallback;
 }
 
-[[maybe_unused]] Op GenerateRandomOp(std::mt19937_64 &rng, ByteIndex maxValue) {
-  std::uniform_int_distribution<int> typeDist(0, 2);
-  const OpType type = static_cast<OpType>(typeDist(rng));
+[[maybe_unused]] Op GenerateRandomOp(std::mt19937_64 &rng, ByteIndex max_value) {
+  std::uniform_int_distribution<int> type_dist(0, 2);
+  const OpType type = static_cast<OpType>(type_dist(rng));
 
-  std::uniform_int_distribution<ByteIndex> posDist(0, maxValue);
-  Op op{.type = type, .a = posDist(rng)};
+  std::uniform_int_distribution<ByteIndex> pos_dist(0, max_value);
+  Op op{.type = type, .a = pos_dist(rng)};
   switch (type) {
     case OpType::InsertString: {
-      std::uniform_int_distribution<ByteCount> lenDist(0, 32);
-      std::uniform_int_distribution<int> chDist(0, 255);
-      const ByteCount len = lenDist(rng);
+      std::uniform_int_distribution<ByteCount> len_dist(0, 32);
+      std::uniform_int_distribution<int> ch_dist(0, 255);
+      const ByteCount len = len_dist(rng);
       op.str.resize(len);
       for (char &c : op.str) {
-        c = static_cast<char>(chDist(rng));
+        c = static_cast<char>(ch_dist(rng));
       }
       break;
     }
     case OpType::Delete:
     case OpType::CopyRange: {
-      std::uniform_int_distribution<ByteCount> countDist(0, maxValue - op.a);
-      op.b = countDist(rng);
+      std::uniform_int_distribution<ByteCount> count_dist(0, max_value - op.a);
+      op.b = count_dist(rng);
       break;
     }
   }
@@ -156,9 +156,9 @@ struct Op {
 [[maybe_unused]] void CheckAtAgreement(const GapBuffer &actual,
                                        const ReferenceBuffer &expected,
                                        size_t pos) {
-  const auto expectedAt = expected.At(pos);
-  if (expectedAt) {
-    EXPECT_EQ(actual.At(pos), *expectedAt);
+  const auto expected_at = expected.At(pos);
+  if (expected_at) {
+    EXPECT_EQ(actual.At(pos), *expected_at);
   }
 }
 
@@ -288,10 +288,10 @@ TEST(GapBufferTest, GrowthPreservesFullLogicalContent) {
 TEST(GapBufferTest, BulkStringInsertSupportsLargeAndPositionalCases) {
   GapBuffer buffer;
 
-  const std::string longStr(1024, 'x');
-  buffer.Insert(0, AsByteSpan(longStr));
-  EXPECT_EQ(buffer.Len(), longStr.size());
-  EXPECT_EQ(Snapshot(buffer), longStr);
+  const std::string long_str(1024, 'x');
+  buffer.Insert(0, AsByteSpan(long_str));
+  EXPECT_EQ(buffer.Len(), long_str.size());
+  EXPECT_EQ(Snapshot(buffer), long_str);
 
   buffer = GapBuffer{};
   buffer.Insert(0, AsByteSpan("Hello, "));
@@ -300,14 +300,14 @@ TEST(GapBufferTest, BulkStringInsertSupportsLargeAndPositionalCases) {
 }
 
 TEST(GapBufferTest, RandomOperationStreamsStayEquivalentToReferenceModel) {
-  constexpr uint64_t defaultSeed = 424242;
-  constexpr size_t seedsToRun = 12;
-  constexpr size_t opsPerSeed = 500;
+  constexpr uint64_t kDefaultSeed = 424242;
+  constexpr size_t kSeedsToRun = 12;
+  constexpr size_t kOpsPerSeed = 500;
 
-  const uint64_t baseSeed = SeedFromEnvOr(defaultSeed);
+  const uint64_t base_seed = SeedFromEnvOr(kDefaultSeed);
 
-  for (size_t seedOffset = 0; seedOffset < seedsToRun; ++seedOffset) {
-    const uint64_t seed = baseSeed + seedOffset;
+  for (size_t seed_offset = 0; seed_offset < kSeedsToRun; ++seed_offset) {
+    const uint64_t seed = base_seed + seed_offset;
     SCOPED_TRACE("seed=" + std::to_string(seed));
 
     std::mt19937_64 rng(seed);
@@ -316,10 +316,10 @@ TEST(GapBufferTest, RandomOperationStreamsStayEquivalentToReferenceModel) {
 
     CheckEquivalentState(actual, expected);
 
-    for (size_t opIndex = 0; opIndex < opsPerSeed; ++opIndex) {
+    for (size_t op_index = 0; op_index < kOpsPerSeed; ++op_index) {
       const Op op = GenerateRandomOp(rng, expected.Len());
       SCOPED_TRACE("seed=" + std::to_string(seed) + ", op_index=" +
-                   std::to_string(opIndex) + ", op=" + DescribeOp(op));
+                   std::to_string(op_index) + ", op=" + DescribeOp(op));
 
       switch (op.type) {
         case OpType::InsertString:
@@ -331,13 +331,13 @@ TEST(GapBufferTest, RandomOperationStreamsStayEquivalentToReferenceModel) {
           expected.Delete(op.a, op.b);
           break;
         case OpType::CopyRange: {
-          std::vector<Byte> actualOut{'#'};
-          std::vector<Byte> expectedOut{'#'};
-          const size_t actualCopied = actual.AppendRange(op.a, op.b, actualOut);
-          const size_t expectedCopied =
-              expected.CopyRange(op.a, op.b, expectedOut);
-          EXPECT_EQ(actualCopied, expectedCopied);
-          EXPECT_EQ(actualOut, expectedOut);
+          std::vector<Byte> actual_out{'#'};
+          std::vector<Byte> expected_out{'#'};
+          const size_t actual_copied = actual.AppendRange(op.a, op.b, actual_out);
+          const size_t expected_copied =
+              expected.CopyRange(op.a, op.b, expected_out);
+          EXPECT_EQ(actual_copied, expected_copied);
+          EXPECT_EQ(actual_out, expected_out);
           break;
         }
       }
@@ -363,11 +363,11 @@ TEST(GapBufferTest, TargetedStressSequenceRemainsEquivalentToReferenceModel) {
         expected.Delete(op.a, op.b);
         break;
       case OpType::CopyRange: {
-        std::vector<Byte> actualOut{'*'};
-        std::vector<Byte> expectedOut{'*'};
-        EXPECT_EQ(actual.AppendRange(op.a, op.b, actualOut),
-                  expected.CopyRange(op.a, op.b, expectedOut));
-        EXPECT_EQ(actualOut, expectedOut);
+        std::vector<Byte> actual_out{'*'};
+        std::vector<Byte> expected_out{'*'};
+        EXPECT_EQ(actual.AppendRange(op.a, op.b, actual_out),
+                  expected.CopyRange(op.a, op.b, expected_out));
+        EXPECT_EQ(actual_out, expected_out);
         break;
       }
     }
@@ -390,10 +390,10 @@ TEST(GapBufferTest, TargetedStressSequenceRemainsEquivalentToReferenceModel) {
 
 TEST(GapBufferTest, ConstructFromVectorTransfersContentAndSupportsEdits) {
   std::vector<Byte> source{'h', 'e', 'l', 'l', 'o'};
-  const size_t sourceLen = source.size();
+  const size_t source_len = source.size();
   GapBuffer buffer{std::move(source)};
 
-  EXPECT_EQ(buffer.Len(), sourceLen);
+  EXPECT_EQ(buffer.Len(), source_len);
   EXPECT_EQ(Snapshot(buffer), "hello");
 
   buffer.Insert(0, AsByteSpan("X"));
@@ -419,11 +419,11 @@ TEST(GapBufferTest, ReallocationFollowedByGapMovePreservesFullContent) {
   const std::string initial(32, 'a');
   buffer.Insert(0, AsByteSpan(initial));
 
-  const std::string bigInsert(64, 'b');
-  buffer.Insert(buffer.Len(), AsByteSpan(bigInsert));
+  const std::string big_insert(64, 'b');
+  buffer.Insert(buffer.Len(), AsByteSpan(big_insert));
   buffer.Insert(0, AsByteSpan("X"));
 
-  const std::string expected = "X" + initial + bigInsert;
+  const std::string expected = "X" + initial + big_insert;
   EXPECT_EQ(buffer.Len(), expected.size());
   EXPECT_EQ(Snapshot(buffer), expected);
 }
@@ -454,8 +454,8 @@ TEST(GapBufferTest, ContractViolationsThrowInDebugBuilds) {
   EXPECT_EQ(buffer.AppendRange(2, 10, out), static_cast<ByteCount>(3));
   EXPECT_EQ(std::string(out.begin(), out.end()), "llo");
 
-  GapBuffer emptyBuf;
-  ExpectPreconditionViolation([&]() { std::ignore = emptyBuf.At(0); });
-  ExpectPreconditionViolation([&]() { emptyBuf.Delete(0, 1); });
+  GapBuffer empty_buf;
+  ExpectPreconditionViolation([&]() { std::ignore = empty_buf.At(0); });
+  ExpectPreconditionViolation([&]() { empty_buf.Delete(0, 1); });
 }
 #endif

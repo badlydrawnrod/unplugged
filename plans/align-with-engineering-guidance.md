@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1–5 and custom API naming in part 6 are implemented
-and verified. Local/constant naming, formatting, and mechanical checks are next.
+Status: in progress; parts 1–5 and naming in part 6 are implemented and
+verified. Formatting and mechanical checks are next.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -181,8 +181,12 @@ targets move. Its structural description should remain accurate.
   queries use `GetRowIndex`, `Width`, and `NumRows`. The iterator queries use
   `Get...` to avoid colliding with their type aliases. Contract helper functions,
   macros, diagnostics, and all API consumers use the renamed functions.
-- [ ] Rename camelCase locals such as `gapSize` to snake_case, and constants
-  such as `InitialGapSize` to `kPascalCase`.
+- [x] Rename camelCase locals such as `gapSize` to snake_case, and constants
+  such as `InitialGapSize` to `kPascalCase`. Gap-buffer implementation locals and
+  test locals/parameters now use snake_case. Randomized-test settings use
+  `kDefaultSeed`, `kSeedsToRun`, and `kOpsPerSeed`; production constants,
+  including `kInitialGapSize`, already conform. Archived experiments remain
+  untouched.
 - [x] Preserve standard interoperability names such as `begin`, `end`,
   and iterator traits. Standard range queries `size` and `empty`, iterator type
   names, operators, and existing range/iterator compile-time checks remain
@@ -222,8 +226,8 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: rename camelCase locals and nonconforming constants in part 6, then
-format the reviewed files and add the mechanical formatting check. Supported document headers now include only
+Next: format the reviewed files in part 6, then add the mechanical formatting
+check. Supported document headers now include only
 supported diagnostic/domain types and unsupported `detail/`
 representation declarations. The detail declarations preserve inline storage
 and the existing copy/move behavior, without adding allocation or indirection.
@@ -261,6 +265,14 @@ focused suites, all seventeen suites in default and debug configurations, and
 `bazel build //:editor` passed. A mechanical comparison confirms that C++ changes
 are exactly the intended name substitutions; searches find no old function
 names in active code. All 42 scenario bindings and `git diff --check` passed.
+
+The local/constant naming increment changes 26 identifiers in the gap-buffer
+implementation and tests. A mechanical comparison confirms exact name
+substitutions without changes to operations, constants' values, or expectations.
+The two focused suites, all seventeen suites in default and debug configurations,
+and `bazel build //:editor` passed. Active code has no remaining camelCase
+local/parameter identifiers or nonconforming constexpr variable names. Scenario
+bindings and `git diff --check` passed. Formatting remains a separate step.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte
