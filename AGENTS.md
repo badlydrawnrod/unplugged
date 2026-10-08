@@ -238,6 +238,21 @@ package roots. Private implementation headers use `impl/`, with the documented
 document inline representation under `detail/`. Do not add `src/` directories
 or empty source/test directories to header-only packages.
 
+## Durable Component Contracts
+
+Component specifications explain ownership and lifetime decisions alongside
+supported APIs and persisted acceptance scenarios:
+
+- [Document edits, borrowed views, inline representation, and test configuration](document/docs/specs/document.md).
+- [Editor byte navigation, wrapping, and owned frame snapshots](editor_core/docs/specs/editor.md).
+- [Terminal lifetimes, restoration, and error policy](terminal/docs/specs/terminal.md).
+- [Decoder-owned byte acquisition and adapter conformance](key_decoder/ports/byte_source/docs/specs/byte_source.md).
+
+Keep specifications aligned with their linked APIs and scenarios. Presentation
+layout and viewport state belong to the editor; the document model must not
+acquire editor or terminal dependencies. Layout-cache work remains proposed and
+must preserve this direction.
+
 ## Build, Test, and Run
 
 Install Bazelisk, then run commands from the repository root. Bazelisk reads

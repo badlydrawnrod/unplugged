@@ -1,6 +1,7 @@
 # Align repository structure with component ownership
 
-Status: steps 1–7 complete; step 8 remains proposed.
+Status: implementation and verification complete through step 8; temporary-plan
+cleanup awaits review and an authorized cleanup commit.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -298,17 +299,17 @@ Bazel dependency/visibility inspection and PTY smoke checks after terminal moves
 
 ### 8. Preserve durable intent and finish
 
-- [ ] Add concise component specifications only for contracts that need more
+- [x] Add concise component specifications only for contracts that need more
   explanation than API comments and scenarios provide. Cover document edit/view
   lifetimes and failure guarantees, editor byte navigation/wrapping behavior,
   terminal restoration/error policy, and byte-source semantics as needed.
-- [ ] Ensure component documentation links to supported targets, API headers,
+- [x] Ensure component documentation links to supported targets, API headers,
   features, and relevant verification commands. Record the inline `detail/`
   representation choice and test API configuration where owned.
-- [ ] Update `AGENTS.md` to describe the final layout and mechanical checks.
-- [ ] Audit all consumers and features against the final boundaries, remove
+- [x] Update `AGENTS.md` to describe the final layout and mechanical checks.
+- [x] Audit all consumers and features against the final boundaries, remove
   obsolete targets/includes/references, and confirm no generated files are tracked.
-- [ ] Preserve the layout-cache proposal's dependency direction and proposed
+- [x] Preserve the layout-cache proposal's dependency direction and proposed
   status; structural alignment must not introduce presentation ownership into
   document storage.
 - [ ] Remove this temporary plan after the completed work is reviewed and its
@@ -579,6 +580,42 @@ Bazel dependency/visibility inspection and PTY smoke checks after terminal moves
   corrected the layout-cache proposal's editor source path while preserving its
   proposed status and scope. Step 8's durable specifications and authorized final
   cleanup remain. No commits were created.
+
+### Step 8 results (2026-10-08)
+
+- Step 7 was committed as `1312788`
+  (`Simplify source placement and standardize test directories`).
+- Added focused specifications under `document/docs/specs/`,
+  `editor_core/docs/specs/`, `terminal/docs/specs/`, and the byte-source port's
+  `docs/specs/`. They explain borrowed view/range lifetimes, edit failure
+  guarantees, inline `detail/` ownership, coherent debug contract configuration,
+  byte navigation and owned frames, terminal restoration/error policy, and
+  acquisition semantics and adapter-specific exceptions. Each links supported
+  targets, headers, persisted features, and verification commands.
+- Linked specifications from `AGENTS.md` and recorded the durable dependency
+  direction: viewport and presentation ownership remain with editor core;
+  document/storage have no editor or terminal dependencies. The separate
+  layout-cache plan remains proposed and unchanged.
+- Final Bazel queries confirmed storage APIs and layouts have only their
+  legitimate document/storage consumers; failure and POSIX helpers have only
+  their narrow test consumers. Every executable test consumes its owning API
+  or same-contract test API, with supported adapter/port APIs where relevant.
+  Decoder has no terminal dependencies, loader cannot reach storage, core
+  components cannot reach application composition, and only the root editor
+  alias references the application.
+- Audited public headers for internal/implementation includes, checked local
+  specification links, and confirmed no generated build/cache files are tracked.
+  Source/target searches found no obsolete active paths or test targets requiring
+  cleanup. Historical migration paths remain only in this plan's result record.
+- `bazel test //...` and `bazel test -c dbg //...` passed (20 cached test targets
+  each), as did `bazel build //:editor`, `python3 tools/verify.py` (65 formatted
+  C++ files, 44 scenarios, 48 bindings, 20 checker tests), and `git diff --check`.
+  This increment changes documentation only; the plan explicitly exempts it from
+  repeating PTY smoke checks. Step 7's successful terminal checks remain valid.
+- Kept this temporary plan for review. Its final removal requires the reviewed
+  work and an authorized cleanup commit, as specified above. All enduring
+  contracts and structural decisions are now captured outside this plan. No
+  commit was created for step 8; no runtime behavior or tests changed.
 
 ## Completion criteria
 
