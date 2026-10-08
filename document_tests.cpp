@@ -140,6 +140,8 @@ TEST(DocumentTest, LineFromPos) {
   EXPECT_EQ(doc.LineFromPos(6), 2);
 }
 
+// Feature: features/document_editing.feature
+// Scenario: Inserting text and a newline preserves surrounding content
 TEST(DocumentTest, EditInserts) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
   Document doc{std::vector<Byte>(source)};
@@ -170,6 +172,8 @@ TEST(DocumentTest, EditInserts) {
   EXPECT_EQ(doc.At(9), 'e');
 }
 
+// Feature: features/document_editing.feature
+// Scenario: Deleting a range can remove text and a newline together
 TEST(DocumentTest, EditDeletes) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
   Document doc{std::vector<Byte>(source)};
@@ -220,6 +224,8 @@ TEST(DocumentTest, EditDeletesFromZero) {
   EXPECT_EQ(doc.At(5), 'e');
 }
 
+// Feature: features/document_editing.feature
+// Scenario: An empty edit preserves content and line boundaries
 TEST(DocumentTest, EditDeleteZeroBytesIsNoOp) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
   Document doc{std::vector<Byte>(source)};
@@ -249,8 +255,12 @@ TEST(DocumentTest, EditDeleteZeroBytesIsNoOp) {
   EXPECT_EQ(doc.StartOfLine(1), 3);
   EXPECT_EQ(doc.StartOfLine(2), 6);
   EXPECT_EQ(doc.At(2), '\n');
+  const auto view = doc.View();
+  EXPECT_EQ(std::string(view.begin(), view.end()), "ab\ncd\ne");
 }
 
+// Feature: features/document_editing.feature
+// Scenario: Deleting a newline joins adjacent lines
 TEST(DocumentTests, EditDeletesAcrossLineBoundaries) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
   Document doc{std::vector<Byte>(source)};
@@ -274,6 +284,8 @@ TEST(DocumentTests, EditDeletesAcrossLineBoundaries) {
   EXPECT_EQ(doc.At(5), 'e');
 }
 
+// Feature: features/document_editing.feature
+// Scenario: Equal-length replacement changes logical line boundaries
 TEST(DocumentTest, EditReplaces) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
   Document doc{std::vector<Byte>(source)};
@@ -300,7 +312,9 @@ TEST(DocumentTest, EditReplaces) {
   EXPECT_EQ(doc.At(6), 'e');
 }
 
-TEST(DocumentTest, EditDeletesBeforeItInserts) {
+// Feature: features/document_editing.feature
+// Scenario: A longer replacement preserves the suffix
+TEST(DocumentTest, LongerReplacementPreservesSuffix) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
   Document doc{std::vector<Byte>(source)};
 
@@ -311,8 +325,7 @@ TEST(DocumentTest, EditDeletesBeforeItInserts) {
   // bytes.
   EXPECT_EQ(doc.Len(), source.size() + insert_bytes.size() - 1);
 
-  // Should now be "abxy\ncd\ne" because we deleted the '\n' at position 2 and
-  // inserted "xy\n" in its place.
+  // Replacing the newline preserves the following text: "abxy\ncd\ne".
   EXPECT_EQ(doc.At(0), 'a');
   EXPECT_EQ(doc.At(1), 'b');
   EXPECT_EQ(doc.At(2), 'x');
@@ -330,19 +343,20 @@ TEST(DocumentTest, EditDeletesBeforeItInserts) {
   EXPECT_EQ(doc.StartOfLine(2), 8);
 }
 
-TEST(DocumentTest, BackspaceOnEmptyLineDeletesOnlyOneNewline) {
-  // Model an enter-enter-backspace scenario around "A\nB".
+// Feature: features/document_editing.feature
+// Scenario: Deleting one adjacent newline preserves the other
+TEST(DocumentTest, DeleteOneOfAdjacentNewlines) {
+  // Exercise document byte edits; editor command dispatch is tested separately.
   Document doc{std::vector<Byte>{'A', '\n', 'B'}};
 
-  // Enter once at start of line containing B: "A\n\nB"
+  // Insert a newline before B: "A\n\nB"
   doc.Edit(2, 0, AsByteSpan("\n"));
   ASSERT_EQ(doc.NumLines(), 3);
   ASSERT_EQ(doc.StartOfLine(0), 0);
   ASSERT_EQ(doc.StartOfLine(1), 2);
   ASSERT_EQ(doc.StartOfLine(2), 3);
 
-  // Backspace once at start of B line should remove only the preceding
-  // newline: "A\nB".
+  // Delete only the inserted newline: "A\nB".
   doc.Edit(2, 1, {});
 
   EXPECT_EQ(doc.NumLines(), 2);
@@ -352,6 +366,35 @@ TEST(DocumentTest, BackspaceOnEmptyLineDeletesOnlyOneNewline) {
   EXPECT_EQ(doc.At(0), 'A');
   EXPECT_EQ(doc.At(1), '\n');
   EXPECT_EQ(doc.At(2), 'B');
+}
+
+// Feature: features/document_editing.feature
+// Scenario: A shorter replacement can span multiple lines
+TEST(DocumentTest, ShorterReplacementSpansLinesAndPreservesSuffix) {
+  Document doc{std::vector<Byte>{'a', 'b', '\n', 'c', 'd', '\n', 'e'}};
+  doc.Edit(1, 5, AsByteSpan("X\n"));
+
+  const auto view = doc.View();
+  EXPECT_EQ(std::string(view.begin(), view.end()), "aX\ne");
+  ASSERT_EQ(doc.NumLines(), 2u);
+  EXPECT_EQ(doc.StartOfLine(0), 0u);
+  EXPECT_EQ(doc.StartOfLine(1), 3u);
+  EXPECT_EQ(doc.LineFromPos(doc.Len()), 1u);
+}
+
+// Feature: features/document_editing.feature
+// Scenario: Appending a newline creates an empty final line
+TEST(DocumentTest, AppendNewlineCreatesEmptyFinalLine) {
+  Document doc{std::vector<Byte>{'a', 'b'}};
+  doc.Edit(doc.Len(), 0, AsByteSpan("\n"));
+
+  const auto view = doc.View();
+  EXPECT_EQ(std::string(view.begin(), view.end()), "ab\n");
+  ASSERT_EQ(doc.NumLines(), 2u);
+  EXPECT_EQ(doc.StartOfLine(0), 0u);
+  EXPECT_EQ(doc.StartOfLine(1), 3u);
+  EXPECT_TRUE((*doc.LinesFrom(1).begin()).empty());
+  EXPECT_EQ(doc.LineFromPos(doc.Len()), 1u);
 }
 
 TEST(DocumentTest, LineIndexAgreesWithBytesAcrossEdits) {

@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1–3 are implemented and verified. Next: document
-acceptance behavior in part 4.
+Status: in progress; parts 1–4 are implemented and verified. Next: component
+boundaries in Bazel (part 5).
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -100,17 +100,17 @@ Avoid introducing a general plugin or dependency-injection framework.
 
 ### 4. Persist significant acceptance behavior
 
-- [ ] Add deterministic `.feature` scenarios under the owning component's
+- [x] Add deterministic `.feature` scenarios under the owning component's
   `features/` directory for significant document editing behavior, including
   replacement and newline handling.
 - [x] Add editor scenarios for significant navigation, scrolling, and
   editing commands after the editor API exists.
-- [ ] Bind every persisted scenario to executable tests through the
+- [x] Bind every persisted scenario to executable tests through the
   supported component API, keeping the relationship traceable.
-- [ ] Reuse existing tests where they actually implement the scenario.
-  `BackspaceOnEmptyLineDeletesOnlyOneNewline` currently exercises document
-  edits; it does not verify Backspace command dispatch or cursor movement.
-- [ ] Use ordinary GoogleTest bindings unless a dedicated BDD runner has
+- [x] Reuse existing tests where they actually implement the scenario.
+  Document newline deletion is named and bound as a byte edit; Backspace
+  dispatch and cursor movement are verified through `//editor_core:api`.
+- [x] Use ordinary GoogleTest bindings unless a dedicated BDD runner has
   clear value. Keep storage implementation properties out of Gherkin.
 
 For traceability, place these annotations immediately above each binding:
@@ -194,8 +194,9 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: persist significant document editing scenarios and their API test bindings
-in part 4, reusing the existing scenarios and tests where applicable.
+Next: establish supported document and editor targets in part 5. Document
+bindings currently use the existing contract-configured document test library;
+its aggregate headers and target boundaries still need the planned separation.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte
