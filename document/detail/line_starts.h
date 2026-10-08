@@ -38,7 +38,7 @@ class LineStarts {
 
   void UpdateOnDelete(ByteIndex pos, ByteCount count);
 
-  [[nodiscard]] unplugged::dbc::InvariantResult check_invariants() const;
+  [[nodiscard]] unplugged::dbc::InvariantResult CheckInvariants() const;
 
  private:
   std::vector<ByteIndex> line_starts_{};

@@ -12,7 +12,7 @@ using unplugged::internal::CheckedByteGrowth;
 
 namespace unplugged::document_detail {
 
-[[nodiscard]] unplugged::dbc::InvariantResult LineStarts::check_invariants()
+[[nodiscard]] unplugged::dbc::InvariantResult LineStarts::CheckInvariants()
     const {
   DBC_INVARIANT(std::is_sorted(line_starts_.begin(), line_starts_.end()),
                 "line_starts_ must be sorted in ascending order");

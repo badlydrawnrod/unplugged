@@ -37,7 +37,7 @@ class WrappedRowRange {
     bool operator==(const iterator& other) const noexcept;
     bool operator!=(const iterator& other) const noexcept;
 
-    RowIndex row_index() const noexcept;
+    RowIndex GetRowIndex() const noexcept;
 
    private:
     const WrappedRowRange* range_ = nullptr;
@@ -50,8 +50,8 @@ class WrappedRowRange {
   iterator begin() const noexcept;
   iterator end() const noexcept;
 
-  ByteCount width() const noexcept;
-  RowIndex row_count() const noexcept;
+  ByteCount Width() const noexcept;
+  RowIndex NumRows() const noexcept;
 
  private:
   const Document* doc_ = nullptr;

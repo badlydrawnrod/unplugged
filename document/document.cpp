@@ -12,14 +12,14 @@
 static_assert(std::is_nothrow_move_assignable_v<LineStarts>,
               "committing a prepared line index must not throw");
 
-[[nodiscard]] unplugged::dbc::InvariantResult Document::check_invariants()
+[[nodiscard]] unplugged::dbc::InvariantResult Document::CheckInvariants()
     const {
-  auto buffer_invariants = buffer_.check_invariants();
+  auto buffer_invariants = buffer_.CheckInvariants();
   if (buffer_invariants) {
     return buffer_invariants;
   }
 
-  auto line_starts_invariants = line_starts_.check_invariants();
+  auto line_starts_invariants = line_starts_.CheckInvariants();
   if (line_starts_invariants) {
     return line_starts_invariants;
   }

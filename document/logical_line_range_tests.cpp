@@ -19,15 +19,15 @@ TEST(LogicalLineRangeTest, EmptyDocumentHasOneEmptyLine) {
   auto lines = doc.Lines();
 
   EXPECT_FALSE(lines.empty());
-  EXPECT_EQ(lines.line_count(), 1u);
+  EXPECT_EQ(lines.NumLines(), 1u);
   auto it = lines.begin();
   ASSERT_NE(it, lines.end());
-  EXPECT_EQ(it.line_number(), 0u);
+  EXPECT_EQ(it.GetLineNumber(), 0u);
   EXPECT_TRUE((*it).empty());
   ++it;
   EXPECT_EQ(it, lines.end());
 
-  EXPECT_EQ(doc.LinesFrom(0).line_count(), 1u);
+  EXPECT_EQ(doc.LinesFrom(0).NumLines(), 1u);
   EXPECT_TRUE(doc.LinesFrom(1).empty());
   EXPECT_TRUE(doc.LinesFrom(10).empty());
 }
@@ -39,17 +39,17 @@ TEST(LogicalLineRangeTest, IteratesLogicalLinesAsDocumentViews) {
   auto it = lines.begin();
 
   ASSERT_NE(it, lines.end());
-  EXPECT_EQ(it.line_number(), 0u);
+  EXPECT_EQ(it.GetLineNumber(), 0u);
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'a', 'b', '\n'}));
 
   ++it;
   ASSERT_NE(it, lines.end());
-  EXPECT_EQ(it.line_number(), 1u);
+  EXPECT_EQ(it.GetLineNumber(), 1u);
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'c', '\n'}));
 
   ++it;
   ASSERT_NE(it, lines.end());
-  EXPECT_EQ(it.line_number(), 2u);
+  EXPECT_EQ(it.GetLineNumber(), 2u);
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'d'}));
 
   ++it;
@@ -63,12 +63,12 @@ TEST(LogicalLineRangeTest, LinesFromStartsAtRequestedLine) {
   auto it = lines.begin();
 
   ASSERT_NE(it, lines.end());
-  EXPECT_EQ(it.line_number(), 1u);
+  EXPECT_EQ(it.GetLineNumber(), 1u);
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'c', '\n'}));
 
   ++it;
   ASSERT_NE(it, lines.end());
-  EXPECT_EQ(it.line_number(), 2u);
+  EXPECT_EQ(it.GetLineNumber(), 2u);
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'d'}));
 
   ++it;
@@ -82,8 +82,8 @@ TEST(LogicalLineRangeTest, LinesFromClampsOutOfRangeToEmptyRange) {
 
   EXPECT_TRUE(lines.empty());
   EXPECT_EQ(lines.begin(), lines.end());
-  EXPECT_EQ(lines.first_line(), 3u);
-  EXPECT_EQ(lines.end_line_exclusive(), 3u);
+  EXPECT_EQ(lines.FirstLine(), 3u);
+  EXPECT_EQ(lines.EndLineExclusive(), 3u);
 }
 
 TEST(LogicalLineRangeTest, LinesFromIncludesRemainingLines) {
@@ -91,9 +91,9 @@ TEST(LogicalLineRangeTest, LinesFromIncludesRemainingLines) {
 
   auto lines = doc.LinesFrom(2);
 
-  EXPECT_EQ(lines.first_line(), 2u);
-  EXPECT_EQ(lines.end_line_exclusive(), 3u);
-  EXPECT_EQ(lines.line_count(), 1u);
+  EXPECT_EQ(lines.FirstLine(), 2u);
+  EXPECT_EQ(lines.EndLineExclusive(), 3u);
+  EXPECT_EQ(lines.NumLines(), 1u);
 
   auto it = lines.begin();
   ASSERT_NE(it, lines.end());

@@ -36,7 +36,7 @@ bool LogicalLineRange::iterator::operator!=(const iterator& other) const noexcep
   return !(*this == other);
 }
 
-LogicalLineRange::LineNumber LogicalLineRange::iterator::line_number() const noexcept {
+LogicalLineRange::LineNumber LogicalLineRange::iterator::GetLineNumber() const noexcept {
   return line_;
 }
 
@@ -52,15 +52,15 @@ LogicalLineRange::iterator LogicalLineRange::end() const noexcept {
   return iterator{doc_, end_exclusive_, end_exclusive_};
 }
 
-LogicalLineRange::LineNumber LogicalLineRange::first_line() const noexcept {
+LogicalLineRange::LineNumber LogicalLineRange::FirstLine() const noexcept {
   return first_;
 }
 
-LogicalLineRange::LineNumber LogicalLineRange::end_line_exclusive() const noexcept {
+LogicalLineRange::LineNumber LogicalLineRange::EndLineExclusive() const noexcept {
   return end_exclusive_;
 }
 
-LogicalLineRange::LineCount LogicalLineRange::line_count() const noexcept {
+LogicalLineRange::LineCount LogicalLineRange::NumLines() const noexcept {
   return end_exclusive_ - first_;
 }
 

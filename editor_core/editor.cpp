@@ -38,7 +38,7 @@ size_t Editor::WrappedRowCountForLine(Document::LineNumber line_number) const {
 
   WrappedRowRange rows(document_, *lines.begin(),
                        static_cast<ByteCount>(TextWidth(width_)));
-  return rows.row_count();
+  return rows.NumRows();
 }
 
 size_t Editor::TotalWrappedRowCount() const {
@@ -302,14 +302,14 @@ Editor::LayoutFrame Editor::BuildFrame() const {
   bool is_first_line = true;
   for (auto line_it = lines.begin();
        line_it != lines.end() && frame.rows.size() < height_; ++line_it) {
-    const auto line_number = line_it.line_number();
+    const auto line_number = line_it.GetLineNumber();
     WrappedRowRange rows(document_, *line_it,
                          static_cast<ByteCount>(text_width));
 
     bool show_line_number = is_first_line ? (top_row_offset == 0) : true;
     for (auto row_it = rows.begin();
          row_it != rows.end() && frame.rows.size() < height_; ++row_it) {
-      if (is_first_line && row_it.row_index() < top_row_offset) {
+      if (is_first_line && row_it.GetRowIndex() < top_row_offset) {
         continue;
       }
 
@@ -320,7 +320,7 @@ Editor::LayoutFrame Editor::BuildFrame() const {
           .end = row_view.EndIndex(),
           .show_line_number = show_line_number,
           .is_last_wrapped_row_of_line =
-              row_it.row_index() + 1 == rows.row_count(),
+              row_it.GetRowIndex() + 1 == rows.NumRows(),
       });
       show_line_number = false;
     }
@@ -381,15 +381,15 @@ void Editor::KeepCursorVisible(const LayoutFrame& frame) {
         const auto row_view = *row_it;
         if (cursor_pos_ < row_view.EndIndex() ||
             (cursor_pos_ == row_view.EndIndex() &&
-             row_it.row_index() + 1 == rows.row_count())) {
-          cursor_row += row_it.row_index();
+             row_it.GetRowIndex() + 1 == rows.NumRows())) {
+          cursor_row += row_it.GetRowIndex();
           break;
         }
       }
       break;
     }
 
-    cursor_row += rows.row_count();
+    cursor_row += rows.NumRows();
   }
 
   const size_t first_visible = top_row_;

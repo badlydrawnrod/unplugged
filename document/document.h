@@ -32,7 +32,7 @@ class Document {
   // Throws std::length_error if the byte length exceeds kMaxDocumentBytes.
   Document(std::vector<Byte> &&buffer);
 
-  [[nodiscard]] unplugged::dbc::InvariantResult check_invariants() const;
+  [[nodiscard]] unplugged::dbc::InvariantResult CheckInvariants() const;
 
   // Mutation.
   // Oversized results throw std::length_error before changing the document.

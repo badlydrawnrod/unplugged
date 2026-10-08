@@ -19,7 +19,7 @@ GapBuffer::GapBuffer(std::vector<Byte> &&buffer)
   DBC_GUARD_CLASS_INVARIANTS();
 }
 
-[[nodiscard]] unplugged::dbc::InvariantResult GapBuffer::check_invariants()
+[[nodiscard]] unplugged::dbc::InvariantResult GapBuffer::CheckInvariants()
     const {
   DBC_INVARIANT(left_ <= right_,
                 "gap left cannot exceed gap right. left_={}, right_={}", left_,

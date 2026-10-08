@@ -29,7 +29,7 @@ void ExpectEmptyDocument(const Document &doc) {
   EXPECT_EQ(doc.LineFromPos(0), 0u);
   EXPECT_TRUE(doc.View().empty());
   EXPECT_EQ(doc.View().begin(), doc.View().end());
-  EXPECT_EQ(doc.Lines().line_count(), 1u);
+  EXPECT_EQ(doc.Lines().NumLines(), 1u);
   EXPECT_TRUE((*doc.Lines().begin()).empty());
 }
 
@@ -413,7 +413,7 @@ TEST(DocumentTest, LineIndexAgreesWithBytesAcrossEdits) {
                        << ", insert=" << testing::PrintToString(insert)
                        << ", pos=" << pos << ", count=" << count);
           Document doc{std::vector<Byte>(initial.begin(), initial.end())};
-          ASSERT_FALSE(doc.check_invariants().has_value());
+          ASSERT_FALSE(doc.CheckInvariants().has_value());
 
           doc.Edit(static_cast<ByteIndex>(pos), static_cast<ByteCount>(count),
                    AsByteSpan(insert));
@@ -435,7 +435,7 @@ TEST(DocumentTest, LineIndexAgreesWithBytesAcrossEdits) {
             EXPECT_EQ(doc.StartOfLine(line), expected_starts[line]);
           }
           EXPECT_EQ(doc.LineFromPos(doc.Len()), expected_starts.size() - 1);
-          EXPECT_FALSE(doc.check_invariants().has_value());
+          EXPECT_FALSE(doc.CheckInvariants().has_value());
         }
       }
     }

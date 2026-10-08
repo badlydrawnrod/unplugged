@@ -50,7 +50,7 @@ void ExpectDocument(const Document& doc, const std::string& text,
   for (Document::LineNumber line = 0; line < starts.size(); ++line) {
     EXPECT_EQ(doc.StartOfLine(line), starts[line]);
   }
-  EXPECT_FALSE(doc.check_invariants().has_value());
+  EXPECT_FALSE(doc.CheckInvariants().has_value());
 }
 
 std::string Snapshot(const GapBuffer& buffer) {
@@ -104,11 +104,11 @@ TEST(EditFailureTest, GapReplacementPreservesBytesOnFailure) {
       [&](GapBuffer& buffer) { buffer.Replace(1, 2, AsByteSpan(inserted)); },
       [](const GapBuffer& buffer) {
         EXPECT_EQ(Snapshot(buffer), "abcd");
-        EXPECT_FALSE(buffer.check_invariants().has_value());
+        EXPECT_FALSE(buffer.CheckInvariants().has_value());
       },
       [&](const GapBuffer& buffer) {
         EXPECT_EQ(Snapshot(buffer), "a" + inserted + "d");
-        EXPECT_FALSE(buffer.check_invariants().has_value());
+        EXPECT_FALSE(buffer.CheckInvariants().has_value());
       });
 }
 
@@ -122,7 +122,7 @@ TEST(EditFailureTest, LineIndexInsertionPreservesStartsOnFailure) {
         EXPECT_EQ(lines.StartOfLine(0), 0u);
         EXPECT_EQ(lines.StartOfLine(1), 2u);
         EXPECT_EQ(lines.StartOfLine(2), 4u);
-        EXPECT_FALSE(lines.check_invariants().has_value());
+        EXPECT_FALSE(lines.CheckInvariants().has_value());
       },
       [](const LineStarts& lines) {
         ASSERT_EQ(lines.NumLines(), 35u);
@@ -132,6 +132,6 @@ TEST(EditFailureTest, LineIndexInsertionPreservesStartsOnFailure) {
         }
         EXPECT_EQ(lines.StartOfLine(33), 34u);
         EXPECT_EQ(lines.StartOfLine(34), 36u);
-        EXPECT_FALSE(lines.check_invariants().has_value());
+        EXPECT_FALSE(lines.CheckInvariants().has_value());
       });
 }

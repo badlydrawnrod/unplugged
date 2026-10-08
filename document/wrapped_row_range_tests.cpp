@@ -36,7 +36,7 @@ TEST(WrappedRowRangeTest, StripsTrailingNewlineFromRows) {
 
   WrappedRowRange rows(doc, line, 10);
 
-  ASSERT_EQ(rows.row_count(), 1u);
+  ASSERT_EQ(rows.NumRows(), 1u);
   auto it = rows.begin();
   ASSERT_NE(it, rows.end());
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'a', 'b'}));
@@ -48,7 +48,7 @@ TEST(WrappedRowRangeTest, EmptyLineProducesSingleEmptyRow) {
 
   WrappedRowRange rows(doc, line, 10);
 
-  ASSERT_EQ(rows.row_count(), 1u);
+  ASSERT_EQ(rows.NumRows(), 1u);
   auto it = rows.begin();
   ASSERT_NE(it, rows.end());
   EXPECT_TRUE((*it).empty());
@@ -62,7 +62,7 @@ TEST(WrappedRowRangeTest, WrapsLongLineAcrossRows) {
 
   WrappedRowRange rows(doc, line, 4);
 
-  ASSERT_EQ(rows.row_count(), 2u);
+  ASSERT_EQ(rows.NumRows(), 2u);
   auto it = rows.begin();
   ASSERT_NE(it, rows.end());
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'a', 'b', 'c', 'd'}));
@@ -84,7 +84,7 @@ TEST(WrappedRowRangeTest, LastLineWithoutNewlineStillWraps) {
 
   WrappedRowRange rows(doc, line, 2);
 
-  ASSERT_EQ(rows.row_count(), 2u);
+  ASSERT_EQ(rows.NumRows(), 2u);
   auto it = rows.begin();
   ASSERT_NE(it, rows.end());
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'b', 'c'}));
@@ -100,7 +100,7 @@ TEST(WrappedRowRangeTest, WidthOneProducesOneBytePerRow) {
 
   WrappedRowRange rows(doc, line, 1);
 
-  ASSERT_EQ(rows.row_count(), 3u);
+  ASSERT_EQ(rows.NumRows(), 3u);
   auto it = rows.begin();
   ASSERT_NE(it, rows.end());
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'x'}));
@@ -123,10 +123,10 @@ TEST(WrappedRowRangeTest, LargeWidthsPreserveOneRowAndItsContent) {
   for (const ByteCount width : {max_width - 1, max_width}) {
     SCOPED_TRACE(width);
     WrappedRowRange rows(doc, line, width);
-    ASSERT_EQ(rows.row_count(), 1u);
+    ASSERT_EQ(rows.NumRows(), 1u);
     auto it = rows.begin();
     ASSERT_NE(it, rows.end());
-    EXPECT_EQ(it.row_index(), 0u);
+    EXPECT_EQ(it.GetRowIndex(), 0u);
     EXPECT_EQ(Collect(*it), (std::vector<Byte>{'a', 'b', 'c'}));
     ++it;
     EXPECT_EQ(it, rows.end());
@@ -137,7 +137,7 @@ TEST(WrappedRowRangeTest, EmptyDocumentAtMaximumWidthHasOneEmptyRow) {
   Document doc;
   WrappedRowRange rows(doc, *doc.Lines().begin(),
                        std::numeric_limits<ByteCount>::max());
-  ASSERT_EQ(rows.row_count(), 1u);
+  ASSERT_EQ(rows.NumRows(), 1u);
   auto it = rows.begin();
   ASSERT_NE(it, rows.end());
   EXPECT_TRUE((*it).empty());
@@ -148,7 +148,7 @@ TEST(WrappedRowRangeTest, EmptyDocumentAtMaximumWidthHasOneEmptyRow) {
 TEST(WrappedRowRangeTest, ExactMultipleDoesNotAddAnEmptyRow) {
   Document doc{std::vector<Byte>{'a', 'b', 'c', 'd', 'e', 'f'}};
   WrappedRowRange rows(doc, *doc.Lines().begin(), 3);
-  ASSERT_EQ(rows.row_count(), 2u);
+  ASSERT_EQ(rows.NumRows(), 2u);
   auto it = rows.begin();
   ASSERT_NE(it, rows.end());
   EXPECT_EQ(Collect(*it), (std::vector<Byte>{'a', 'b', 'c'}));

@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1–5 are implemented and verified. Naming,
-formatting, and mechanical checks in part 6 are next.
+Status: in progress; parts 1–5 and custom API naming in part 6 are implemented
+and verified. Local/constant naming, formatting, and mechanical checks are next.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -174,13 +174,19 @@ targets move. Its structural description should remain accurate.
 
 ### 6. Naming, formatting, and mechanical checks
 
-- [ ] Apply the naming conventions in `AGENTS.md` consistently to custom
+- [x] Apply the naming conventions in `AGENTS.md` consistently to custom
   APIs, including `check_invariants`, `line_number`, and `row_count`.
-  Update the contract machinery and all consumers alongside those renames.
+  Invariant checks now use `CheckInvariants`; logical-line queries use
+  `GetLineNumber`, `FirstLine`, `EndLineExclusive`, and `NumLines`; wrapped-row
+  queries use `GetRowIndex`, `Width`, and `NumRows`. The iterator queries use
+  `Get...` to avoid colliding with their type aliases. Contract helper functions,
+  macros, diagnostics, and all API consumers use the renamed functions.
 - [ ] Rename camelCase locals such as `gapSize` to snake_case, and constants
   such as `InitialGapSize` to `kPascalCase`.
-- [ ] Preserve standard interoperability names such as `begin`, `end`,
-  and iterator traits.
+- [x] Preserve standard interoperability names such as `begin`, `end`,
+  and iterator traits. Standard range queries `size` and `empty`, iterator type
+  names, operators, and existing range/iterator compile-time checks remain
+  unchanged.
 - [ ] Format the files identified by the review:
   `document.cpp`, `editor.cpp`, `logical_line_range.{h,cpp}`,
   `wrapped_row_range.{h,cpp}`, and `wrapped_row_range_tests.cpp`.
@@ -216,8 +222,8 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: apply custom API naming conventions in part 6, updating contract
-machinery and consumers together. Supported document headers now include only
+Next: rename camelCase locals and nonconforming constants in part 6, then
+format the reviewed files and add the mechanical formatting check. Supported document headers now include only
 supported diagnostic/domain types and unsupported `detail/`
 representation declarations. The detail declarations preserve inline storage
 and the existing copy/move behavior, without adding allocation or indirection.
@@ -247,6 +253,14 @@ document suites, all seventeen suites in default and debug configurations, and
 `bazel build //:editor` passed. Scenario bindings and `git diff --check` also
 passed. This changes linkage only; document behavior and supported APIs remain
 unchanged.
+
+The API-naming increment renames custom queries and contract helpers together.
+Only function identifiers and their documentation changed; standard range
+interoperability names and behavioral expectations remain unchanged. Eight
+focused suites, all seventeen suites in default and debug configurations, and
+`bazel build //:editor` passed. A mechanical comparison confirms that C++ changes
+are exactly the intended name substitutions; searches find no old function
+names in active code. All 42 scenario bindings and `git diff --check` passed.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte

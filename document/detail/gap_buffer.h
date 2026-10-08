@@ -45,7 +45,7 @@ class GapBuffer {
 
   [[nodiscard]] ByteCount Len() const noexcept;
 
-  [[nodiscard]] unplugged::dbc::InvariantResult check_invariants() const;
+  [[nodiscard]] unplugged::dbc::InvariantResult CheckInvariants() const;
 
   bool IsValid(ByteIndex pos) const noexcept;
 

@@ -28,7 +28,7 @@ enum class InvariantPhase {
   OnExit,
 };
 
-inline constexpr std::string_view failure_name(FailureKind kind) noexcept {
+inline constexpr std::string_view FailureName(FailureKind kind) noexcept {
   switch (kind) {
     case FailureKind::Assertion:
       return "ASSERTION FAILED";
@@ -41,7 +41,7 @@ inline constexpr std::string_view failure_name(FailureKind kind) noexcept {
   }
 }
 
-inline constexpr std::string_view phase_name(InvariantPhase phase) noexcept {
+inline constexpr std::string_view PhaseName(InvariantPhase phase) noexcept {
   switch (phase) {
     case InvariantPhase::OnEntry:
       return "on entry";
@@ -52,20 +52,20 @@ inline constexpr std::string_view phase_name(InvariantPhase phase) noexcept {
   }
 }
 
-[[noreturn]] inline void report_failure(
+[[noreturn]] inline void ReportFailure(
     FailureKind kind, const char *expr,
     std::source_location loc = std::source_location::current()) {
-  std::cerr << failure_name(kind) << "!\n"
+  std::cerr << FailureName(kind) << "!\n"
             << "Expression: " << expr << "\n"
             << "File:       " << loc.file_name() << ":" << loc.line() << "\n"
             << "Function:   " << loc.function_name() << "\n";
   std::abort();
 }
 
-[[noreturn]] inline void report_failure(
+[[noreturn]] inline void ReportFailure(
     FailureKind kind, const char *expr, std::string_view details,
     std::source_location loc = std::source_location::current()) {
-  std::cerr << failure_name(kind) << "!\n"
+  std::cerr << FailureName(kind) << "!\n"
             << "Expression: " << expr << "\n"
             << details << "\n"
             << "File:       " << loc.file_name() << ":" << loc.line() << "\n"
@@ -73,11 +73,11 @@ inline constexpr std::string_view phase_name(InvariantPhase phase) noexcept {
   std::abort();
 }
 
-[[noreturn]] inline void report_invariant_failure(
+[[noreturn]] inline void ReportInvariantFailure(
     const InvariantViolation &violation, InvariantPhase phase,
     std::source_location guard_location) {
   std::cerr << "CLASS INVARIANT FAILED!\n"
-            << "Phase:                 " << phase_name(phase) << "\n"
+            << "Phase:                 " << PhaseName(phase) << "\n"
             << "Expression:            " << violation.expression << "\n";
 
   if (!violation.details.empty()) {
@@ -96,23 +96,23 @@ inline constexpr std::string_view phase_name(InvariantPhase phase) noexcept {
   std::abort();
 }
 
-inline std::string format_details() { return {}; }
+inline std::string FormatDetails() { return {}; }
 
 template <typename... Args>
-inline std::string format_details(std::format_string<Args...> fmt,
+inline std::string FormatDetails(std::format_string<Args...> fmt,
                                   Args &&...args) {
   return std::format(fmt, std::forward<Args>(args)...);
 }
 
 template <typename CheckFn>
-[[nodiscard]] auto make_post_guard(
+[[nodiscard]] auto MakePostGuard(
     CheckFn check, std::source_location loc = std::source_location::current()) {
   return gsl::finally([check, loc]() { check(loc); });
 }
 
-[[noreturn]] inline void throw_contract_violation(
+[[noreturn]] inline void ThrowContractViolation(
     FailureKind kind, const char *expr, std::string_view details = "") {
-  std::string msg = std::string(failure_name(kind)) + ": " + expr;
+  std::string msg = std::string(FailureName(kind)) + ": " + expr;
   if (!details.empty()) {
     msg += "\n" + std::string(details);
   }
@@ -121,21 +121,21 @@ template <typename CheckFn>
 }  // namespace detail
 
 template <typename T>
-[[nodiscard]] auto make_invariant_guard(
+[[nodiscard]] auto MakeInvariantGuard(
     const T &obj,
     std::source_location caller = std::source_location::current()) {
   static_assert(
       requires(const T &t) {
-        { t.check_invariants() } -> std::same_as<InvariantResult>;
+        { t.CheckInvariants() } -> std::same_as<InvariantResult>;
       },
       "DBC_GUARD_CLASS_INVARIANTS() requires: "
-      "unplugged::dbc::InvariantResult check_invariants() const");
+      "unplugged::dbc::InvariantResult CheckInvariants() const");
 
   auto check = [&obj, caller](detail::InvariantPhase phase) {
-    if (auto violation = obj.check_invariants(); violation.has_value())
+    if (auto violation = obj.CheckInvariants(); violation.has_value())
         [[unlikely]]
     {
-      detail::report_invariant_failure(*violation, phase, caller);
+      detail::ReportInvariantFailure(*violation, phase, caller);
     }
   };
 
@@ -165,7 +165,7 @@ template <typename T>
 //
 //  DBC_GUARD_CLASS_INVARIANTS()    Checks invariants on entry and exit
 //                                  Requires: unplugged::dbc::InvariantResult
-//                                  check_invariants() const Use
+//                                  CheckInvariants() const Use
 //                                  DBC_INVARIANT(expr) inside the detailed
 //                                  form
 //
@@ -189,41 +189,41 @@ template <typename T>
 #define DBC_ASSERT(expr, ...)                                            \
   do {                                                                   \
     if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::throw_contract_violation(                \
+      ::unplugged::dbc::detail::ThrowContractViolation(                \
           ::unplugged::dbc::detail::FailureKind::Assertion,              \
           #expr __VA_OPT__(                                              \
-              , ::unplugged::dbc::detail::format_details(__VA_ARGS__))); \
+              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
     }                                                                    \
   } while (0)
 
 #define DBC_PRE(expr, ...)                                               \
   do {                                                                   \
     if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::throw_contract_violation(                \
+      ::unplugged::dbc::detail::ThrowContractViolation(                \
           ::unplugged::dbc::detail::FailureKind::Precondition,           \
           #expr __VA_OPT__(                                              \
-              , ::unplugged::dbc::detail::format_details(__VA_ARGS__))); \
+              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
     }                                                                    \
   } while (0)
 
 #define DBC_POST(expr, ...)                                                  \
   const auto DBC_CONCAT(dbc_post_, __LINE__) =                               \
-      ::unplugged::dbc::detail::make_post_guard([&](std::source_location) {  \
+      ::unplugged::dbc::detail::MakePostGuard([&](std::source_location) {  \
         if (!(expr)) [[unlikely]] {                                          \
-          ::unplugged::dbc::detail::throw_contract_violation(                \
+          ::unplugged::dbc::detail::ThrowContractViolation(                \
               ::unplugged::dbc::detail::FailureKind::Postcondition,          \
               #expr __VA_OPT__(                                              \
-                  , ::unplugged::dbc::detail::format_details(__VA_ARGS__))); \
+                  , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
         }                                                                    \
       })
 
 #define DBC_INVARIANT(expr, ...)                                         \
   do {                                                                   \
     if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::throw_contract_violation(                \
+      ::unplugged::dbc::detail::ThrowContractViolation(                \
           ::unplugged::dbc::detail::FailureKind::Assertion,              \
           #expr __VA_OPT__(                                              \
-              , ::unplugged::dbc::detail::format_details(__VA_ARGS__))); \
+              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
     }                                                                    \
   } while (0)
 
@@ -232,31 +232,31 @@ template <typename T>
 #define DBC_ASSERT(expr, ...)                                            \
   do {                                                                   \
     if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::report_failure(                          \
+      ::unplugged::dbc::detail::ReportFailure(                          \
           ::unplugged::dbc::detail::FailureKind::Assertion,              \
           #expr __VA_OPT__(                                              \
-              , ::unplugged::dbc::detail::format_details(__VA_ARGS__))); \
+              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
     }                                                                    \
   } while (0)
 
 #define DBC_PRE(expr, ...)                                               \
   do {                                                                   \
     if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::report_failure(                          \
+      ::unplugged::dbc::detail::ReportFailure(                          \
           ::unplugged::dbc::detail::FailureKind::Precondition,           \
           #expr __VA_OPT__(                                              \
-              , ::unplugged::dbc::detail::format_details(__VA_ARGS__))); \
+              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
     }                                                                    \
   } while (0)
 
 #define DBC_POST(expr, ...)                                                    \
   const auto DBC_CONCAT(dbc_post_, __LINE__) =                                 \
-      ::unplugged::dbc::detail::make_post_guard(                               \
+      ::unplugged::dbc::detail::MakePostGuard(                               \
           [&](std::source_location loc) {                                      \
             if (!(expr)) [[unlikely]] {                                        \
-              ::unplugged::dbc::detail::report_failure(                        \
+              ::unplugged::dbc::detail::ReportFailure(                        \
                   ::unplugged::dbc::detail::FailureKind::Postcondition,        \
-                  #expr __VA_OPT__(, ::unplugged::dbc::detail::format_details( \
+                  #expr __VA_OPT__(, ::unplugged::dbc::detail::FormatDetails( \
                                          __VA_ARGS__)),                        \
                   loc);                                                        \
             }                                                                  \
@@ -266,7 +266,7 @@ template <typename T>
   do {                                                                  \
     if (!(expr)) [[unlikely]] {                                         \
       return ::unplugged::dbc::InvariantViolation{                      \
-          #expr, ::unplugged::dbc::detail::format_details(__VA_ARGS__), \
+          #expr, ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__), \
           std::source_location::current()};                             \
     }                                                                   \
   } while (0)
@@ -280,5 +280,5 @@ template <typename T>
 #else
 #define DBC_GUARD_CLASS_INVARIANTS()            \
   const auto DBC_CONCAT(dbc_guard_, __LINE__) = \
-      ::unplugged::dbc::make_invariant_guard(*this)
+      ::unplugged::dbc::MakeInvariantGuard(*this)
 #endif

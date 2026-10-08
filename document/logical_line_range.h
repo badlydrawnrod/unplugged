@@ -32,7 +32,7 @@ class LogicalLineRange {
     bool operator==(const iterator& other) const noexcept;
     bool operator!=(const iterator& other) const noexcept;
 
-    LineNumber line_number() const noexcept;
+    LineNumber GetLineNumber() const noexcept;
 
    private:
     const Document* doc_ = nullptr;
@@ -47,9 +47,9 @@ class LogicalLineRange {
   iterator begin() const noexcept;
   iterator end() const noexcept;
 
-  LineNumber first_line() const noexcept;
-  LineNumber end_line_exclusive() const noexcept;
-  LineCount line_count() const noexcept;
+  LineNumber FirstLine() const noexcept;
+  LineNumber EndLineExclusive() const noexcept;
+  LineCount NumLines() const noexcept;
   bool empty() const noexcept;
 
  private:

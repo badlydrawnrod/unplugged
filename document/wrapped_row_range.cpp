@@ -67,7 +67,7 @@ bool WrappedRowRange::iterator::operator!=(const iterator& other) const noexcept
   return !(*this == other);
 }
 
-WrappedRowRange::RowIndex WrappedRowRange::iterator::row_index() const noexcept {
+WrappedRowRange::RowIndex WrappedRowRange::iterator::GetRowIndex() const noexcept {
   return row_;
 }
 
@@ -91,8 +91,8 @@ WrappedRowRange::iterator WrappedRowRange::end() const noexcept {
   return iterator{this, row_count_};
 }
 
-ByteCount WrappedRowRange::width() const noexcept { return width_; }
+ByteCount WrappedRowRange::Width() const noexcept { return width_; }
 
-WrappedRowRange::RowIndex WrappedRowRange::row_count() const noexcept {
+WrappedRowRange::RowIndex WrappedRowRange::NumRows() const noexcept {
   return row_count_;
 }
