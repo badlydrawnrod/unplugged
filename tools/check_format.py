@@ -32,7 +32,7 @@ def main():
         # Include untracked sources so the check also covers new work.
         paths = subprocess.check_output(
             ["git", "ls-files", "--cached", "--others", "--exclude-standard",
-             "-z", "--", "*.cpp", "*.h", ":(exclude)old_20260924/**"],
+             "-z", "--", "*.cpp", "*.h"],
             cwd=REPO_ROOT)
         files = sorted({os.fsdecode(path) for path in paths.split(b"\0") if path})
         if not files:

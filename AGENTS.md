@@ -177,9 +177,7 @@ behind `//contracts:api`; checks remain in `contracts/impl/checks.h` behind a
 restricted implementation target. Shared byte types and size-limit helpers
 have separate root targets `//:document_types` and `//:size_limits`. Tests are
 kept beside the code as `*_tests.cpp`.
-`old_20260924/` contains archived experiments;
-do not add new production code there. Bazel dependencies are declared in
-`MODULE.bazel`.
+Bazel dependencies are declared in `MODULE.bazel`.
 
 ## Build, Test, and Run
 
@@ -213,7 +211,7 @@ and Microsoft GSL; the editor relies on POSIX terminal APIs.
 
 Run `python3 tools/check_format.py` with clang-format 21.1.8 to check all tracked
 and untracked C++ sources against `.clang-format`. The check excludes ignored
-build output and `old_20260924/`. Use `--clang-format /path/to/clang-format` if
+build output. Use `--clang-format /path/to/clang-format` if
 the pinned version is installed under a different executable name. The check
 reports formatting errors without modifying files.
 
