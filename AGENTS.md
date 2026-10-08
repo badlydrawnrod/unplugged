@@ -191,6 +191,7 @@ the pinned Bazel version from `.bazelversion`; dependencies are declared in
 bazel build //:editor
 bazel test //...
 bazel run //:editor -- [file]
+python3 tools/check_format.py
 ```
 
 Run storage tests with
@@ -208,6 +209,12 @@ tests with `bazel test //terminal_io:syscall_tests`. The project uses C++23, Goo
 and Microsoft GSL; the editor relies on POSIX terminal APIs.
 
 ## Coding Style & File Conventions
+
+Run `python3 tools/check_format.py` with clang-format 21.1.8 to check all tracked
+and untracked C++ sources against `.clang-format`. The check excludes ignored
+build output and `old_20260924/`. Use `--clang-format /path/to/clang-format` if
+the pinned version is installed under a different executable name. The check
+reports formatting errors without modifying files.
 
 Follow `.clang-format` (Google-derived C++ style, two-space indentation, 80-column limit, left-aligned pointers). Keep declarations in `.h` files and implementations in `.cpp` files. Use the naming conventions in Engineering Guidance above; test files use the matching module name plus `_tests.cpp`. The build treats `-Wall -Wextra -Wpedantic` warnings as errors, so keep changes warning-clean.
 

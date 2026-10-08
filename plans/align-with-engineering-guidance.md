@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1–5, naming, and reviewed-file formatting in part 6
-are implemented and verified. The mechanical formatting check is next.
+Status: in progress; parts 1–6 are implemented and verified. Final completion
+review and cleanup remain.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -197,8 +197,13 @@ targets move. Its structural description should remain accurate.
   `document/wrapped_row_range_tests.cpp`. Applied clang-format 21.1.8 with the
   repository configuration; `editor.cpp` already conformed. All seven files
   pass `clang-format --dry-run --Werror`.
-- [ ] Add a mechanical formatting check using the repository's
+- [x] Add a mechanical formatting check using the repository's
   `.clang-format`. Keep generated build files out of source changes.
+  `python3 tools/check_format.py` checks all tracked and untracked active C++
+  sources without modifying them. It requires clang-format 21.1.8, uses the
+  repository configuration explicitly, and excludes ignored build output and
+  archived experiments. Remaining formatting drift in contract checks and
+  gap-buffer tests is corrected; all 58 active C++ files pass.
 
 Keep mechanical renaming and formatting separate from behavior changes
 where practical, so review remains straightforward.
@@ -229,8 +234,8 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: add a mechanical formatting check using the repository configuration,
-keeping generated build files outside source changes. Supported document headers now include only
+Next: perform the final verification and completion review above; preserve the
+plan until cleanup is authorized. Supported document headers now include only
 supported diagnostic/domain types and unsupported `detail/`
 representation declarations. The detail declarations preserve inline storage
 and the existing copy/move behavior, without adding allocation or indirection.
@@ -285,6 +290,19 @@ suites, all seventeen suites in default and debug configurations, and
 `bazel build //:editor` passed. The formatter's dry-run check, all 42 scenario
 bindings, and `git diff --check` passed. No behavior or component boundaries
 changed. Repository-wide formatting enforcement remains the next step.
+
+The mechanical formatting-check increment adds `tools/check_format.py` and
+documents its command and pinned formatter version in `AGENTS.md`. File
+discovery uses Git's tracked and nonignored untracked paths, excludes archived
+experiments, and handles spaces without traversing Bazel output symlinks. The
+check works from outside the repository and reports missing or incorrect
+formatter versions. Probes verified rejection of an unformatted new source,
+acceptance after formatting, and exclusion of ignored and archived sources.
+Two C++ files needed formatting; each exactly matches clang-format output from
+its committed version. The focused gap-buffer suite, all seventeen suites in
+default and debug builds, and `bazel build //:editor` passed. All 58 C++ files,
+all 42 scenario bindings, and `git diff --check` passed. No behavior or component
+boundaries changed, and no generated build files are included.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte

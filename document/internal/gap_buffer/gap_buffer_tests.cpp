@@ -125,7 +125,8 @@ struct Op {
   return fallback;
 }
 
-[[maybe_unused]] Op GenerateRandomOp(std::mt19937_64 &rng, ByteIndex max_value) {
+[[maybe_unused]] Op GenerateRandomOp(std::mt19937_64 &rng,
+                                     ByteIndex max_value) {
   std::uniform_int_distribution<int> type_dist(0, 2);
   const OpType type = static_cast<OpType>(type_dist(rng));
 
@@ -333,7 +334,8 @@ TEST(GapBufferTest, RandomOperationStreamsStayEquivalentToReferenceModel) {
         case OpType::CopyRange: {
           std::vector<Byte> actual_out{'#'};
           std::vector<Byte> expected_out{'#'};
-          const size_t actual_copied = actual.AppendRange(op.a, op.b, actual_out);
+          const size_t actual_copied =
+              actual.AppendRange(op.a, op.b, actual_out);
           const size_t expected_copied =
               expected.CopyRange(op.a, op.b, expected_out);
           EXPECT_EQ(actual_copied, expected_copied);

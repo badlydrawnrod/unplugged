@@ -5,7 +5,6 @@
 #include <exception>
 #include <format>
 #include <gsl/gsl>
-
 #include <iostream>
 #include <source_location>
 #include <stdexcept>
@@ -100,7 +99,7 @@ inline std::string FormatDetails() { return {}; }
 
 template <typename... Args>
 inline std::string FormatDetails(std::format_string<Args...> fmt,
-                                  Args &&...args) {
+                                 Args &&...args) {
   return std::format(fmt, std::forward<Args>(args)...);
 }
 
@@ -110,8 +109,9 @@ template <typename CheckFn>
   return gsl::finally([check, loc]() { check(loc); });
 }
 
-[[noreturn]] inline void ThrowContractViolation(
-    FailureKind kind, const char *expr, std::string_view details = "") {
+[[noreturn]] inline void ThrowContractViolation(FailureKind kind,
+                                                const char *expr,
+                                                std::string_view details = "") {
   std::string msg = std::string(FailureName(kind)) + ": " + expr;
   if (!details.empty()) {
     msg += "\n" + std::string(details);
@@ -186,89 +186,88 @@ template <typename T>
 #else
 
 #if defined(CONTRACT_EXCEPTIONS)
-#define DBC_ASSERT(expr, ...)                                            \
-  do {                                                                   \
-    if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::ThrowContractViolation(                \
-          ::unplugged::dbc::detail::FailureKind::Assertion,              \
-          #expr __VA_OPT__(                                              \
+#define DBC_ASSERT(expr, ...)                                           \
+  do {                                                                  \
+    if (!(expr)) [[unlikely]] {                                         \
+      ::unplugged::dbc::detail::ThrowContractViolation(                 \
+          ::unplugged::dbc::detail::FailureKind::Assertion,             \
+          #expr __VA_OPT__(                                             \
               , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
-    }                                                                    \
+    }                                                                   \
   } while (0)
 
-#define DBC_PRE(expr, ...)                                               \
-  do {                                                                   \
-    if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::ThrowContractViolation(                \
-          ::unplugged::dbc::detail::FailureKind::Precondition,           \
-          #expr __VA_OPT__(                                              \
+#define DBC_PRE(expr, ...)                                              \
+  do {                                                                  \
+    if (!(expr)) [[unlikely]] {                                         \
+      ::unplugged::dbc::detail::ThrowContractViolation(                 \
+          ::unplugged::dbc::detail::FailureKind::Precondition,          \
+          #expr __VA_OPT__(                                             \
               , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
-    }                                                                    \
+    }                                                                   \
   } while (0)
 
-#define DBC_POST(expr, ...)                                                  \
-  const auto DBC_CONCAT(dbc_post_, __LINE__) =                               \
-      ::unplugged::dbc::detail::MakePostGuard([&](std::source_location) {  \
-        if (!(expr)) [[unlikely]] {                                          \
-          ::unplugged::dbc::detail::ThrowContractViolation(                \
-              ::unplugged::dbc::detail::FailureKind::Postcondition,          \
-              #expr __VA_OPT__(                                              \
+#define DBC_POST(expr, ...)                                                 \
+  const auto DBC_CONCAT(dbc_post_, __LINE__) =                              \
+      ::unplugged::dbc::detail::MakePostGuard([&](std::source_location) {   \
+        if (!(expr)) [[unlikely]] {                                         \
+          ::unplugged::dbc::detail::ThrowContractViolation(                 \
+              ::unplugged::dbc::detail::FailureKind::Postcondition,         \
+              #expr __VA_OPT__(                                             \
                   , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
-        }                                                                    \
+        }                                                                   \
       })
-
-#define DBC_INVARIANT(expr, ...)                                         \
-  do {                                                                   \
-    if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::ThrowContractViolation(                \
-          ::unplugged::dbc::detail::FailureKind::Assertion,              \
-          #expr __VA_OPT__(                                              \
-              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
-    }                                                                    \
-  } while (0)
-
-#else /* !defined(CONTRACT_EXCEPTIONS) */
-
-#define DBC_ASSERT(expr, ...)                                            \
-  do {                                                                   \
-    if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::ReportFailure(                          \
-          ::unplugged::dbc::detail::FailureKind::Assertion,              \
-          #expr __VA_OPT__(                                              \
-              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
-    }                                                                    \
-  } while (0)
-
-#define DBC_PRE(expr, ...)                                               \
-  do {                                                                   \
-    if (!(expr)) [[unlikely]] {                                          \
-      ::unplugged::dbc::detail::ReportFailure(                          \
-          ::unplugged::dbc::detail::FailureKind::Precondition,           \
-          #expr __VA_OPT__(                                              \
-              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
-    }                                                                    \
-  } while (0)
-
-#define DBC_POST(expr, ...)                                                    \
-  const auto DBC_CONCAT(dbc_post_, __LINE__) =                                 \
-      ::unplugged::dbc::detail::MakePostGuard(                               \
-          [&](std::source_location loc) {                                      \
-            if (!(expr)) [[unlikely]] {                                        \
-              ::unplugged::dbc::detail::ReportFailure(                        \
-                  ::unplugged::dbc::detail::FailureKind::Postcondition,        \
-                  #expr __VA_OPT__(, ::unplugged::dbc::detail::FormatDetails( \
-                                         __VA_ARGS__)),                        \
-                  loc);                                                        \
-            }                                                                  \
-          })
 
 #define DBC_INVARIANT(expr, ...)                                        \
   do {                                                                  \
     if (!(expr)) [[unlikely]] {                                         \
-      return ::unplugged::dbc::InvariantViolation{                      \
-          #expr, ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__), \
-          std::source_location::current()};                             \
+      ::unplugged::dbc::detail::ThrowContractViolation(                 \
+          ::unplugged::dbc::detail::FailureKind::Assertion,             \
+          #expr __VA_OPT__(                                             \
+              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
     }                                                                   \
+  } while (0)
+
+#else /* !defined(CONTRACT_EXCEPTIONS) */
+
+#define DBC_ASSERT(expr, ...)                                           \
+  do {                                                                  \
+    if (!(expr)) [[unlikely]] {                                         \
+      ::unplugged::dbc::detail::ReportFailure(                          \
+          ::unplugged::dbc::detail::FailureKind::Assertion,             \
+          #expr __VA_OPT__(                                             \
+              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
+    }                                                                   \
+  } while (0)
+
+#define DBC_PRE(expr, ...)                                              \
+  do {                                                                  \
+    if (!(expr)) [[unlikely]] {                                         \
+      ::unplugged::dbc::detail::ReportFailure(                          \
+          ::unplugged::dbc::detail::FailureKind::Precondition,          \
+          #expr __VA_OPT__(                                             \
+              , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__))); \
+    }                                                                   \
+  } while (0)
+
+#define DBC_POST(expr, ...)                                                   \
+  const auto DBC_CONCAT(dbc_post_, __LINE__) =                                \
+      ::unplugged::dbc::detail::MakePostGuard([&](std::source_location loc) { \
+        if (!(expr)) [[unlikely]] {                                           \
+          ::unplugged::dbc::detail::ReportFailure(                            \
+              ::unplugged::dbc::detail::FailureKind::Postcondition,           \
+              #expr __VA_OPT__(                                               \
+                  , ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__)),    \
+              loc);                                                           \
+        }                                                                     \
+      })
+
+#define DBC_INVARIANT(expr, ...)                                       \
+  do {                                                                 \
+    if (!(expr)) [[unlikely]] {                                        \
+      return ::unplugged::dbc::InvariantViolation{                     \
+          #expr, ::unplugged::dbc::detail::FormatDetails(__VA_ARGS__), \
+          std::source_location::current()};                            \
+    }                                                                  \
   } while (0)
 
 #endif /* defined(CONTRACT_EXCEPTIONS) */
