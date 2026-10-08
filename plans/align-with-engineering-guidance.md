@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1–6 are implemented and verified. Final completion
-review and cleanup remain.
+Status: parts 1–6 and the final verification review are complete. Final cleanup
+remains.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -210,14 +210,14 @@ where practical, so review remains straightforward.
 
 ## Verification and completion
 
-- [ ] Run focused tests for each changed component during implementation.
-- [ ] Run `bazel test //...` and `bazel test -c dbg //...` after each coherent
+- [x] Run focused tests for each changed component during implementation.
+- [x] Run `bazel test //...` and `bazel test -c dbg //...` after each coherent
   increment. Adapt target paths if the build structure changes.
-- [ ] Build `//:editor` and smoke-test the terminal adapter changes in an
+- [x] Build `//:editor` and smoke-test the terminal adapter changes in an
   interactive terminal, including normal exit and restoration after failure.
-- [ ] Check scenario bindings, dependency visibility, formatting, and
+- [x] Check scenario bindings, dependency visibility, formatting, and
   `git diff --check` before completing the work.
-- [ ] Confirm acceptance tests verify intended behavior and would survive
+- [x] Confirm acceptance tests verify intended behavior and would survive
   replacement of the implementation behind the supported APIs.
 - [ ] Record enduring decisions in their owning artifacts and remove this
   temporary plan in the final cleanup commit.
@@ -234,8 +234,9 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: perform the final verification and completion review above; preserve the
-plan until cleanup is authorized. Supported document headers now include only
+Next: preserve enduring decisions in their owning artifacts, update references
+to this plan, and remove it in the final cleanup commit. Supported document
+headers now include only
 supported diagnostic/domain types and unsupported `detail/`
 representation declarations. The detail declarations preserve inline storage
 and the existing copy/move behavior, without adding allocation or indirection.
@@ -303,6 +304,30 @@ its committed version. The focused gap-buffer suite, all seventeen suites in
 default and debug builds, and `bazel build //:editor` passed. All 58 C++ files,
 all 42 scenario bindings, and `git diff --check` passed. No behavior or component
 boundaries changed, and no generated build files are included.
+
+The final verification review passed on 2026-10-08 after committing the
+formatting check as `958691c`. Both full test configurations pass all seventeen
+suites (cached), and `bazel build //:editor` passes. Fresh interactive PTY smoke
+checks exercised legacy and kitty input: startup renders without a protocol
+reply, text editing redraws the frame, Alt+Escape exits normally, the keyboard
+protocol is popped, and terminal attributes exactly match their saved values.
+A broken output pipe after startup produces a reported error and exit status 1
+without SIGPIPE termination; terminal attributes are restored after unwinding.
+
+All 42 scenario annotations map to exactly one executable test binding, and
+all 58 active C++ files pass the formatting check. Component test dependencies
+use supported `:api` or `:test_api` targets; public headers include no internal
+storage APIs or `impl/` machinery. Bazel dependency and visibility review
+confirms private storage implementations are reached through supported aliases,
+and contract checks are used only by document/storage implementations. The
+document public-header compile checks pass in both configurations.
+
+Acceptance bindings assert bytes, logical lines, key results, frame snapshots,
+terminal effects, and error outcomes through supported APIs. Failure injection
+discovers allocation points without fixing their number or order; it checks
+unchanged state and subsequent successful editing. These checks do not depend
+on private layout or internal call sequences. `git diff --check` passes. This
+increment updates verification evidence only; final cleanup remains separate.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte
