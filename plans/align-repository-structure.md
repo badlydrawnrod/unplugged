@@ -1,6 +1,6 @@
 # Align repository structure with component ownership
 
-Status: steps 1–5 complete; steps 6–7 remain proposed.
+Status: steps 1–6 complete; step 7 remains proposed.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -40,7 +40,7 @@ in an authorized cleanup commit.
 - Storage production and test APIs are restricted to the owning document package
   and local tests. The loader exposes only `Load()` and depends directly on
   `//document/types:api`; unused `From()` and storage includes have been removed.
-- Allocation-failure suites live in document and each storage package and consume
+- Allocation-failure suites live in `document/tests/` and each storage package and consume
   their supported test APIs. Shared injection and failure discovery use the
   narrowly visible, test-only `//test_support:allocation_failure` target.
 - There are 44 persisted scenarios with 48 valid executable bindings. The
@@ -230,20 +230,20 @@ contract promises rather than internal call sequences.
 
 ### 6. Apply component layouts in separate mechanical increments
 
-- [ ] Migrate document public headers/sources/tests, preserving internal storage
+- [x] Migrate document public headers/sources/tests, preserving internal storage
   packages and inline `detail/` declarations with restricted layout targets.
-- [ ] Migrate editor core, decoder, terminal I/O, and invariant diagnostics to
+- [x] Migrate editor core, decoder, terminal I/O, and invariant diagnostics to
   their API/source/test layout. Complete remaining layout work for key, terminal,
   and file loader if not done during extraction.
-- [ ] Use Bazel include-prefix configuration to preserve logical includes.
+- [x] Use Bazel include-prefix configuration to preserve logical includes.
   Update internal include paths and direct dependencies deliberately.
-- [ ] Update visibility for newly separate tests packages; behavioral tests use
+- [x] Update visibility for newly separate tests packages; behavioral tests use
   `:api` or the documented same-contract `:test_api` variant. Focused implementation
   tests retain only the implementation dependencies their properties require.
-- [ ] Preserve `CONTRACT_EXCEPTIONS` coherence across translation units, including
+- [x] Preserve `CONTRACT_EXCEPTIONS` coherence across translation units, including
   inline definitions and conditional `noexcept`. Keep public-header compile
   checks covering diagnostic/domain types, storage aliases, and contract macros.
-- [ ] Keep compatibility aliases only where an actual consumer benefits. Update
+- [x] Keep compatibility aliases only where an actual consumer benefits. Update
   commands in `AGENTS.md` and paths in the layout-cache proposal.
 
 Acceptance: physical structure communicates API, implementation, and test ownership;
@@ -442,6 +442,58 @@ to compensate for a file move.
   startup returned error status 1 with a diagnostic and restored terminal
   attributes. No temporary smoke artifacts remain. No decoder behavior fixes or
   later layout steps were included.
+
+### Step 6 results (2026-10-08)
+
+- Step 5 was committed as `46113c2` (`Extract decoder-owned byte source port`).
+- Migrated document supported headers to `document/include/document/`, sources
+  to `document/src/`, and all API/allocation-failure/compile checks to
+  `document/tests/`. Both `:api` and `:test_api` use `strip_include_prefix` to
+  preserve logical `document/*.h` includes. Inline `document/detail/` declarations
+  and restricted layout targets remain unchanged, as do all storage packages.
+- Verified the document increment before the remaining moves: focused document
+  tests (5 targets), full default/debug suites (20 targets each), editor build,
+  repository verification, and whitespace checks passed.
+- Migrated editor core, decoder, and terminal I/O headers/sources/tests to their
+  API/source/test directories. Moved the header-only invariant diagnostics to
+  `contracts/include/contracts/`; private checks remain in `contracts/impl/`.
+  No empty source/test directories were added to the header-only component.
+  Lightweight types, required ports, and internal helper packages retain their
+  proportionate flat layouts. Key, terminal, and file loader were already aligned.
+- Preserved all logical consumer includes with Bazel include-prefix mapping.
+  All 24 moved C++ files are byte-for-byte identical to their committed originals.
+  Features and annotations are unchanged. No behavior or cache implementation
+  was introduced; the layout-cache proposal remains proposed, with only its
+  current editor source path corrected.
+- Test targets now live under `//document/tests`, `//editor_core/tests`,
+  `//key_decoder/tests`, and `//terminal_io/tests`. Updated precise supported API
+  visibility and moved allocation/conformance helper access to their actual test
+  consumers. Editor tests now directly depend on `//document:api` for the
+  supported document header they include. Storage, layout, private checks, and
+  arithmetic visibility were not widened. Removed old test targets without
+  adding compatibility aliases; the useful `//:editor` alias remains.
+- Preserved debug throwing-contract propagation, inline definitions, conditional
+  `noexcept`, and the public-header compile checks. Configured dependency queries
+  confirm document test API, both storage test APIs, and the document test binary
+  all receive `CONTRACT_EXCEPTIONS` in debug and none in the default build.
+  Static allocation-test linking, always-linked overrides, and static syscall
+  tests with all four linker wraps are unchanged.
+- Focused tests for all moved components passed (8 targets); final full
+  default/debug suites passed (20 targets each), as did `bazel build //:editor`.
+  `python3 tools/verify.py` passed with 65 formatted C++ files, 44 scenarios,
+  48 bindings, and 20 checker tests; `git diff --check` passed. Updated ownership
+  and test commands in `AGENTS.md`.
+- Direct dependency queries show moved tests use supported component APIs and
+  narrow test helpers. Storage direct consumers remain document and local storage
+  tests; the decoder has no terminal dependencies; only the root alias references
+  the application. Seven temporary consumers in the relocated document tests
+  package failed visibility analysis for both storage production/test APIs, both
+  layout targets, and private contract checks. Removed all probes afterward.
+- Real-PTY smoke checks passed for startup, text insertion/line splitting, legacy
+  and kitty exits, scoped protocol push/reset, and exact terminal restoration.
+  Broken output pipes at startup and after editing returned error status 1 with
+  diagnostics and restored terminal attributes. Temporary smoke files were not
+  retained. Step 7's durable-documentation and final cleanup work remains.
 
 ## Completion criteria
 

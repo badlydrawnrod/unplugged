@@ -1,0 +1,23 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+COMMON_COPTS = [
+    "-std=c++23",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+]
+
+cc_test(
+    name = "decoder_tests",
+    srcs = ["decoder_tests.cpp"],
+    copts = COMMON_COPTS + ["-UNDEBUG"],
+    deps = [
+        "//key_decoder:api",
+        "//key_decoder/ports/byte_source:api",
+        "//key_decoder/ports/byte_source:conformance",
+        "@googletest//:gtest_main",
+    ],
+)

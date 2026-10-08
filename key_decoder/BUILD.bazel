@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -12,24 +12,16 @@ COMMON_COPTS = [
 
 cc_library(
     name = "api",
-    srcs = ["decoder.cpp"],
-    hdrs = ["decoder.h"],
+    srcs = ["src/decoder.cpp"],
+    hdrs = ["include/key_decoder/decoder.h"],
+    strip_include_prefix = "include",
     copts = COMMON_COPTS,
-    visibility = ["//terminal:__pkg__"],
+    visibility = [
+        "//key_decoder/tests:__pkg__",
+        "//terminal:__pkg__",
+    ],
     deps = [
         "//key:api",
         "//key_decoder/ports/byte_source:api",
-    ],
-)
-
-cc_test(
-    name = "decoder_tests",
-    srcs = ["decoder_tests.cpp"],
-    copts = COMMON_COPTS + ["-UNDEBUG"],
-    deps = [
-        ":api",
-        "//key_decoder/ports/byte_source:api",
-        "//key_decoder/ports/byte_source:conformance",
-        "@googletest//:gtest_main",
     ],
 )

@@ -11,7 +11,7 @@ cc_library(
     alwayslink = True,
     copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
     visibility = [
-        "//document:__pkg__",
+        "//document/tests:__pkg__",
         "//document/internal/gap_buffer:__pkg__",
         "//document/internal/line_starts:__pkg__",
     ],

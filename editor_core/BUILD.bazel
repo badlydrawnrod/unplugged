@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -12,23 +12,16 @@ COMMON_COPTS = [
 
 cc_library(
     name = "api",
-    srcs = ["editor.cpp"],
-    hdrs = ["editor.h"],
+    srcs = ["src/editor.cpp"],
+    hdrs = ["include/editor_core/editor.h"],
+    strip_include_prefix = "include",
     copts = COMMON_COPTS,
-    visibility = ["//applications/editor:__pkg__"],
+    visibility = [
+        "//applications/editor:__pkg__",
+        "//editor_core/tests:__pkg__",
+    ],
     deps = [
         "//document:api",
         "//key:api",
-    ],
-)
-
-cc_test(
-    name = "editor_tests",
-    srcs = ["editor_tests.cpp"],
-    # GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
-    copts = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"],
-    deps = [
-        ":api",
-        "@googletest//:gtest_main",
     ],
 )

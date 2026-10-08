@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -12,29 +12,13 @@ COMMON_COPTS = [
 
 cc_library(
     name = "api",
-    srcs = ["io.cpp"],
-    hdrs = ["io.h"],
+    srcs = ["src/io.cpp"],
+    hdrs = ["include/terminal_io/io.h"],
+    strip_include_prefix = "include",
     copts = COMMON_COPTS,
     visibility = [
         "//terminal:__pkg__",
+        "//terminal_io/tests:__pkg__",
         "//terminal/internal/fd_byte_source:__pkg__",
-    ],
-)
-
-cc_test(
-    name = "syscall_tests",
-    # Wrapping must resolve library syscall references in this executable.
-    linkstatic = True,
-    srcs = ["syscall_tests.cpp"],
-    copts = COMMON_COPTS + ["-UNDEBUG"],
-    linkopts = [
-        "-Wl,--wrap=read",
-        "-Wl,--wrap=write",
-        "-Wl,--wrap=poll",
-        "-Wl,--wrap=isatty",
-    ],
-    deps = [
-        ":api",
-        "@googletest//:gtest_main",
     ],
 )

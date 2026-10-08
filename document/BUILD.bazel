@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -11,17 +11,17 @@ COMMON_COPTS = [
 ]
 
 DOCUMENT_SRCS = [
-    "document.cpp",
-    "logical_line_range.cpp",
-    "wrapped_row_range.cpp",
+    "src/document.cpp",
+    "src/logical_line_range.cpp",
+    "src/wrapped_row_range.cpp",
 ]
 
 DOCUMENT_HDRS = [
-    "document.h",
-    "document_view.h",
-    "line_number.h",
-    "logical_line_range.h",
-    "wrapped_row_range.h",
+    "include/document/document.h",
+    "include/document/document_view.h",
+    "include/document/line_number.h",
+    "include/document/logical_line_range.h",
+    "include/document/wrapped_row_range.h",
 ]
 
 # Complete member declarations keep storage inline without exposing the
@@ -50,10 +50,12 @@ cc_library(
     name = "api",
     srcs = DOCUMENT_SRCS,
     hdrs = DOCUMENT_HDRS,
+    strip_include_prefix = "include",
     copts = COMMON_COPTS,
     visibility = [
         "//applications/editor:__pkg__",
         "//editor_core:__pkg__",
+        "//editor_core/tests:__pkg__",
     ],
     deps = [
         ":gap_buffer_layout",
@@ -70,9 +72,11 @@ cc_library(
 # shared policy target propagates it through all translation units.
 cc_library(
     name = "test_api",
+    visibility = ["//document/tests:__pkg__"],
     testonly = True,
     srcs = DOCUMENT_SRCS,
     hdrs = DOCUMENT_HDRS,
+    strip_include_prefix = "include",
     copts = COMMON_COPTS,
     deps = [
         ":gap_buffer_layout",
@@ -83,63 +87,5 @@ cc_library(
         "//contracts:checks",
         "//document/internal/gap_buffer:test_api",
         "//document/internal/line_starts:test_api",
-    ],
-)
-
-# GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
-TEST_COPTS = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"]
-
-cc_test(
-    name = "document_tests",
-    srcs = [
-        "document_tests.cpp",
-        "public_headers_compile_test.cpp",
-    ],
-    copts = TEST_COPTS,
-    deps = [
-        ":test_api",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "document_view_tests",
-    srcs = ["document_view_tests.cpp"],
-    copts = TEST_COPTS,
-    deps = [
-        ":test_api",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "logical_line_range_tests",
-    srcs = ["logical_line_range_tests.cpp"],
-    copts = TEST_COPTS,
-    deps = [
-        ":test_api",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "wrapped_row_range_tests",
-    srcs = ["wrapped_row_range_tests.cpp"],
-    copts = TEST_COPTS,
-    deps = [
-        ":test_api",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "edit_failure_tests",
-    srcs = ["edit_failure_tests.cpp"],
-    linkstatic = True,
-    copts = TEST_COPTS,
-    deps = [
-        ":test_api",
-        "//test_support:allocation_failure",
-        "@googletest//:gtest_main",
     ],
 )

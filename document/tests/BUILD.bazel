@@ -1,0 +1,69 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+COMMON_COPTS = [
+    "-std=c++23",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+]
+
+# GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
+TEST_COPTS = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"]
+
+cc_test(
+    name = "document_tests",
+    srcs = [
+        "document_tests.cpp",
+        "public_headers_compile_test.cpp",
+    ],
+    copts = TEST_COPTS,
+    deps = [
+        "//document:test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "document_view_tests",
+    srcs = ["document_view_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        "//document:test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "logical_line_range_tests",
+    srcs = ["logical_line_range_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        "//document:test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "wrapped_row_range_tests",
+    srcs = ["wrapped_row_range_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        "//document:test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "edit_failure_tests",
+    srcs = ["edit_failure_tests.cpp"],
+    linkstatic = True,
+    copts = TEST_COPTS,
+    deps = [
+        "//document:test_api",
+        "//test_support:allocation_failure",
+        "@googletest//:gtest_main",
+    ],
+)

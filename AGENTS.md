@@ -152,12 +152,16 @@ and frame rendering live in `applications/editor/main.cpp` behind
 `//applications/editor:editor`; `//:editor` is a compatibility build/run alias.
 Components never depend on the application. Editing commands, navigation,
 viewport state, and frame snapshots live behind `//editor_core:api` in
-`editor_core/editor.{h,cpp}`. Shared key value types live behind `//key:api`,
+`editor_core/include/editor_core/editor.h`, with implementation in
+`editor_core/src/` and API tests in `editor_core/tests/`. Consumers include
+`editor_core/editor.h`. Shared key value types live behind `//key:api`,
 with headers in `key/include/key/`, implementation in `key/src/`, and tests in
 `key/tests/`; consumers include `key/key.h`.
 
 Input-protocol decoding lives behind `//key_decoder:api` in
-`key_decoder/decoder.{h,cpp}`. Byte acquisition types and `ByteSource` live behind
+`key_decoder/include/key_decoder/decoder.h`, with implementation in
+`key_decoder/src/` and tests in `key_decoder/tests/`. Consumers include
+`key_decoder/decoder.h`. Byte acquisition types and `ByteSource` live behind
 the decoder-owned `//key_decoder/ports/byte_source:api` in
 `key_decoder/ports/byte_source/byte_source.h`. The concrete FD adapter lives
 behind the restricted `//terminal/internal/fd_byte_source:api`; key acquisition
@@ -179,14 +183,20 @@ with headers in
 `terminal::InputProtocol` requests scoped keyboard enhancement without probing
 stdin; `ReadKey()` exposes key/NoKey/EOF results; `terminal::Output` provides
 checked buffered writes and scoped SIGPIPE handling. Checked descriptor I/O
-remains behind `//terminal_io:api`. Terminal tests use isolated PTYs and pipes
+remains behind `//terminal_io:api`, with its API in
+`terminal_io/include/terminal_io/`, implementation in `terminal_io/src/`, and
+focused syscall tests in `terminal_io/tests/`. Consumers include
+`terminal_io/io.h`. Terminal tests use isolated PTYs and pipes
 from the narrowly visible, test-only `//test_support:posix_endpoints` target;
 output and syscall wrapping tests retain static linking and their link options.
 
 The document model and its byte, logical-line, and wrapped-row
-views live in `document/` behind `//document:api`; its API tests and acceptance
-scenarios are kept in that package. `//document:test_api` exposes the same API
-with the debug throwing-contract configuration for tests. Storage primitives
+views live behind `//document:api`, with supported headers under
+`document/include/document/`, implementation under `document/src/`, API tests
+under `document/tests/`, and acceptance scenarios under `document/features/`.
+Consumers retain logical `document/*.h` includes through Bazel include-prefix
+mapping. `//document:test_api` exposes the same API with the debug
+throwing-contract configuration, visible only to `document/tests/`. Storage primitives
 and their tests live in
 `document/internal/gap_buffer/` and `document/internal/line_starts/`, each behind
 its own `:api` target with package-private implementation targets. The document
@@ -201,18 +211,22 @@ configuration from `//:contract_test_mode`. Unsupported concrete storage
 declarations live in `document/detail/` so the document keeps inline ownership
 without including internal storage API headers. Private layout targets serve
 only the document and their owning storage implementations. Logical-line
-ordinals are owned by `document/line_number.h`. Invariant diagnostic types live
-behind `//contracts:api`; checks remain in `contracts/impl/checks.h` behind a
-restricted implementation target. Shared byte types and size-limit helpers
+ordinals are owned by `document/include/document/line_number.h` (logical
+`document/line_number.h`). Invariant diagnostic types live
+in `contracts/include/contracts/invariant_result.h` behind `//contracts:api`;
+consumers include `contracts/invariant_result.h`. Checks remain in
+`contracts/impl/checks.h` behind a restricted implementation target. Shared byte
+types and size-limit helpers
 live behind `//document/types:api` and `//document/internal/size_limits:api`,
 respectively. The arithmetic helper is restricted to document/storage consumers
 and has focused tests in its own package. The root package contains only build
 configuration, the shared contract test policy, and the editor alias. Allocation
-failure tests live with document and each storage package, using their supported
-`:test_api` targets. Shared injection and failure discovery live behind the
+failure tests live in `document/tests/` and each storage package, using their
+supported `:test_api` targets. Shared injection and failure discovery live behind the
 narrowly visible, test-only `//test_support:allocation_failure` target; isolated
 failure test binaries link statically and always link its global allocation
-overrides. Tests are kept beside the code as `*_tests.cpp`.
+overrides. Repository-visible component tests live in `tests/`; internal
+subcomponent tests remain beside their code. Test files use `*_tests.cpp` names.
 Bazel dependencies are declared in `MODULE.bazel`.
 
 ## Build, Test, and Run
@@ -235,11 +249,11 @@ Run storage tests with
 `bazel test //document/internal/line_starts:line_starts_tests` (or another
 `*_tests` target). Each storage package also has `:edit_failure_tests`.
 Run document allocation-failure scenarios with
-`bazel test //document:edit_failure_tests`. Run document API tests with
-`bazel test //document:document_tests` and view tests with
-`bazel test //document:all`. Run editor API tests with
-`bazel test //editor_core:editor_tests`, and decoder API tests with
-`bazel test //key_decoder:decoder_tests`. Run shared key tests with
+`bazel test //document/tests:edit_failure_tests`. Run document API tests with
+`bazel test //document/tests:document_tests` and view tests with
+`bazel test //document/tests:all`. Run editor API tests with
+`bazel test //editor_core/tests:editor_tests`, and decoder API tests with
+`bazel test //key_decoder/tests:decoder_tests`. Run shared key tests with
 `bazel test //key/tests:key_tests` and arithmetic helper tests with
 `bazel test //document/internal/size_limits:size_limits_tests`.
 Run terminal lifetime tests with `bazel test //terminal/tests:raw_mode_tests`,
@@ -247,9 +261,9 @@ protocol-session tests with `bazel test //terminal/tests:input_protocol_tests`,
 and input/output tests with
 `bazel test //terminal/tests:read_key_tests //terminal/tests:output_tests`.
 Run byte-source adapter/conformance tests with
-`bazel test //terminal/tests:fd_byte_source_tests //key_decoder:decoder_tests`.
-Run focused syscall tests with `bazel test //terminal_io:syscall_tests`. The project uses C++23, GoogleTest,
-and Microsoft GSL; the editor relies on POSIX terminal APIs.
+`bazel test //terminal/tests:fd_byte_source_tests //key_decoder/tests:decoder_tests`.
+Run focused syscall tests with `bazel test //terminal_io/tests:syscall_tests`.
+The project uses C++23, GoogleTest, and Microsoft GSL; the editor relies on POSIX terminal APIs.
 
 ## Repository Verification
 

@@ -7,6 +7,7 @@ cc_library(
     hdrs = ["byte_source.h"],
     visibility = [
         "//key_decoder:__pkg__",
+        "//key_decoder/tests:__pkg__",
         "//terminal:__pkg__",
         "//terminal/tests:__pkg__",
         "//terminal/internal/fd_byte_source:__pkg__",
@@ -18,7 +19,7 @@ cc_library(
     testonly = True,
     hdrs = ["conformance.h"],
     visibility = [
-        "//key_decoder:__pkg__",
+        "//key_decoder/tests:__pkg__",
         "//terminal/tests:__pkg__",
     ],
     deps = [
