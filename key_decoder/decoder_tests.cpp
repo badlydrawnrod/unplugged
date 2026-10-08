@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "key_decoder/decoder.h"
+#include "key_decoder/ports/byte_source/conformance.h"
 
 namespace unplugged {
 namespace {
@@ -30,6 +31,35 @@ class Stream final : public ByteSource {
   size_t position_ = 0;
   ByteReadStatus end_ = ByteReadStatus::Eof;
 };
+
+// Feature: key_decoder/ports/byte_source/features/acquisition.feature
+// Scenario: Finite input preserves every byte before EOF
+TEST(StreamConformanceTest, PreservesAllBytesThenReportsEof) {
+  const auto bytes = byte_source_conformance::AllBytes();
+  Stream stream(std::string_view(reinterpret_cast<const char*>(bytes.data()),
+                                 bytes.size()));
+  byte_source_conformance::ExpectOrderedBytes(stream, bytes);
+  byte_source_conformance::ExpectEof(stream);
+}
+
+// Feature: key_decoder/ports/byte_source/features/acquisition.feature
+// Scenario: Input can continue after a timeout
+TEST(StreamConformanceTest, TimeoutDoesNotConsumeFollowingBytes) {
+  Stream stream{ByteReadStatus::Timeout, uint8_t{0}, uint8_t{255},
+                uint8_t{'x'}};
+  byte_source_conformance::ExpectTimeout(stream);
+  byte_source_conformance::ExpectOrderedBytes(
+      stream, std::array<uint8_t, 3>{0, 255, 'x'});
+  byte_source_conformance::ExpectEof(stream);
+}
+
+TEST(StreamConformanceTest, ErrorIsDistinctFromBytesAndDoesNotConsumeThem) {
+  Stream stream{ByteReadStatus::Error, uint8_t{0}, uint8_t{255}};
+  EXPECT_EQ(stream.ReadByte(), ByteReadResult{ByteReadStatus::Error});
+  byte_source_conformance::ExpectOrderedBytes(stream,
+                                              std::array<uint8_t, 2>{0, 255});
+  byte_source_conformance::ExpectEof(stream);
+}
 
 void ExpectMods(const Key& key, KeyMods mods) {
   for (auto bit : {KeyMods::Shift, KeyMods::Alt, KeyMods::Ctrl, KeyMods::Super,

@@ -56,6 +56,7 @@ class PseudoTerminal {
   PseudoTerminal(const PseudoTerminal&) = delete;
   PseudoTerminal& operator=(const PseudoTerminal&) = delete;
   int Slave() const { return slave_; }
+  int Master() const { return master_; }
   void Disconnect() {
     close(master_);
     master_ = -1;

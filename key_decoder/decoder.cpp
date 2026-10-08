@@ -8,6 +8,8 @@
 #include <tuple>
 #include <utility>
 
+#include "key_decoder/ports/byte_source/byte_source.h"
+
 namespace unplugged {
 namespace {
 

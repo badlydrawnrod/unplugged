@@ -1,0 +1,28 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_library(
+    name = "api",
+    hdrs = ["byte_source.h"],
+    visibility = [
+        "//key_decoder:__pkg__",
+        "//terminal:__pkg__",
+        "//terminal/tests:__pkg__",
+        "//terminal/internal/fd_byte_source:__pkg__",
+    ],
+)
+
+cc_library(
+    name = "conformance",
+    testonly = True,
+    hdrs = ["conformance.h"],
+    visibility = [
+        "//key_decoder:__pkg__",
+        "//terminal/tests:__pkg__",
+    ],
+    deps = [
+        ":api",
+        "@googletest//:gtest",
+    ],
+)

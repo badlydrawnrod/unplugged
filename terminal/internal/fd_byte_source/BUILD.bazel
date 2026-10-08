@@ -1,0 +1,18 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_library(
+    name = "api",
+    srcs = ["fd_byte_source.cpp"],
+    hdrs = ["fd_byte_source.h"],
+    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
+    visibility = [
+        "//terminal:__pkg__",
+        "//terminal/tests:__pkg__",
+    ],
+    deps = [
+        "//key_decoder/ports/byte_source:api",
+        "//terminal_io:api",
+    ],
+)

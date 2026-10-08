@@ -50,3 +50,16 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "fd_byte_source_tests",
+    srcs = ["fd_byte_source_tests.cpp"],
+    copts = COMMON_COPTS,
+    deps = [
+        "//key_decoder/ports/byte_source:api",
+        "//key_decoder/ports/byte_source:conformance",
+        "//terminal/internal/fd_byte_source:api",
+        "//test_support:posix_endpoints",
+        "@googletest//:gtest_main",
+    ],
+)

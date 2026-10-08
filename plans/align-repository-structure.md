@@ -1,6 +1,6 @@
 # Align repository structure with component ownership
 
-Status: steps 1–4 complete; steps 5–7 remain proposed.
+Status: steps 1–5 complete; steps 6–7 remain proposed.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -43,7 +43,7 @@ in an authorized cleanup commit.
 - Allocation-failure suites live in document and each storage package and consume
   their supported test APIs. Shared injection and failure discovery use the
   narrowly visible, test-only `//test_support:allocation_failure` target.
-- There are 42 persisted scenarios with 42 valid executable bindings. The
+- There are 44 persisted scenarios with 48 valid executable bindings. The
   persisted checker in `tools/acceptance/` validates at least one binding per
   scenario; it permits multiple bindings and documents supported syntax.
 - Empty-document and wrapped-row features live under `document/features/`.
@@ -57,9 +57,11 @@ in an authorized cleanup commit.
 - Checked arithmetic lives in `document/internal/size_limits/` with visibility
   restricted to its document/storage consumers. Shared POSIX test endpoints live
   in `test_support/` behind a test-only target visible only to terminal tests.
-- `ByteSource` is already owned by the decoder. `FdByteSource` implements it in
-  `terminal/src/read_key.cpp`, and decoder tests provide a deterministic stream. Dependency
-  direction is correct; port layout and independent conformance checks are absent.
+- `ByteSource` and byte/event types have an explicit decoder-owned port in
+  `key_decoder/ports/byte_source/`. The terminal-owned FD adapter implements it
+  behind a restricted internal API; decoder tests provide a deterministic stream.
+  Shared conformance checks cover byte preservation/order, finite EOF, and
+  timeout recovery, with adapter-specific hangup and exception checks separate.
 - Public document headers include unsupported concrete `detail/` declarations
   to retain inline ownership. Preserve this documented extension of the guide's
   header-machinery convention. Do not introduce PImpl or allocation for layout
@@ -207,19 +209,19 @@ and terminal restoration after a broken output pipe.
 
 ### 5. Make the decoder-owned port explicit
 
-- [ ] Move byte/event result types and `ByteSource` into
+- [x] Move byte/event result types and `ByteSource` into
   `key_decoder/ports/byte_source/byte_source.h` behind its own `:api` target.
   Keep parsing and `DecodeKey()` in the decoder component.
-- [ ] Make both decoder implementation and terminal adapter depend directly on
+- [x] Make both decoder implementation and terminal adapter depend directly on
   the port. The decoder must not depend on terminal or POSIX implementation.
-- [ ] State byte ordering and Timeout/EOF/Error semantics, including how the
+- [x] State byte ordering and Timeout/EOF/Error semantics, including how the
   existing FD adapter reports syscall failures as exceptions. Preserve existing
   behavior; do not normalize incompatible implementations by changing semantics
   incidentally during extraction.
-- [ ] Add reusable conformance checks for the genuinely shared semantics and run
+- [x] Add reusable conformance checks for the genuinely shared semantics and run
   them for the deterministic test stream and FD adapter where applicable. Keep
   timing, descriptor hangup, and syscall-specific expectations in adapter tests.
-- [ ] Supply concrete adapters outside the decoder. Keep parser protocol/UTF-8
+- [x] Supply concrete adapters outside the decoder. Keep parser protocol/UTF-8
   limitations documented and unchanged.
 
 Acceptance: dependency direction points toward the decoder-owned port; decoder
@@ -402,6 +404,44 @@ to compensate for a file move.
   only terminal tests consume POSIX test support, and arithmetic has only local
   tests and document/storage consumers. The decoder dependency closure has no
   terminal/terminal-I/O targets. Updated `AGENTS.md` with ownership and commands.
+
+### Step 5 results (2026-10-08)
+
+- Extracted byte/event result types and `ByteSource` to
+  `key_decoder/ports/byte_source/byte_source.h` behind the narrowly visible
+  `//key_decoder/ports/byte_source:api`. The decoder API includes that supported
+  port and retains `DecodeKey()` and its documented parsing/UTF-8 limitations.
+- Moved the existing FD adapter unchanged into the terminal-owned internal
+  subcomponent `//terminal/internal/fd_byte_source:api`. Its supported header is
+  at the subcomponent root; visibility permits only terminal composition and
+  terminal tests. Decoder and adapter depend directly on the port. Descriptor
+  ownership, zero-read classification, EOF tracking, and syscall exceptions
+  remain unchanged.
+- Documented byte preservation/order and Timeout/EOF/Error semantics in the
+  port API, including adapter-specific exception reporting. The FD adapter
+  documents its borrowed descriptor and zero-read/hangup policy locally.
+- Added narrowly visible, test-only reusable conformance checks for all 256
+  byte values in order, finite EOF, and timeout recovery. Both the deterministic
+  test stream and real FD adapter run them. Two persisted port-owned scenarios
+  bind to both implementations; adapter hangup and exception tests also bind to
+  the existing terminal scenarios. Synthetic Error behavior remains separate
+  from the FD adapter's exception policy. Added PTY master access to the existing
+  test-only endpoint helper to supply real input without global stdin changes.
+- Updated `AGENTS.md` with port/adapter ownership, semantics, and test commands.
+  Focused tests passed (3 targets); default/debug full suites passed (20 targets
+  each); `bazel build //:editor` passed. `python3 tools/verify.py` passed with
+  65 formatted C++ files, 44 persisted scenarios, 48 bindings, and 20 checker
+  tests; `git diff --check` passed.
+- Dependency queries confirm the decoder closure has no terminal or terminal-I/O
+  targets, and the FD adapter depends directly on the port and checked I/O.
+  Three temporary forbidden consumers (port API, FD adapter API, and conformance
+  helper) each failed Bazel visibility analysis; the probes were removed.
+- Real-PTY smoke checks passed for startup, text insertion/line splitting,
+  legacy double-Escape and kitty Alt+Escape exits, one protocol push/reset per
+  session, and exact terminal-attribute restoration. A broken output pipe at
+  startup returned error status 1 with a diagnostic and restored terminal
+  attributes. No temporary smoke artifacts remain. No decoder behavior fixes or
+  later layout steps were included.
 
 ## Completion criteria
 

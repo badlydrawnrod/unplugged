@@ -15,7 +15,10 @@ cc_library(
     srcs = ["io.cpp"],
     hdrs = ["io.h"],
     copts = COMMON_COPTS,
-    visibility = ["//terminal:__pkg__"],
+    visibility = [
+        "//terminal:__pkg__",
+        "//terminal/internal/fd_byte_source:__pkg__",
+    ],
 )
 
 cc_test(

@@ -16,7 +16,10 @@ cc_library(
     hdrs = ["decoder.h"],
     copts = COMMON_COPTS,
     visibility = ["//terminal:__pkg__"],
-    deps = ["//key:api"],
+    deps = [
+        "//key:api",
+        "//key_decoder/ports/byte_source:api",
+    ],
 )
 
 cc_test(
@@ -25,6 +28,8 @@ cc_test(
     copts = COMMON_COPTS + ["-UNDEBUG"],
     deps = [
         ":api",
+        "//key_decoder/ports/byte_source:api",
+        "//key_decoder/ports/byte_source:conformance",
         "@googletest//:gtest_main",
     ],
 )

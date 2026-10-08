@@ -25,6 +25,8 @@ cc_library(
     deps = [
         "//key:api",
         "//key_decoder:api",
+        "//key_decoder/ports/byte_source:api",
+        "//terminal/internal/fd_byte_source:api",
         "//terminal_io:api",
     ],
 )

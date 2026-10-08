@@ -157,11 +157,21 @@ with headers in `key/include/key/`, implementation in `key/src/`, and tests in
 `key/tests/`; consumers include `key/key.h`.
 
 Input-protocol decoding lives behind `//key_decoder:api` in
-`key_decoder/decoder.{h,cpp}`. The concrete FD byte-source adapter in
-`terminal/src/read_key.cpp` implements the decoder-owned port; the decoder has
-no terminal or POSIX I/O dependency. Both core packages contain API tests and
-acceptance scenarios. POSIX terminal lifetimes, protocol scope, key acquisition,
-and buffered output live behind `//terminal:api`, with headers in
+`key_decoder/decoder.{h,cpp}`. Byte acquisition types and `ByteSource` live behind
+the decoder-owned `//key_decoder/ports/byte_source:api` in
+`key_decoder/ports/byte_source/byte_source.h`. The concrete FD adapter lives
+behind the restricted `//terminal/internal/fd_byte_source:api`; key acquisition
+composes it in `terminal/src/read_key.cpp`. Both decoder and adapter depend
+directly on the port; the decoder has no terminal or POSIX I/O dependency.
+The port preserves byte order and all eight bits, distinguishes Timeout/EOF/Error,
+and permits adapter exceptions. The FD adapter throws `std::system_error` for
+syscall failures and returns Timeout only for a zero terminal read without
+hangup. Test-only `//key_decoder/ports/byte_source:conformance` shares contract
+checks between the deterministic decoder test stream and FD adapter tests;
+its acceptance scenarios live under the port's `features/` directory. Both core
+packages contain API tests and acceptance scenarios. POSIX terminal lifetimes,
+protocol scope, key acquisition, and buffered output live behind `//terminal:api`,
+with headers in
 `terminal/include/terminal/`, implementation in `terminal/src/`, tests in
 `terminal/tests/`, and scenarios in `terminal/features/`. Consumers include
 `terminal/raw_mode.h`, `terminal/input_protocol.h`, `terminal/read_key.h`, and
@@ -236,6 +246,8 @@ Run terminal lifetime tests with `bazel test //terminal/tests:raw_mode_tests`,
 protocol-session tests with `bazel test //terminal/tests:input_protocol_tests`,
 and input/output tests with
 `bazel test //terminal/tests:read_key_tests //terminal/tests:output_tests`.
+Run byte-source adapter/conformance tests with
+`bazel test //terminal/tests:fd_byte_source_tests //key_decoder:decoder_tests`.
 Run focused syscall tests with `bazel test //terminal_io:syscall_tests`. The project uses C++23, GoogleTest,
 and Microsoft GSL; the editor relies on POSIX terminal APIs.
 
