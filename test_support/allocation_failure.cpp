@@ -1,4 +1,4 @@
-#include "internal/test_support/allocation_failure.h"
+#include "test_support/allocation_failure.h"
 
 #include <cstdlib>
 #include <limits>
@@ -21,7 +21,7 @@ FailAllocationAfter::~FailAllocationAfter() {
 }
 }  // namespace unplugged::testing
 
-// Link only into the isolated allocation-failure test executable. Keep these
+// Link only into the isolated allocation-failure test executables. Keep these
 // definitions separate from clients so compiler inlining does not confuse
 // new/delete diagnostics with the malloc/free implementation underneath them.
 void* operator new(size_t size) {

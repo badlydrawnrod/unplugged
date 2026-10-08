@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "contracts/invariant_result.h"
-#include "types.h"
+#include "document/types/types.h"
 
 // Unsupported concrete representation; use the storage subcomponent API.
 namespace unplugged::document_detail {

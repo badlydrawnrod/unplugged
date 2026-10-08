@@ -1,0 +1,12 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_library(
+    name = "api",
+    hdrs = ["types.h"],
+    visibility = [
+        "//:__pkg__",
+        "//document:__pkg__",
+    ],
+)

@@ -34,7 +34,9 @@ def main():
             ["git", "ls-files", "--cached", "--others", "--exclude-standard",
              "-z", "--", "*.cpp", "*.h"],
             cwd=REPO_ROOT)
-        files = sorted({os.fsdecode(path) for path in paths.split(b"\0") if path})
+        # Cached paths can include files moved or deleted in the working tree.
+        files = sorted({os.fsdecode(path) for path in paths.split(b"\0")
+                        if path and (REPO_ROOT / os.fsdecode(path)).is_file()})
         if not files:
             print("No active C++ sources found.", file=sys.stderr)
             return 1

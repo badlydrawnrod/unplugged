@@ -31,7 +31,7 @@ cc_library(
     hdrs = ["detail/gap_buffer.h"],
     visibility = ["//document/internal/gap_buffer:__pkg__"],
     deps = [
-        "//:document_types",
+        "//document/types:api",
         "//contracts:api",
     ],
 )
@@ -41,7 +41,7 @@ cc_library(
     hdrs = ["detail/line_starts.h"],
     visibility = ["//document/internal/line_starts:__pkg__"],
     deps = [
-        "//:document_types",
+        "//document/types:api",
         "//contracts:api",
     ],
 )
@@ -58,7 +58,7 @@ cc_library(
     deps = [
         ":gap_buffer_layout",
         ":line_starts_layout",
-        "//:document_types",
+        "//document/types:api",
         "//:size_limits",
         "//contracts:checks",
         "//document/internal/gap_buffer:api",
@@ -74,12 +74,11 @@ cc_library(
     srcs = DOCUMENT_SRCS,
     hdrs = DOCUMENT_HDRS,
     copts = COMMON_COPTS,
-    visibility = ["//:__pkg__"],
     deps = [
         ":gap_buffer_layout",
         ":line_starts_layout",
         "//:contract_test_mode",
-        "//:document_types",
+        "//document/types:api",
         "//:size_limits",
         "//contracts:checks",
         "//document/internal/gap_buffer:test_api",
@@ -129,6 +128,18 @@ cc_test(
     copts = TEST_COPTS,
     deps = [
         ":test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "edit_failure_tests",
+    srcs = ["edit_failure_tests.cpp"],
+    linkstatic = True,
+    copts = TEST_COPTS,
+    deps = [
+        ":test_api",
+        "//test_support:allocation_failure",
         "@googletest//:gtest_main",
     ],
 )

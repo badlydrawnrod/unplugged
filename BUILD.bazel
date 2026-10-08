@@ -19,12 +19,6 @@ config_setting(
 )
 
 cc_library(
-    name = "document_types",
-    hdrs = ["types.h"],
-    visibility = ["//document:__pkg__"],
-)
-
-cc_library(
     name = "size_limits",
     hdrs = ["internal/size_limits.h"],
     visibility = [
@@ -32,7 +26,7 @@ cc_library(
         "//document/internal/gap_buffer:__pkg__",
         "//document/internal/line_starts:__pkg__",
     ],
-    deps = [":document_types"],
+    deps = ["//document/types:api"],
 )
 
 # One transitive policy keeps test inline definitions and noexcept consistent
@@ -170,7 +164,7 @@ cc_library(
     ],
     copts = COMMON_COPTS,
     deps = [
-        "//document/internal/gap_buffer:api",
+        "//document/types:api",
     ],
 )
 
@@ -207,23 +201,8 @@ cc_test(
     copts = TEST_COPTS,
     deps = [
         ":editor_support",
+        "//document/types:api",
         "@googletest//:gtest_main",
         "@gsl//:gsl",
-    ],
-)
-
-cc_test(
-    name = "edit_failure_tests",
-    srcs = [
-        "edit_failure_tests.cpp",
-        "internal/test_support/allocation_failure.cpp",
-        "internal/test_support/allocation_failure.h",
-    ],
-    copts = TEST_COPTS,
-    deps = [
-        "//document/internal/gap_buffer:test_api",
-        "//document/internal/line_starts:test_api",
-        "//document:test_api",
-        "@googletest//:gtest_main",
     ],
 )

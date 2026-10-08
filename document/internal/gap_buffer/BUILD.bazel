@@ -26,7 +26,6 @@ alias(
     name = "api",
     actual = ":storage",
     visibility = [
-        "//:__pkg__",
         "//document:__pkg__",
     ],
 )
@@ -51,7 +50,6 @@ alias(
     actual = ":storage_test",
     testonly = True,
     visibility = [
-        "//:__pkg__",
         "//document:__pkg__",
     ],
 )
@@ -63,6 +61,18 @@ cc_test(
     copts = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"],
     deps = [
         ":test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "edit_failure_tests",
+    srcs = ["edit_failure_tests.cpp"],
+    linkstatic = True,
+    copts = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"],
+    deps = [
+        ":test_api",
+        "//test_support:allocation_failure",
         "@googletest//:gtest_main",
     ],
 )

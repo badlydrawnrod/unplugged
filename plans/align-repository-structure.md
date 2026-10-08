@@ -1,6 +1,6 @@
 # Align repository structure with component ownership
 
-Status: proposed; implementation has not started.
+Status: step 1 complete; steps 2–7 remain proposed.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -37,11 +37,12 @@ in an authorized cleanup commit.
 
 - Document, editor, decoder, and terminal I/O have supported `:api` targets.
   Component tests use those boundaries or their documented `:test_api` variants.
-- Storage implementations are private, but gap-buffer API visibility includes
-  the entire root package. `gap_loader.h` includes that internal API and exposes
-  `From()`, which has no callers. Application loading uses `Load()` instead.
-- Root `edit_failure_tests.cpp` mixes document behavior with storage contracts.
-  It grants the root access to both storage test APIs.
+- Storage production and test APIs are restricted to the owning document package
+  and local tests. The loader exposes only `Load()` and depends directly on
+  `//document/types:api`; unused `From()` and storage includes have been removed.
+- Allocation-failure suites live in document and each storage package and consume
+  their supported test APIs. Shared injection and failure discovery use the
+  narrowly visible, test-only `//test_support:allocation_failure` target.
 - There are 42 persisted scenarios with 42 valid executable bindings. Validation
   has been performed through temporary scripts; no repository checker exists.
 - Root `features/empty_document.feature` and `features/wrapped_rows.feature`
@@ -117,21 +118,21 @@ keep helper packages proportionate to their responsibilities.
 
 ### 1. Close document storage boundaries
 
-- [ ] Remove unused `gap_loader::From()` and its internal storage include.
+- [x] Remove unused `gap_loader::From()` and its internal storage include.
   Keep `Load()` behavior and its size-limit rejection unchanged.
-- [ ] Give the loader a direct dependency on the supported byte/size declarations
+- [x] Give the loader a direct dependency on the supported byte/size declarations
   it actually uses. Establish `//document/types:api` without exposing storage
   implementation. Avoid relying on incidental transitive includes.
-- [ ] Split the mixed failure suite: document failure scenarios belong with
+- [x] Split the mixed failure suite: document failure scenarios belong with
   document API tests; gap-buffer and line-index failure tests belong in their
   owning storage packages and use their supported test APIs.
-- [ ] Place shared allocation injection in a test-only support target. Preserve
+- [x] Place shared allocation injection in a test-only support target. Preserve
   global allocation overrides, required linker behavior, and deterministic
   failure discovery without granting access to component implementation targets.
-- [ ] Remove root visibility from both storage test APIs and the gap-buffer
+- [x] Remove root visibility from both storage test APIs and the gap-buffer
   production API. Permit only the owning document package and local tests at
   this stage; later update exact visibility for the document tests package.
-- [ ] Update `AGENTS.md` and affected acceptance annotations for moved tests.
+- [x] Update `AGENTS.md` and affected acceptance annotations for moved tests.
 
 Acceptance: no consumer outside `document/` includes or depends on either storage
 API; the loader still rejects oversized files; all failure guarantees remain
@@ -275,6 +276,32 @@ to compensate for a file move.
 - Record observed results and any deviations here. Keep structural movement
   separate from behavior changes, and stop adding complexity until the current
   increment is green.
+
+
+### Step 1 results (2026-10-08)
+
+- Moved lightweight byte/size declarations from root `types.h` to
+  `document/types/types.h` behind `//document/types:api`; updated direct consumers
+  and removed the obsolete `//:document_types` target. Checked arithmetic remains
+  behind `//:size_limits` until its later layout increment.
+- Split the existing four failure tests into three isolated executables named
+  `:edit_failure_tests` in their owning packages. Preserved the document feature
+  annotations, expectations, and allocation-point discovery without asserting
+  allocation count or order. Shared global allocation overrides are always linked
+  from the test-only support library, with static linking in each failure suite.
+- Focused tests passed (10 targets), as did `bazel test //...` and
+  `bazel test -c dbg //...` (19 targets each), and `bazel build //:editor`.
+- `python3 tools/check_format.py` passed for 60 C++ files; `git diff --check`
+  passed. A temporary traceability check confirmed all 42 scenarios retain
+  immediately adjacent executable bindings. The persisted checker remains step 2.
+- Direct reverse-dependency queries for both storage `:api` and `:test_api`
+  targets returned only document and local storage consumers. Four temporary root
+  consumers, one for each boundary target, all failed Bazel visibility analysis;
+  the probes were removed. Source inspection found no storage API includes
+  outside `document/`.
+- Small tooling correction: the formatting checker now skips deleted cached Git
+  paths so uncommitted file moves can pass the required check. It still checks
+  active tracked and untracked sources and excludes ignored build output.
 
 ## Completion criteria
 

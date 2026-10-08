@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <iterator>
 
-#include "types.h"
+#include "document/types/types.h"
 
 #if defined(CONTRACT_EXCEPTIONS)
 inline constexpr bool kWrappedRowRangeContractExceptionsEnabled = true;

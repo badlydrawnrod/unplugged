@@ -8,7 +8,7 @@
 #include "document/detail/line_starts.h"
 #include "document/line_number.h"
 #include "document/logical_line_range.h"
-#include "types.h"
+#include "document/types/types.h"
 
 #if defined(CONTRACT_EXCEPTIONS)
 inline constexpr bool kDocumentContractExceptionsEnabled = true;

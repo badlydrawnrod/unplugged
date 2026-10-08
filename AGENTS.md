@@ -166,7 +166,8 @@ with the debug throwing-contract configuration for tests. Storage primitives
 and their tests live in
 `document/internal/gap_buffer/` and `document/internal/line_starts/`, each behind
 its own `:api` target with package-private implementation targets. The document
-package consumes both APIs; the root file loader also consumes the gap buffer.
+package is the only external consumer of both storage APIs; the root file
+loader depends directly on `//document/types:api` and cannot access storage.
 Each storage package exposes `:test_api` with the shared debug throwing-contract
 configuration from `//:contract_test_mode`. Unsupported concrete storage
 declarations live in `document/detail/` so the document keeps inline ownership
@@ -175,8 +176,12 @@ only the document and their owning storage implementations. Logical-line
 ordinals are owned by `document/line_number.h`. Invariant diagnostic types live
 behind `//contracts:api`; checks remain in `contracts/impl/checks.h` behind a
 restricted implementation target. Shared byte types and size-limit helpers
-have separate root targets `//:document_types` and `//:size_limits`. Tests are
-kept beside the code as `*_tests.cpp`.
+live behind `//document/types:api` and `//:size_limits`, respectively. Allocation
+failure tests live with document and each storage package, using their supported
+`:test_api` targets. Shared injection and failure discovery live behind the
+narrowly visible, test-only `//test_support:allocation_failure` target; isolated
+failure test binaries link statically and always link its global allocation
+overrides. Tests are kept beside the code as `*_tests.cpp`.
 Bazel dependencies are declared in `MODULE.bazel`.
 
 ## Build, Test, and Run
@@ -196,7 +201,9 @@ python3 tools/check_format.py
 Run storage tests with
 `bazel test //document/internal/gap_buffer:gap_buffer_tests` and
 `bazel test //document/internal/line_starts:line_starts_tests` (or another
-`*_tests` target). Run document API tests with
+`*_tests` target). Each storage package also has `:edit_failure_tests`.
+Run document allocation-failure scenarios with
+`bazel test //document:edit_failure_tests`. Run document API tests with
 `bazel test //document:document_tests` and view tests with
 `bazel test //document:all`. Run editor API tests with
 `bazel test //editor_core:editor_tests`, and decoder API tests with

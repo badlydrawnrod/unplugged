@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <stdexcept>
 
-#include "types.h"
+#include "document/types/types.h"
 
 namespace unplugged::internal {
 

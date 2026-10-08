@@ -1,12 +1,10 @@
 #include "gap_loader.h"
 
 #include <fstream>
-#include <iostream>
 #include <stdexcept>
-#include <utility>
 #include <vector>
 
-#include "document/internal/gap_buffer/gap_buffer.h"
+#include "document/types/types.h"
 
 namespace gap_loader {
 
@@ -29,12 +27,6 @@ std::vector<uint8_t> Load(const char *filename) {
   }
 
   return {};
-}
-
-// Create a GapBuffer populated from a file.
-GapBuffer From(const char *filename) {
-  std::vector<std::uint8_t> data = Load(filename);
-  return GapBuffer(std::move(data));
 }
 
 }  // namespace gap_loader

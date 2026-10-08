@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "document/types/types.h"
 #include "gap_loader.h"
 
 // Feature: document/features/document_size.feature
