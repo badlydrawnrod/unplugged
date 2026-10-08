@@ -1,6 +1,6 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1 and 2 and the first item of part 3 are implemented
+Status: in progress; parts 1 and 2 and the first two items of part 3 are implemented
 and verified.
 Created: 2026-10-06.
 
@@ -88,7 +88,7 @@ Relevant files: `document.{h,cpp}`, `line_starts.{h,cpp}`, `gap_buffer.{h,cpp}`,
 
 - [x] Separate byte decoding in `read_key.cpp` from stdin acquisition, so
   input-protocol behavior can be tested with deterministic byte streams.
-- [ ] Replace global saved terminal state and `atexit` handling in
+- [x] Replace global saved terminal state and `atexit` handling in
   `raw_mode.cpp` with scoped terminal ownership and restoration.
 - [ ] Check terminal system-call failures and define their handling.
 - [ ] Separate input-protocol negotiation from raw-mode setup; remove the
@@ -388,9 +388,53 @@ Validation for the decoder extraction: focused tests and all twelve suites in
 default and debug builds passed. Optimized decoder tests and the editor build
 passed. A PTY smoke test verified rendering, insertion, Enter, Alt+Escape exit,
 and normal terminal restoration through the stdin adapter. Formatting checks,
-scenario binding checks, and `git diff --check` passed. Decoder changes remain
-uncommitted for user review.
+scenario binding checks, and `git diff --check` passed. Decoder changes were
+committed as `c70ebb2` after user approval.
 
-Continue with scoped terminal ownership/restoration, the second item of part 3.
+The second item of part 3 is complete. `terminal::RawMode` owns a saved terminal
+attribute snapshot for a borrowed descriptor. The descriptor must outlive the
+scope. Construction acquires and applies raw settings; the nonthrowing destructor
+restores during normal scope exit and exception unwinding. Copy and move are
+deleted, and compile-time checks enforce these ownership guarantees. Each object
+has its own saved settings; independent terminals and nested LIFO scopes work
+without global state or `atexit`. `//:raw_mode` is the supported library target;
+its tests do not depend on document, key decoding, or terminal rendering.
+
+Termios acquisition/setup failures throw `std::system_error`. Interrupted
+termios calls retry. Failed setup attempts rollback before propagating the
+original error. Explicit `Restore()` reports errors and retains pending
+restoration on failure, allowing destructor retry. Successful restoration disarms
+the destructor and repeated restoration is a no-op. Destructor restoration is
+best effort and never throws; a disconnected/unusable terminal can still prevent
+restoration. The application explicitly restores on normal shutdown and reports
+exceptions with exit status 1 after scoped cleanup. Nonterminal stdin now fails
+before input probing or screen output instead of continuing with invalid state.
+These are the local termios checks required for reliable resource ownership;
+remaining stdin/output failure handling is still the next item of part 3.
+
+The existing keyboard probe moved mechanically to `input_protocol.{h,cpp}` so
+raw-mode setup performs no stdin/stdout I/O. The application's protocol cleanup
+runs before raw-mode restoration, including during exception unwinding, and
+cannot throw. The probe's existing debug output and parsing hack are deliberately
+retained until the protocol-negotiation item; that checkbox is not complete.
+
+Nine API-level tests use isolated PTYs to verify raw settings, full restoration,
+exception unwinding, independent/nested sessions, explicit restore/disarming,
+acquisition errors, and disconnected-terminal restoration failures. Five
+significant scenarios are persisted in `features/raw_mode.feature` and uniquely
+bound in `raw_mode_tests.cpp`. No production fault-injection hooks were added.
+
+Validation for scoped raw mode: focused tests and all thirteen suites in default
+and debug builds passed. Optimized raw-mode tests and the editor build passed.
+A PTY application smoke test covered rendering, insertion, Enter, normal exit,
+and attribute restoration. A temporary external preload shim forced one restore
+system-call failure; the application reported the error with status 1 and the
+destructor retry restored the terminal attributes before error handling. A
+nonterminal startup smoke test confirmed status 1 and a diagnostic with no
+protocol or screen output. Formatting checks, scenario bindings, and
+`git diff --check` passed. This increment remains uncommitted for user review.
+
+Continue with remaining terminal system-call failure handling, the third item
+of part 3.
 Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).

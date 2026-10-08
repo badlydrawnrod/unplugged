@@ -82,16 +82,33 @@ cc_test(
 )
 
 cc_library(
+    name = "raw_mode",
+    srcs = ["raw_mode.cpp"],
+    hdrs = ["raw_mode.h"],
+    copts = COMMON_COPTS,
+)
+
+cc_test(
+    name = "raw_mode_tests",
+    srcs = ["raw_mode_tests.cpp"],
+    copts = COMMON_COPTS + ["-UNDEBUG"],
+    deps = [
+        ":raw_mode",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "editor_support",
     srcs = [
         "gap_loader.cpp",
-        "raw_mode.cpp",
+        "input_protocol.cpp",
         "read_key.cpp",
         "terminal.cpp",
     ],
     hdrs = [
         "gap_loader.h",
-        "raw_mode.h",
+        "input_protocol.h",
         "read_key.h",
         "terminal.h",
     ],
@@ -111,7 +128,9 @@ cc_binary(
     deps = [
         ":document_model",
         ":editor_support",
+        ":raw_mode",
         "//editor_core:api",
+        "@gsl//:gsl",
     ],
 )
 

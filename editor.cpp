@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+#include <exception>
+#include <gsl/gsl>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -9,6 +11,7 @@
 
 #include "document.h"
 #include "gap_loader.h"
+#include "input_protocol.h"
 #include "raw_mode.h"
 #include "read_key.h"
 #include "terminal.h"
@@ -50,27 +53,37 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  unplugged::Editor editor(Document{gap_loader::Load(argv[1])});
-  RenderCache render_cache;
-  const auto frame = editor.CreateFrame();
-  EnableRawMode();
-  terminal::Clear();
-  Draw(frame, render_cache);
+  try {
+    unplugged::Editor editor(Document{gap_loader::Load(argv[1])});
+    RenderCache render_cache;
+    const auto frame = editor.CreateFrame();
+    terminal::RawMode raw_mode(STDIN_FILENO);
+    {
+      const auto protocol_cleanup = gsl::finally(DisableInputProtocol);
+      EnableInputProtocol();
+      terminal::Clear();
+      Draw(frame, render_cache);
 
-  while (true) {
-    const auto key = ReadKey();
-    if (!key) {
-      if (!isatty(STDIN_FILENO)) {
-        break;
+      while (true) {
+        const auto key = ReadKey();
+        if (!key) {
+          if (!isatty(STDIN_FILENO)) {
+            break;
+          }
+          continue;
+        }
+        if (!editor.HandleKey(*key)) {
+          break;
+        }
+        Draw(editor.CreateFrame(), render_cache);
       }
-      continue;
-    }
-    if (!editor.HandleKey(*key)) {
-      break;
-    }
-    Draw(editor.CreateFrame(), render_cache);
-  }
 
-  terminal::Clear();
-  return 0;
+      terminal::Clear();
+    }
+    raw_mode.Restore();
+    return 0;
+  } catch (const std::exception& error) {
+    std::cerr << "Editor error: " << error.what() << '\n';
+    return 1;
+  }
 }

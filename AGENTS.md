@@ -153,7 +153,9 @@ frame snapshots live behind `//editor_core:api` in
 `editor_core/editor.{h,cpp}`. Input-protocol decoding lives behind
 `//key_decoder:api` in `key_decoder/decoder.{h,cpp}`; `read_key.cpp` adapts stdin
 to its byte-source interface. Both packages contain API tests and acceptance
-scenarios. Document and editing primitives live in root-level pairs such as
+scenarios. `terminal::RawMode` in `raw_mode.{h,cpp}` owns scoped terminal settings
+behind `//:raw_mode`; its tests use isolated PTYs. The legacy keyboard-protocol
+probe lives separately in `input_protocol.{h,cpp}`. Document and editing primitives live in root-level pairs such as
 `document.{h,cpp}`, `gap_buffer.{h,cpp}`, and `line_starts.{h,cpp}`. Tests are kept
 beside the code as `*_tests.cpp`. `old_20260924/` contains archived experiments;
 do not add new production code there. Bazel dependencies are declared in
@@ -174,7 +176,8 @@ bazel run //:editor -- [file]
 Run one test target with `bazel test //:gap_buffer_tests` (or another
 `*_tests` target). Run editor API tests with
 `bazel test //editor_core:editor_tests`, and decoder API tests with
-`bazel test //key_decoder:decoder_tests`. The project uses C++23, GoogleTest,
+`bazel test //key_decoder:decoder_tests`. Run terminal lifetime tests with
+`bazel test //:raw_mode_tests`. The project uses C++23, GoogleTest,
 and Microsoft GSL; the editor relies on POSIX terminal APIs.
 
 ## Coding Style & File Conventions
