@@ -1,7 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1–5 and naming in part 6 are implemented and
-verified. Formatting and mechanical checks are next.
+Status: in progress; parts 1–5, naming, and reviewed-file formatting in part 6
+are implemented and verified. The mechanical formatting check is next.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -191,9 +191,12 @@ targets move. Its structural description should remain accurate.
   and iterator traits. Standard range queries `size` and `empty`, iterator type
   names, operators, and existing range/iterator compile-time checks remain
   unchanged.
-- [ ] Format the files identified by the review:
-  `document.cpp`, `editor.cpp`, `logical_line_range.{h,cpp}`,
-  `wrapped_row_range.{h,cpp}`, and `wrapped_row_range_tests.cpp`.
+- [x] Format the files identified by the review:
+  `document/document.cpp`, `editor.cpp`, `document/logical_line_range.{h,cpp}`,
+  `document/wrapped_row_range.{h,cpp}`, and
+  `document/wrapped_row_range_tests.cpp`. Applied clang-format 21.1.8 with the
+  repository configuration; `editor.cpp` already conformed. All seven files
+  pass `clang-format --dry-run --Werror`.
 - [ ] Add a mechanical formatting check using the repository's
   `.clang-format`. Keep generated build files out of source changes.
 
@@ -226,8 +229,8 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: format the reviewed files in part 6, then add the mechanical formatting
-check. Supported document headers now include only
+Next: add a mechanical formatting check using the repository configuration,
+keeping generated build files outside source changes. Supported document headers now include only
 supported diagnostic/domain types and unsupported `detail/`
 representation declarations. The detail declarations preserve inline storage
 and the existing copy/move behavior, without adding allocation or indirection.
@@ -273,6 +276,15 @@ The two focused suites, all seventeen suites in default and debug configurations
 and `bazel build //:editor` passed. Active code has no remaining camelCase
 local/parameter identifiers or nonconforming constexpr variable names. Scenario
 bindings and `git diff --check` passed. Formatting remains a separate step.
+
+The reviewed-file formatting increment applies the repository's clang-format
+configuration to all seven listed files. A mechanical comparison confirms that
+each file exactly matches formatter output from its committed version. Six
+files changed; the application entry point already conformed. Six focused
+suites, all seventeen suites in default and debug configurations, and
+`bazel build //:editor` passed. The formatter's dry-run check, all 42 scenario
+bindings, and `git diff --check` passed. No behavior or component boundaries
+changed. Repository-wide formatting enforcement remains the next step.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte

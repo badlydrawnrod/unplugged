@@ -2,9 +2,9 @@
 
 #include <limits>
 
+#include "contracts/impl/checks.h"
 #include "document/document.h"
 #include "document/document_view.h"
-#include "contracts/impl/checks.h"
 
 namespace {
 constexpr WrappedRowRange::RowIndex ComputeRowCount(ByteCount content_count,
@@ -44,7 +44,8 @@ WrappedRowRange::iterator::iterator(const WrappedRowRange* range,
 DocumentView WrappedRowRange::iterator::operator*() const {
   const ByteIndex offset = row_ * range_->width_;
   const ByteCount remaining = range_->content_count_ - offset;
-  const ByteCount count = remaining < range_->width_ ? remaining : range_->width_;
+  const ByteCount count =
+      remaining < range_->width_ ? remaining : range_->width_;
   return range_->doc_->PartialView(range_->start_ + offset, count);
 }
 
@@ -59,21 +60,24 @@ WrappedRowRange::iterator WrappedRowRange::iterator::operator++(int) noexcept {
   return tmp;
 }
 
-bool WrappedRowRange::iterator::operator==(const iterator& other) const noexcept {
+bool WrappedRowRange::iterator::operator==(
+    const iterator& other) const noexcept {
   return range_ == other.range_ && row_ == other.row_;
 }
 
-bool WrappedRowRange::iterator::operator!=(const iterator& other) const noexcept {
+bool WrappedRowRange::iterator::operator!=(
+    const iterator& other) const noexcept {
   return !(*this == other);
 }
 
-WrappedRowRange::RowIndex WrappedRowRange::iterator::GetRowIndex() const noexcept {
+WrappedRowRange::RowIndex WrappedRowRange::iterator::GetRowIndex()
+    const noexcept {
   return row_;
 }
 
-WrappedRowRange::WrappedRowRange(const Document& doc, DocumentView line,
-                                 ByteCount width)
-    noexcept(!kWrappedRowRangeContractExceptionsEnabled)
+WrappedRowRange::WrappedRowRange(
+    const Document& doc, DocumentView line,
+    ByteCount width) noexcept(!kWrappedRowRangeContractExceptionsEnabled)
     : doc_(&doc),
       start_(line.StartIndex()),
       content_count_(ContentCountWithoutTrailingNewline(line)),

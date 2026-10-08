@@ -6,8 +6,8 @@
 #include "document/document_view.h"
 #include "document/internal/gap_buffer/gap_buffer.h"
 #include "document/internal/line_starts/line_starts.h"
-#include "internal/size_limits.h"
 #include "document/logical_line_range.h"
+#include "internal/size_limits.h"
 
 static_assert(std::is_nothrow_move_assignable_v<LineStarts>,
               "committing a prepared line index must not throw");
@@ -139,9 +139,7 @@ void Document::Edit(ByteIndex pos, ByteCount delete_count,
   line_starts_ = std::move(next_line_starts);
 }
 
-DocumentView Document::View() const noexcept {
-  return PartialView(0, Len());
-}
+DocumentView Document::View() const noexcept { return PartialView(0, Len()); }
 
 DocumentView Document::PartialView(ByteIndex start, ByteCount count) const
     noexcept(!kDocumentContractExceptionsEnabled) {

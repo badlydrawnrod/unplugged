@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <limits>
 #include <stdexcept>
 #include <string>
-
-#include <limits>
 #include <vector>
 
 #include "document/document.h"
@@ -164,9 +163,10 @@ TEST(WrappedRowRangeTest, RejectsZeroWidth) {
   auto line = *doc.LinesFrom(0).begin();
 
 #ifdef CONTRACT_EXCEPTIONS
-  ExpectPreconditionViolation([&] { std::ignore = WrappedRowRange(doc, line, 0); });
+  ExpectPreconditionViolation(
+      [&] { std::ignore = WrappedRowRange(doc, line, 0); });
 #else
-  EXPECT_DEATH({ std::ignore = WrappedRowRange(doc, line, 0); },
-               "PRECONDITION FAILED");
+  EXPECT_DEATH(
+      { std::ignore = WrappedRowRange(doc, line, 0); }, "PRECONDITION FAILED");
 #endif
 }

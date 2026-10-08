@@ -11,8 +11,9 @@ LogicalLineRange::iterator::iterator(const Document* doc, LineNumber line,
 
 DocumentView LogicalLineRange::iterator::operator*() const {
   const ByteIndex start = doc_->StartOfLine(line_);
-  const ByteIndex end = (line_ + 1 < doc_->NumLines()) ? doc_->StartOfLine(line_ + 1)
-                                                        : doc_->Len();
+  const ByteIndex end = (line_ + 1 < doc_->NumLines())
+                            ? doc_->StartOfLine(line_ + 1)
+                            : doc_->Len();
   return doc_->PartialView(start, end - start);
 }
 
@@ -21,22 +22,26 @@ LogicalLineRange::iterator& LogicalLineRange::iterator::operator++() noexcept {
   return *this;
 }
 
-LogicalLineRange::iterator LogicalLineRange::iterator::operator++(int) noexcept {
+LogicalLineRange::iterator LogicalLineRange::iterator::operator++(
+    int) noexcept {
   auto tmp = *this;
   ++(*this);
   return tmp;
 }
 
-bool LogicalLineRange::iterator::operator==(const iterator& other) const noexcept {
+bool LogicalLineRange::iterator::operator==(
+    const iterator& other) const noexcept {
   return doc_ == other.doc_ && line_ == other.line_ &&
          end_line_ == other.end_line_;
 }
 
-bool LogicalLineRange::iterator::operator!=(const iterator& other) const noexcept {
+bool LogicalLineRange::iterator::operator!=(
+    const iterator& other) const noexcept {
   return !(*this == other);
 }
 
-LogicalLineRange::LineNumber LogicalLineRange::iterator::GetLineNumber() const noexcept {
+LogicalLineRange::LineNumber LogicalLineRange::iterator::GetLineNumber()
+    const noexcept {
   return line_;
 }
 
@@ -56,7 +61,8 @@ LogicalLineRange::LineNumber LogicalLineRange::FirstLine() const noexcept {
   return first_;
 }
 
-LogicalLineRange::LineNumber LogicalLineRange::EndLineExclusive() const noexcept {
+LogicalLineRange::LineNumber LogicalLineRange::EndLineExclusive()
+    const noexcept {
   return end_exclusive_;
 }
 
@@ -64,4 +70,6 @@ LogicalLineRange::LineCount LogicalLineRange::NumLines() const noexcept {
   return end_exclusive_ - first_;
 }
 
-bool LogicalLineRange::empty() const noexcept { return first_ == end_exclusive_; }
+bool LogicalLineRange::empty() const noexcept {
+  return first_ == end_exclusive_;
+}

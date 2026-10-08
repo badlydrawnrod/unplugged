@@ -22,7 +22,8 @@ class LogicalLineRange {
     using reference = DocumentView;
 
     iterator() = default;
-    iterator(const Document* doc, LineNumber line, LineNumber end_line) noexcept;
+    iterator(const Document* doc, LineNumber line,
+             LineNumber end_line) noexcept;
 
     DocumentView operator*() const;
 

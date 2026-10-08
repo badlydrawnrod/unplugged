@@ -44,8 +44,9 @@ class WrappedRowRange {
     RowIndex row_ = 0;
   };
 
-  WrappedRowRange(const Document& doc, DocumentView line,
-                  ByteCount width) noexcept(!kWrappedRowRangeContractExceptionsEnabled);
+  WrappedRowRange(
+      const Document& doc, DocumentView line,
+      ByteCount width) noexcept(!kWrappedRowRangeContractExceptionsEnabled);
 
   iterator begin() const noexcept;
   iterator end() const noexcept;
