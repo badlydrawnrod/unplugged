@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "document_view.h"
+#include "document/document_view.h"
 #include "dsl.h"
 
 TEST(DocumentViewTest, FullViewIteratesInLogicalOrder) {

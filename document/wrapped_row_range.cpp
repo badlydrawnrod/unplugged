@@ -1,9 +1,9 @@
-#include "wrapped_row_range.h"
+#include "document/wrapped_row_range.h"
 
 #include <limits>
 
-#include "document.h"
-#include "document_view.h"
+#include "document/document.h"
+#include "document/document_view.h"
 #include "dsl.h"
 
 namespace {

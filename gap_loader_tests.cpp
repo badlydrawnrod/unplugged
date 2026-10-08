@@ -8,7 +8,7 @@
 
 #include "gap_loader.h"
 
-// Feature: features/document_size.feature
+// Feature: document/features/document_size.feature
 // Scenario: Oversized files cannot be loaded for editing
 TEST(GapLoaderTest, RejectsOversizedFileBeforeAllocatingContent) {
   // A sparse file exercises the real boundary without allocating gigabytes.

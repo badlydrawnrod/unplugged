@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "document.h"
-#include "document_view.h"
+#include "document/document.h"
+#include "document/document_view.h"
 #include "dsl.h"
 
 std::vector<Byte> Collect(DocumentView view) {

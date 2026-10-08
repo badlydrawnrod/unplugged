@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "document.h"
+#include "document/document.h"
 #include "gap_loader.h"
 #include "input_protocol.h"
 #include "raw_mode.h"

@@ -6,8 +6,8 @@
 #include <stdexcept>
 #include <utility>
 
-#include "document_view.h"
-#include "wrapped_row_range.h"
+#include "document/document_view.h"
+#include "document/wrapped_row_range.h"
 
 namespace unplugged {
 namespace {

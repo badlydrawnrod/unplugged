@@ -1,9 +1,9 @@
-#include "logical_line_range.h"
+#include "document/logical_line_range.h"
 
 #include <algorithm>
 
-#include "document.h"
-#include "document_view.h"
+#include "document/document.h"
+#include "document/document_view.h"
 
 LogicalLineRange::iterator::iterator(const Document* doc, LineNumber line,
                                      LineNumber end_line) noexcept

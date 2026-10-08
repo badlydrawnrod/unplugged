@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "document.h"
-#include "document_view.h"
+#include "document/document.h"
+#include "document/document_view.h"
 #include "gap_buffer.h"
 #include "internal/test_support/allocation_failure.h"
 #include "line_starts.h"
@@ -60,7 +60,7 @@ std::string Snapshot(const GapBuffer& buffer) {
 }
 }  // namespace
 
-// Feature: features/document_edit_failures.feature
+// Feature: document/features/document_edit_failures.feature
 // Scenario: An allocation failure leaves a replacement unapplied
 TEST(EditFailureTest, DocumentReplacementPreservesContentAndLinesOnFailure) {
   const std::string inserted = "x\ny\nz\n";
@@ -81,7 +81,7 @@ TEST(EditFailureTest, DocumentReplacementPreservesContentAndLinesOnFailure) {
       });
 }
 
-// Feature: features/document_edit_failures.feature
+// Feature: document/features/document_edit_failures.feature
 // Scenario: Deletion succeeds when allocation is unavailable
 TEST(EditFailureTest, DeletionAndNoOpDoNotNeedAllocation) {
   Document doc{std::vector<Byte>{'a', '\n', 'b', '\n', 'c'}};

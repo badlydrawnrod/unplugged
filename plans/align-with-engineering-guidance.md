@@ -1,7 +1,8 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1–4 are implemented and verified. Next: component
-boundaries in Bazel (part 5).
+Status: in progress; parts 1–4 are implemented and verified. Part 5 has
+started: document/editor API targets are established; storage subcomponent
+boundaries are next.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -125,13 +126,17 @@ TEST(...) {
 
 ### 5. Enforce component boundaries in Bazel
 
-- [ ] Establish supported document and editor targets reflecting their
-  actual APIs and dependency direction.
+- [x] Establish supported document and editor targets reflecting their
+  actual APIs and dependency direction. `//document:api` owns the model and
+  views in `document/`; `//editor_core:api` and the application depend on that
+  supported target. Document API tests and scenarios moved with the component.
+  `//document:test_api` preserves the existing test contract configuration,
+  inherited from the matching storage variant across translation units.
 - [ ] Give internal storage subcomponents their own `:api` targets and
   restrict implementation targets to legitimate consumers.
 - [ ] Separate supported API headers from implementation headers. The
-  current `DOCUMENT_MODEL_HDRS` exports document APIs, storage primitives,
-  and contract machinery together.
+  document API still transitively exports storage primitives and contract
+  machinery through the transitional storage aggregate.
 - [ ] Make boundary tests depend on the supported component target and
   storage tests on their supported subcomponent targets. Reserve direct
   implementation dependencies for tests of implementation properties.
@@ -194,9 +199,17 @@ suites pass in default and debug builds. PTY checks cover legacy/kitty input,
 startup without replies, early input, normal restoration, read errors, and
 broken output pipes; formatting and scenario bindings also pass.
 
-Next: establish supported document and editor targets in part 5. Document
-bindings currently use the existing contract-configured document test library;
-its aggregate headers and target boundaries still need the planned separation.
+Next: give storage subcomponents their own `:api` targets in part 5, then
+separate supported headers from implementation and contract machinery. The
+root `//:document_storage` and test variant are transitional aggregates,
+restricted to root/document consumers; editor consumers use `//document:api`.
+Document boundary tests use `//document:test_api` with the same supported
+headers. The mixed allocation-failure suite remains in the root and explicitly
+depends on both document and storage APIs until storage tests are separated.
+This increment passed nine focused suites, all seventeen suites in default and
+debug configurations, and `bazel build //:editor`. Scenario bindings and
+`git diff --check` also passed. Moved C++ files changed only include paths and
+scenario annotations.
 
 The decoder extraction preserved existing parsing behavior. UTF-8 scalar
 validity is not fully checked, legacy Alt fallback supports only two/three-byte

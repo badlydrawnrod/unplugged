@@ -3,10 +3,10 @@
 #include <limits>
 #include <vector>
 
-#include "document.h"
-#include "document_view.h"
+#include "document/document.h"
+#include "document/document_view.h"
 #include "dsl.h"
-#include "wrapped_row_range.h"
+#include "document/wrapped_row_range.h"
 
 #ifdef CONTRACT_EXCEPTIONS
 template <typename F>

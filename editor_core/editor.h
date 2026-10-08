@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "document.h"
+#include "document/document.h"
 #include "key.h"
 
 namespace unplugged {

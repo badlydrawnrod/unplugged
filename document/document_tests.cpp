@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "document.h"
-#include "document_view.h"
+#include "document/document.h"
+#include "document/document_view.h"
 #include "dsl.h"
 
 #ifdef CONTRACT_EXCEPTIONS
@@ -140,7 +140,7 @@ TEST(DocumentTest, LineFromPos) {
   EXPECT_EQ(doc.LineFromPos(6), 2);
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: Inserting text and a newline preserves surrounding content
 TEST(DocumentTest, EditInserts) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
@@ -172,7 +172,7 @@ TEST(DocumentTest, EditInserts) {
   EXPECT_EQ(doc.At(9), 'e');
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: Deleting a range can remove text and a newline together
 TEST(DocumentTest, EditDeletes) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
@@ -224,7 +224,7 @@ TEST(DocumentTest, EditDeletesFromZero) {
   EXPECT_EQ(doc.At(5), 'e');
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: An empty edit preserves content and line boundaries
 TEST(DocumentTest, EditDeleteZeroBytesIsNoOp) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
@@ -259,7 +259,7 @@ TEST(DocumentTest, EditDeleteZeroBytesIsNoOp) {
   EXPECT_EQ(std::string(view.begin(), view.end()), "ab\ncd\ne");
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: Deleting a newline joins adjacent lines
 TEST(DocumentTests, EditDeletesAcrossLineBoundaries) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
@@ -284,7 +284,7 @@ TEST(DocumentTests, EditDeletesAcrossLineBoundaries) {
   EXPECT_EQ(doc.At(5), 'e');
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: Equal-length replacement changes logical line boundaries
 TEST(DocumentTest, EditReplaces) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
@@ -312,7 +312,7 @@ TEST(DocumentTest, EditReplaces) {
   EXPECT_EQ(doc.At(6), 'e');
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: A longer replacement preserves the suffix
 TEST(DocumentTest, LongerReplacementPreservesSuffix) {
   std::vector<Byte> source{'a', 'b', '\n', 'c', 'd', '\n', 'e'};
@@ -343,7 +343,7 @@ TEST(DocumentTest, LongerReplacementPreservesSuffix) {
   EXPECT_EQ(doc.StartOfLine(2), 8);
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: Deleting one adjacent newline preserves the other
 TEST(DocumentTest, DeleteOneOfAdjacentNewlines) {
   // Exercise document byte edits; editor command dispatch is tested separately.
@@ -368,7 +368,7 @@ TEST(DocumentTest, DeleteOneOfAdjacentNewlines) {
   EXPECT_EQ(doc.At(2), 'B');
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: A shorter replacement can span multiple lines
 TEST(DocumentTest, ShorterReplacementSpansLinesAndPreservesSuffix) {
   Document doc{std::vector<Byte>{'a', 'b', '\n', 'c', 'd', '\n', 'e'}};
@@ -382,7 +382,7 @@ TEST(DocumentTest, ShorterReplacementSpansLinesAndPreservesSuffix) {
   EXPECT_EQ(doc.LineFromPos(doc.Len()), 1u);
 }
 
-// Feature: features/document_editing.feature
+// Feature: document/features/document_editing.feature
 // Scenario: Appending a newline creates an empty final line
 TEST(DocumentTest, AppendNewlineCreatesEmptyFinalLine) {
   Document doc{std::vector<Byte>{'a', 'b'}};

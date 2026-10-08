@@ -1,0 +1,91 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+COMMON_COPTS = [
+    "-std=c++23",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+]
+
+DOCUMENT_SRCS = [
+    "document.cpp",
+    "logical_line_range.cpp",
+    "wrapped_row_range.cpp",
+]
+
+DOCUMENT_HDRS = [
+    "document.h",
+    "document_view.h",
+    "logical_line_range.h",
+    "wrapped_row_range.h",
+]
+
+cc_library(
+    name = "api",
+    srcs = DOCUMENT_SRCS,
+    hdrs = DOCUMENT_HDRS,
+    copts = COMMON_COPTS,
+    visibility = [
+        "//:__pkg__",
+        "//editor_core:__pkg__",
+    ],
+    deps = ["//:document_storage"],
+)
+
+# Supported API with the existing debug-only throwing contract policy. The
+# storage dependency propagates that policy through all translation units.
+cc_library(
+    name = "test_api",
+    testonly = True,
+    srcs = DOCUMENT_SRCS,
+    hdrs = DOCUMENT_HDRS,
+    copts = COMMON_COPTS,
+    visibility = ["//:__pkg__"],
+    deps = ["//:document_storage_test"],
+)
+
+# GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
+TEST_COPTS = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"]
+
+cc_test(
+    name = "document_tests",
+    srcs = ["document_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        ":test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "document_view_tests",
+    srcs = ["document_view_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        ":test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "logical_line_range_tests",
+    srcs = ["logical_line_range_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        ":test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "wrapped_row_range_tests",
+    srcs = ["wrapped_row_range_tests.cpp"],
+    copts = TEST_COPTS,
+    deps = [
+        ":test_api",
+        "@googletest//:gtest_main",
+    ],
+)

@@ -159,9 +159,14 @@ behind `//:raw_mode`; its tests use isolated PTYs. `terminal::InputProtocol` in
 stdin, behind `//:input_protocol`. Checked descriptor I/O lives
 behind `//terminal_io:api`; `//:read_key` exposes key/NoKey/EOF results, and
 `//:terminal_output` exposes buffered rendering with checked writes and scoped
-SIGPIPE handling. Document and editing primitives live in root-level pairs such as
-`document.{h,cpp}`, `gap_buffer.{h,cpp}`, and `line_starts.{h,cpp}`. Tests are kept
-beside the code as `*_tests.cpp`. `old_20260924/` contains archived experiments;
+SIGPIPE handling. The document model and its byte, logical-line, and wrapped-row
+views live in `document/` behind `//document:api`; its API tests and acceptance
+scenarios are kept in that package. `//document:test_api` exposes the same API
+with the debug throwing-contract configuration for tests. Storage primitives
+remain in root-level pairs `gap_buffer.{h,cpp}` and `line_starts.{h,cpp}`, behind
+the transitional `//:document_storage` aggregate, visible only to the root and
+document packages. Tests are kept beside the code as `*_tests.cpp`.
+`old_20260924/` contains archived experiments;
 do not add new production code there. Bazel dependencies are declared in
 `MODULE.bazel`.
 
@@ -178,7 +183,9 @@ bazel run //:editor -- [file]
 ```
 
 Run one test target with `bazel test //:gap_buffer_tests` (or another
-`*_tests` target). Run editor API tests with
+`*_tests` target). Run document API tests with
+`bazel test //document:document_tests` and view tests with
+`bazel test //document:all`. Run editor API tests with
 `bazel test //editor_core:editor_tests`, and decoder API tests with
 `bazel test //key_decoder:decoder_tests`. Run terminal lifetime tests with
 `bazel test //:raw_mode_tests`, and protocol-session tests with

@@ -1,10 +1,10 @@
-#include "document.h"
+#include "document/document.h"
 
 #include <type_traits>
 
-#include "document_view.h"
+#include "document/document_view.h"
 #include "internal/size_limits.h"
-#include "logical_line_range.h"
+#include "document/logical_line_range.h"
 
 static_assert(std::is_nothrow_move_assignable_v<LineStarts>,
               "committing a prepared line index must not throw");

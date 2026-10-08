@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-#include "document_view.h"
+#include "document/document_view.h"
 #include "editor_core/editor.h"
 
 namespace unplugged {

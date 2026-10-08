@@ -2,7 +2,7 @@
 
 #include <iterator>
 
-#include "document.h"
+#include "document/document.h"
 
 class DocumentView {
  public:

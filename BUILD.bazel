@@ -18,40 +18,38 @@ config_setting(
     values = {"compilation_mode": "dbg"},
 )
 
-DOCUMENT_MODEL_SRCS = [
-    "document.cpp",
+# Transitional storage aggregate; the document package owns the supported API.
+# Split these primitives into internal subcomponent APIs in the next increment.
+DOCUMENT_STORAGE_SRCS = [
     "gap_buffer.cpp",
     "internal/size_limits.h",
     "line_starts.cpp",
-    "logical_line_range.cpp",
-    "wrapped_row_range.cpp",
 ]
 
-DOCUMENT_MODEL_HDRS = [
-    "document.h",
-    "document_view.h",
+DOCUMENT_STORAGE_HDRS = [
     "dsl.h",
     "gap_buffer.h",
     "line_starts.h",
-    "logical_line_range.h",
     "types.h",
-    "wrapped_row_range.h",
 ]
 
 cc_library(
-    name = "document_model",
-    visibility = ["//editor_core:__pkg__"],
-    srcs = DOCUMENT_MODEL_SRCS,
-    hdrs = DOCUMENT_MODEL_HDRS,
+    name = "document_storage",
+    visibility = ["//document:__pkg__"],
+    srcs = DOCUMENT_STORAGE_SRCS,
+    hdrs = DOCUMENT_STORAGE_HDRS,
     copts = COMMON_COPTS,
     deps = ["@gsl//:gsl"],
 )
 
+# Propagate the contract mode to every test translation unit and dependent
+# document implementation, so inline definitions and noexcept agree.
 cc_library(
-    name = "document_model_test",
+    name = "document_storage_test",
     testonly = True,
-    srcs = DOCUMENT_MODEL_SRCS,
-    hdrs = DOCUMENT_MODEL_HDRS,
+    visibility = ["//document:__pkg__"],
+    srcs = DOCUMENT_STORAGE_SRCS,
+    hdrs = DOCUMENT_STORAGE_HDRS,
     copts = COMMON_COPTS,
     defines = select({
         ":debug_build": ["CONTRACT_EXCEPTIONS"],
@@ -179,7 +177,7 @@ cc_library(
     ],
     copts = COMMON_COPTS,
     deps = [
-        ":document_model",
+        ":document_storage",
         "@gsl//:gsl",
     ],
 )
@@ -189,7 +187,7 @@ cc_binary(
     srcs = ["editor.cpp"],
     copts = COMMON_COPTS,
     deps = [
-        ":document_model",
+        "//document:api",
         ":editor_support",
         ":input_protocol",
         ":raw_mode",
@@ -231,7 +229,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        ":document_model_test",
+        ":document_storage_test",
         "@googletest//:gtest_main",
         "@gsl//:gsl",
     ],
@@ -246,7 +244,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        ":document_model_test",
+        ":document_storage_test",
         "@googletest//:gtest_main",
         "@gsl//:gsl",
     ],
@@ -261,67 +259,8 @@ cc_test(
     ],
     copts = TEST_COPTS,
     deps = [
-        ":document_model_test",
+        ":document_storage_test",
+        "//document:test_api",
         "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "document_tests",
-    srcs = ["document_tests.cpp"],
-    copts = TEST_COPTS,
-    defines = select({
-        ":debug_build": ["CONTRACT_EXCEPTIONS"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":document_model_test",
-        "@googletest//:gtest_main",
-        "@gsl//:gsl",
-    ],
-)
-
-cc_test(
-    name = "document_view_tests",
-    srcs = ["document_view_tests.cpp"],
-    copts = TEST_COPTS,
-    defines = select({
-        ":debug_build": ["CONTRACT_EXCEPTIONS"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":document_model_test",
-        "@googletest//:gtest_main",
-        "@gsl//:gsl",
-    ],
-)
-
-cc_test(
-    name = "logical_line_range_tests",
-    srcs = ["logical_line_range_tests.cpp"],
-    copts = TEST_COPTS,
-    defines = select({
-        ":debug_build": ["CONTRACT_EXCEPTIONS"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":document_model_test",
-        "@googletest//:gtest_main",
-        "@gsl//:gsl",
-    ],
-)
-
-cc_test(
-    name = "wrapped_row_range_tests",
-    srcs = ["wrapped_row_range_tests.cpp"],
-    copts = TEST_COPTS,
-    defines = select({
-        ":debug_build": ["CONTRACT_EXCEPTIONS"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":document_model_test",
-        "@googletest//:gtest_main",
-        "@gsl//:gsl",
     ],
 )

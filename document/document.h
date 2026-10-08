@@ -4,7 +4,7 @@
 
 #include "gap_buffer.h"
 #include "line_starts.h"
-#include "logical_line_range.h"
+#include "document/logical_line_range.h"
 
 #if defined(CONTRACT_EXCEPTIONS)
 inline constexpr bool kDocumentContractExceptionsEnabled = true;
