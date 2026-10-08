@@ -1,0 +1,34 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+COMMON_COPTS = [
+    "-std=c++23",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+]
+
+# GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
+cc_test(
+    name = "gap_buffer_tests",
+    srcs = ["gap_buffer_tests.cpp"],
+    copts = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"],
+    deps = [
+        "//document/internal/gap_buffer:test_api",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "edit_failure_tests",
+    srcs = ["edit_failure_tests.cpp"],
+    linkstatic = True,
+    copts = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"],
+    deps = [
+        "//document/internal/gap_buffer:test_api",
+        "//test_support:allocation_failure",
+        "@googletest//:gtest_main",
+    ],
+)

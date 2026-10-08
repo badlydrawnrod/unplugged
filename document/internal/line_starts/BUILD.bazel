@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -51,28 +51,6 @@ alias(
     testonly = True,
     visibility = [
         "//document:__pkg__",
-    ],
-)
-
-# GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
-cc_test(
-    name = "line_starts_tests",
-    srcs = ["line_starts_tests.cpp"],
-    copts = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"],
-    deps = [
-        ":test_api",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "edit_failure_tests",
-    srcs = ["edit_failure_tests.cpp"],
-    linkstatic = True,
-    copts = COMMON_COPTS + ["-UNDEBUG", "-Wno-error=sign-compare"],
-    deps = [
-        ":test_api",
-        "//test_support:allocation_failure",
-        "@googletest//:gtest_main",
+        "//document/internal/line_starts/tests:__pkg__",
     ],
 )

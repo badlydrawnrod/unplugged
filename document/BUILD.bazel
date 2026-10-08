@@ -11,9 +11,9 @@ COMMON_COPTS = [
 ]
 
 DOCUMENT_SRCS = [
-    "src/document.cpp",
-    "src/logical_line_range.cpp",
-    "src/wrapped_row_range.cpp",
+    "document.cpp",
+    "logical_line_range.cpp",
+    "wrapped_row_range.cpp",
 ]
 
 DOCUMENT_HDRS = [

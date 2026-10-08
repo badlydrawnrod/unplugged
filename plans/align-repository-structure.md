@@ -1,6 +1,6 @@
 # Align repository structure with component ownership
 
-Status: steps 1–6 complete; steps 7–8 remain proposed.
+Status: steps 1–7 complete; step 8 remains proposed.
 Created: 2026-10-08.
 
 ## Objective and scope
@@ -263,28 +263,28 @@ to compensate for a file move.
 
 ### 7. Simplify source placement and standardize test directories
 
-- [ ] Move implementation `.cpp` files from `src/` to their owning component
+- [x] Move implementation `.cpp` files from `src/` to their owning component
   roots in document, editor core, decoder, key, terminal, terminal I/O, and file
   loader. Remove empty `src/` directories. Keep application composition at
   `applications/editor/main.cpp` and existing internal sources at their roots.
-- [ ] Keep repository-visible API headers under `include/<component>/`, with
+- [x] Keep repository-visible API headers under `include/<component>/`, with
   their existing logical include paths. Keep internal subcomponent and port API
   headers at their package roots. Keep private implementation headers under
   `impl/` and preserve document's inline `detail/` declarations and layout targets.
-- [ ] Move executable internal-subcomponent tests into local `tests/` packages,
+- [x] Move executable internal-subcomponent tests into local `tests/` packages,
   including gap buffer, line starts, and size limits. Retain existing component
   test directories and public-header compile checks. Keep reusable test helpers
   behind their narrow test-only targets; do not create empty directories for
   packages without implementation sources or executable tests.
-- [ ] Update Bazel source paths, test dependencies, and precise visibility lists
+- [x] Update Bazel source paths, test dependencies, and precise visibility lists
   together. New internal test packages consume their owning supported `:api` or
   `:test_api`; they do not gain access to implementation or layout targets.
   Replace obsolete test-helper consumers with the new exact test packages.
-- [ ] Preserve `CONTRACT_EXCEPTIONS` coherence, conditional `noexcept`, static
+- [x] Preserve `CONTRACT_EXCEPTIONS` coherence, conditional `noexcept`, static
   failure-test linking, always-linked allocation overrides, syscall/signal
   wrapping, and acceptance annotations. Make these mechanical moves in coherent
   increments, preserving all C++ contents and observable behavior.
-- [ ] Record the categorical convention in `AGENTS.md`: root implementation
+- [x] Record the categorical convention in `AGENTS.md`: root implementation
   sources, `tests/` for executable tests, `include/` for repository-visible APIs,
   and root API headers for internal subcomponents and ports. Update affected test
   commands and the layout-cache proposal's editor source path. Remove obsolete
@@ -541,6 +541,44 @@ Bazel dependency/visibility inspection and PTY smoke checks after terminal moves
   diagnostics and restored terminal attributes. Temporary smoke files were not
   retained. Steps 7–8's layout simplification, durable documentation, and final cleanup
   work remain.
+
+### Step 7 results (2026-10-08)
+
+- Moved implementation sources from `src/` to the roots of document, editor core,
+  decoder, key, terminal, terminal I/O, and file loader; removed empty `src/`
+  directories and updated Bazel source lists. Application composition, logical
+  API includes, private implementation headers, and inline document layout targets
+  remain unchanged.
+- Moved gap-buffer, line-starts, and size-limit executable tests to owning
+  `tests/` packages. Storage tests consume their supported `:test_api`; arithmetic
+  tests consume their supported `:api`. Removed old executable test targets
+  without compatibility aliases. API and allocation-helper visibility now names
+  the precise new test packages; implementation/layout visibility is unchanged.
+- All 17 moved C++ files are byte-for-byte identical to their committed originals.
+  Acceptance annotations, conditional `noexcept`, static failure-test linking,
+  always-linked allocation overrides, and syscall/signal linker wrapping are
+  unchanged. Configured queries confirmed both storage test APIs and their moved
+  test binaries receive `CONTRACT_EXCEPTIONS` only in debug builds.
+- Verified both coherent increments (source placement, then internal test packages)
+  with full default/debug suites (20 targets each), `bazel build //:editor`,
+  repository verification (65 formatted C++ files, 44 scenarios, 48 bindings,
+  20 checker tests), and whitespace checks. The full suites include the focused
+  affected tests and existing public-header compile checks.
+- Dependency queries confirmed storage test APIs serve only document and their
+  owning test packages, arithmetic serves only document/storage and its own tests,
+  and allocation support serves only the three isolated failure-test packages.
+  Eight temporary consumers in the new storage test packages failed visibility
+  analysis for concrete storage implementations, layout targets, and contract
+  checks. All probes were removed.
+- Real-PTY smoke checks after terminal source moves passed for startup, insertion
+  and line splitting, legacy double-Escape and kitty Alt+Escape exits, one protocol
+  push/reset per session, and exact terminal-attribute restoration. Broken output
+  pipes at startup and after editing returned status 1 with diagnostics and
+  restored saved terminal attributes. Temporary smoke/check scripts were removed.
+- Updated `AGENTS.md` with the categorical layout convention and new test commands;
+  corrected the layout-cache proposal's editor source path while preserving its
+  proposed status and scope. Step 8's durable specifications and authorized final
+  cleanup remain. No commits were created.
 
 ## Completion criteria
 

@@ -12,8 +12,8 @@ cc_library(
     copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
     visibility = [
         "//document/tests:__pkg__",
-        "//document/internal/gap_buffer:__pkg__",
-        "//document/internal/line_starts:__pkg__",
+        "//document/internal/gap_buffer/tests:__pkg__",
+        "//document/internal/line_starts/tests:__pkg__",
     ],
     deps = ["@googletest//:gtest"],
 )

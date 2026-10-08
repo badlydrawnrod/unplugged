@@ -12,7 +12,7 @@ COMMON_COPTS = [
 
 cc_library(
     name = "api",
-    srcs = ["src/editor.cpp"],
+    srcs = ["editor.cpp"],
     hdrs = ["include/editor_core/editor.h"],
     strip_include_prefix = "include",
     copts = COMMON_COPTS,

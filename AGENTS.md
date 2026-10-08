@@ -153,19 +153,19 @@ and frame rendering live in `applications/editor/main.cpp` behind
 Components never depend on the application. Editing commands, navigation,
 viewport state, and frame snapshots live behind `//editor_core:api` in
 `editor_core/include/editor_core/editor.h`, with implementation in
-`editor_core/src/` and API tests in `editor_core/tests/`. Consumers include
+`editor_core/` and API tests in `editor_core/tests/`. Consumers include
 `editor_core/editor.h`. Shared key value types live behind `//key:api`,
-with headers in `key/include/key/`, implementation in `key/src/`, and tests in
+with headers in `key/include/key/`, implementation in `key/`, and tests in
 `key/tests/`; consumers include `key/key.h`.
 
 Input-protocol decoding lives behind `//key_decoder:api` in
 `key_decoder/include/key_decoder/decoder.h`, with implementation in
-`key_decoder/src/` and tests in `key_decoder/tests/`. Consumers include
+`key_decoder/` and tests in `key_decoder/tests/`. Consumers include
 `key_decoder/decoder.h`. Byte acquisition types and `ByteSource` live behind
 the decoder-owned `//key_decoder/ports/byte_source:api` in
 `key_decoder/ports/byte_source/byte_source.h`. The concrete FD adapter lives
 behind the restricted `//terminal/internal/fd_byte_source:api`; key acquisition
-composes it in `terminal/src/read_key.cpp`. Both decoder and adapter depend
+composes it in `terminal/read_key.cpp`. Both decoder and adapter depend
 directly on the port; the decoder has no terminal or POSIX I/O dependency.
 The port preserves byte order and all eight bits, distinguishes Timeout/EOF/Error,
 and permits adapter exceptions. The FD adapter throws `std::system_error` for
@@ -176,7 +176,7 @@ its acceptance scenarios live under the port's `features/` directory. Both core
 packages contain API tests and acceptance scenarios. POSIX terminal lifetimes,
 protocol scope, key acquisition, and buffered output live behind `//terminal:api`,
 with headers in
-`terminal/include/terminal/`, implementation in `terminal/src/`, tests in
+`terminal/include/terminal/`, implementation in `terminal/`, tests in
 `terminal/tests/`, and scenarios in `terminal/features/`. Consumers include
 `terminal/raw_mode.h`, `terminal/input_protocol.h`, `terminal/read_key.h`, and
 `terminal/output.h`. `terminal::RawMode` owns scoped terminal settings;
@@ -184,7 +184,7 @@ with headers in
 stdin; `ReadKey()` exposes key/NoKey/EOF results; `terminal::Output` provides
 checked buffered writes and scoped SIGPIPE handling. Checked descriptor I/O
 remains behind `//terminal_io:api`, with its API in
-`terminal_io/include/terminal_io/`, implementation in `terminal_io/src/`, and
+`terminal_io/include/terminal_io/`, implementation in `terminal_io/`, and
 focused syscall tests in `terminal_io/tests/`. Consumers include
 `terminal_io/io.h`. Terminal tests use isolated PTYs and pipes
 from the narrowly visible, test-only `//test_support:posix_endpoints` target;
@@ -192,17 +192,18 @@ output and syscall wrapping tests retain static linking and their link options.
 
 The document model and its byte, logical-line, and wrapped-row
 views live behind `//document:api`, with supported headers under
-`document/include/document/`, implementation under `document/src/`, API tests
+`document/include/document/`, implementation under `document/`, API tests
 under `document/tests/`, and acceptance scenarios under `document/features/`.
 Consumers retain logical `document/*.h` includes through Bazel include-prefix
 mapping. `//document:test_api` exposes the same API with the debug
-throwing-contract configuration, visible only to `document/tests/`. Storage primitives
-and their tests live in
+throwing-contract configuration, visible only to `document/tests/`. Storage
+primitives live in
 `document/internal/gap_buffer/` and `document/internal/line_starts/`, each behind
-its own `:api` target with package-private implementation targets. The document
-package is the only external consumer of both storage APIs. File loading lives
-behind `//file_loader:api`, with its API in `file_loader/include/file_loader/`,
-implementation in `file_loader/src/`, tests in `file_loader/tests/`, and
+its own `:api` target with package-private implementation targets. Their executable
+tests live in local `tests/` packages and consume the supported `:test_api`.
+The document package is the only external consumer of both storage APIs. File
+loading lives behind `//file_loader:api`, with its API in `file_loader/include/file_loader/`,
+implementation in `file_loader/`, tests in `file_loader/tests/`, and
 size-limit scenario in `file_loader/features/`. Consumers include
 `file_loader/load.h`; the loader depends directly on `//document/types:api` and
 cannot access storage.
@@ -219,15 +220,23 @@ consumers include `contracts/invariant_result.h`. Checks remain in
 types and size-limit helpers
 live behind `//document/types:api` and `//document/internal/size_limits:api`,
 respectively. The arithmetic helper is restricted to document/storage consumers
-and has focused tests in its own package. The root package contains only build
-configuration, the shared contract test policy, and the editor alias. Allocation
-failure tests live in `document/tests/` and each storage package, using their
+and has focused tests in its local `tests/` package. The root package contains
+only build configuration, the shared contract test policy, and the editor alias.
+Allocation failure tests live in `document/tests/` and each storage test package, using their
 supported `:test_api` targets. Shared injection and failure discovery live behind the
 narrowly visible, test-only `//test_support:allocation_failure` target; isolated
 failure test binaries link statically and always link its global allocation
 overrides. Repository-visible component tests live in `tests/`; internal
-subcomponent tests remain beside their code. Test files use `*_tests.cpp` names.
+subcomponent tests live in their owning `tests/` directories. Test files use
+`*_tests.cpp` names.
 Bazel dependencies are declared in `MODULE.bazel`.
+
+Implementation `.cpp` files live at their owning component or subcomponent root;
+executable tests live in local `tests/` packages. Repository-visible APIs use
+`include/<component>/`; internal subcomponent and port APIs remain at their
+package roots. Private implementation headers use `impl/`, with the documented
+document inline representation under `detail/`. Do not add `src/` directories
+or empty source/test directories to header-only packages.
 
 ## Build, Test, and Run
 
@@ -245,9 +254,9 @@ python3 tools/verify.py
 
 Run file-loader API tests with `bazel test //file_loader/tests:load_tests`.
 Run storage tests with
-`bazel test //document/internal/gap_buffer:gap_buffer_tests` and
-`bazel test //document/internal/line_starts:line_starts_tests` (or another
-`*_tests` target). Each storage package also has `:edit_failure_tests`.
+`bazel test //document/internal/gap_buffer/tests:gap_buffer_tests` and
+`bazel test //document/internal/line_starts/tests:line_starts_tests` (or another
+`*_tests` target). Each storage test package also has `:edit_failure_tests`.
 Run document allocation-failure scenarios with
 `bazel test //document/tests:edit_failure_tests`. Run document API tests with
 `bazel test //document/tests:document_tests` and view tests with
@@ -255,7 +264,7 @@ Run document allocation-failure scenarios with
 `bazel test //editor_core/tests:editor_tests`, and decoder API tests with
 `bazel test //key_decoder/tests:decoder_tests`. Run shared key tests with
 `bazel test //key/tests:key_tests` and arithmetic helper tests with
-`bazel test //document/internal/size_limits:size_limits_tests`.
+`bazel test //document/internal/size_limits/tests:size_limits_tests`.
 Run terminal lifetime tests with `bazel test //terminal/tests:raw_mode_tests`,
 protocol-session tests with `bazel test //terminal/tests:input_protocol_tests`,
 and input/output tests with

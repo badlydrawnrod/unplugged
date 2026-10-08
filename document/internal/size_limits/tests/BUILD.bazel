@@ -1,0 +1,14 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_test(
+    name = "size_limits_tests",
+    srcs = ["size_limits_tests.cpp"],
+    # GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
+    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror", "-UNDEBUG", "-Wno-error=sign-compare"],
+    deps = [
+        "//document/internal/size_limits:api",
+        "@googletest//:gtest_main",
+    ],
+)

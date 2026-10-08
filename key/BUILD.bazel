@@ -4,7 +4,7 @@ package(default_visibility = ["//visibility:private"])
 
 cc_library(
     name = "api",
-    srcs = ["src/key.cpp"],
+    srcs = ["key.cpp"],
     hdrs = ["include/key/key.h"],
     strip_include_prefix = "include",
     copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],

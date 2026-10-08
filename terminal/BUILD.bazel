@@ -5,10 +5,10 @@ package(default_visibility = ["//visibility:private"])
 cc_library(
     name = "api",
     srcs = [
-        "src/input_protocol.cpp",
-        "src/output.cpp",
-        "src/raw_mode.cpp",
-        "src/read_key.cpp",
+        "input_protocol.cpp",
+        "output.cpp",
+        "raw_mode.cpp",
+        "read_key.cpp",
     ],
     hdrs = [
         "include/terminal/input_protocol.h",

@@ -6,7 +6,7 @@ Reviewed: 2026-10-06.
 
 ## Review notes and dependencies
 
-The repeated layout scans described below are now in `editor_core/src/editor.cpp`,
+The repeated layout scans described below are now in `editor_core/editor.cpp`,
 notably in `TotalWrappedRowCount`, `TopAnchorForRow`, and `KeepCursorVisible`.
 The current
 application has one window with fixed dimensions; multi-window ownership,
