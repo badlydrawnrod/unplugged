@@ -147,7 +147,17 @@ When existing code conflicts with these principles, improve it locally where saf
 
 ## Project Structure & Modules
 
-This is a small C++23 terminal editor. The application entry point and terminal wiring are in `editor.cpp`. Editing commands, navigation, viewport state, and frame snapshots live behind `//editor_core:api` in `editor_core/editor.{h,cpp}`, with API tests and acceptance scenarios in that package. Document and editing primitives live in root-level pairs such as `document.{h,cpp}`, `gap_buffer.{h,cpp}`, and `line_starts.{h,cpp}`. Tests are kept beside the code as `*_tests.cpp`. `old_20260924/` contains archived experiments; do not add new production code there. Bazel dependencies are declared in `MODULE.bazel`.
+This is a small C++23 terminal editor. The application entry point and terminal
+wiring are in `editor.cpp`. Editing commands, navigation, viewport state, and
+frame snapshots live behind `//editor_core:api` in
+`editor_core/editor.{h,cpp}`. Input-protocol decoding lives behind
+`//key_decoder:api` in `key_decoder/decoder.{h,cpp}`; `read_key.cpp` adapts stdin
+to its byte-source interface. Both packages contain API tests and acceptance
+scenarios. Document and editing primitives live in root-level pairs such as
+`document.{h,cpp}`, `gap_buffer.{h,cpp}`, and `line_starts.{h,cpp}`. Tests are kept
+beside the code as `*_tests.cpp`. `old_20260924/` contains archived experiments;
+do not add new production code there. Bazel dependencies are declared in
+`MODULE.bazel`.
 
 ## Build, Test, and Run
 
@@ -163,7 +173,8 @@ bazel run //:editor -- [file]
 
 Run one test target with `bazel test //:gap_buffer_tests` (or another
 `*_tests` target). Run editor API tests with
-`bazel test //editor_core:editor_tests`. The project uses C++23, GoogleTest,
+`bazel test //editor_core:editor_tests`, and decoder API tests with
+`bazel test //key_decoder:decoder_tests`. The project uses C++23, GoogleTest,
 and Microsoft GSL; the editor relies on POSIX terminal APIs.
 
 ## Coding Style & File Conventions

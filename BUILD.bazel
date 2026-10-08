@@ -62,7 +62,10 @@ cc_library(
 
 cc_library(
     name = "key",
-    visibility = ["//editor_core:__pkg__"],
+    visibility = [
+        "//editor_core:__pkg__",
+        "//key_decoder:__pkg__",
+    ],
     srcs = ["key.cpp"],
     hdrs = ["key.h"],
     copts = COMMON_COPTS,
@@ -96,6 +99,7 @@ cc_library(
     deps = [
         ":document_model",
         ":key",
+        "//key_decoder:api",
         "@gsl//:gsl",
     ],
 )

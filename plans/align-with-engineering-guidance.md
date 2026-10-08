@@ -1,6 +1,7 @@
 # Align with engineering guidance
 
-Status: in progress; parts 1 and 2 are implemented and verified.
+Status: in progress; parts 1 and 2 and the first item of part 3 are implemented
+and verified.
 Created: 2026-10-06.
 
 ## Purpose and lifecycle
@@ -85,7 +86,7 @@ Relevant files: `document.{h,cpp}`, `line_starts.{h,cpp}`, `gap_buffer.{h,cpp}`,
 
 ### 3. Terminal adapters and resource ownership
 
-- [ ] Separate byte decoding in `read_key.cpp` from stdin acquisition, so
+- [x] Separate byte decoding in `read_key.cpp` from stdin acquisition, so
   input-protocol behavior can be tested with deterministic byte streams.
 - [ ] Replace global saved terminal state and `atexit` handling in
   `raw_mode.cpp` with scoped terminal ownership and restoration.
@@ -352,8 +353,44 @@ libraries with contracts disabled, and the optimized application built. A PTY
 smoke test verified initial rendering, text insertion, Enter, Alt+Escape exit,
 and restoration of terminal attributes on normal exit. Formatting checks,
 scenario binding checks, and `git diff --check` passed. The extraction and plan
-updates are left uncommitted for user review.
+updates were committed as `b3f29c6` after user approval.
 
-Continue with deterministic byte decoding, the first item of part 3.
+The first item of part 3 is complete. `//key_decoder:api` exposes a stateless
+`DecodeKey(ByteSource&)` function and a small byte-acquisition port. `ByteReadResult`
+is a discriminated byte-or-status value; NUL is a byte and timeout, EOF, and
+acquisition error are separate outcomes. The decoder depends only on `:key`
+and the standard library. Protocol tables and helpers have local linkage.
+`read_key.cpp` implements the port with POSIX stdin reads and delegates decoding;
+its supported `ReadKey()` signature is unchanged. No decoder test needs stdin,
+a terminal, sleeping, or protocol negotiation.
+
+This increment preserves existing parsing and consumption behavior. Escape plus
+a timeout produces bare Escape; Escape plus EOF/error produces no key. Unsupported
+or interrupted sequences produce no key and discard their consumed prefixes.
+Legacy controls, Alt uppercase normalization, UTF-8, CSI, SS3, kitty mappings,
+modifier fields, and optional event suffix handling moved without protocol-policy
+changes. Parser limitations remain: UTF-8 scalar validity is not fully checked,
+legacy Alt fallback supports only two/three-byte UTF-8, the event suffix is ignored,
+and the existing uint8_t modifier parser cannot represent the protocol field 256.
+These issues are separate behavior decisions rather than extraction changes.
+Error details and terminal system-call handling remain later work in part 3.
+
+Fifteen deterministic API tests cover supported input forms, normalization,
+Unicode text, high modifier bits, special keys, NUL, Escape timing, initial
+non-byte outcomes, interrupted sequences, unsupported/malformed input, and
+subsequent keys after discarded prefixes. Three significant input scenarios
+are persisted in `key_decoder/features/decoding.feature` and uniquely bound in
+`key_decoder/decoder_tests.cpp`. Test assertions use only the decoded key API;
+no implementation headers or test hooks were added. Repository guidance records
+the package and focused-test command.
+
+Validation for the decoder extraction: focused tests and all twelve suites in
+default and debug builds passed. Optimized decoder tests and the editor build
+passed. A PTY smoke test verified rendering, insertion, Enter, Alt+Escape exit,
+and normal terminal restoration through the stdin adapter. Formatting checks,
+scenario binding checks, and `git diff --check` passed. Decoder changes remain
+uncommitted for user review.
+
+Continue with scoped terminal ownership/restoration, the second item of part 3.
 Do not overwrite unrelated work. Coordinate layout changes with the separate
 [shared wrapped-row layout cache plan](shared-wrapped-row-layout-cache.md).
