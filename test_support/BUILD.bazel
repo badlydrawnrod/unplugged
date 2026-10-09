@@ -9,7 +9,6 @@ cc_library(
     srcs = ["allocation_failure.cpp"],
     hdrs = ["allocation_failure.h"],
     alwayslink = True,
-    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
     visibility = [
         "//document/tests:__pkg__",
         "//document/internal/gap_buffer/tests:__pkg__",

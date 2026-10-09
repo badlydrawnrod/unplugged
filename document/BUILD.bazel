@@ -2,14 +2,6 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
-COMMON_COPTS = [
-    "-std=c++23",
-    "-Wall",
-    "-Wextra",
-    "-Wpedantic",
-    "-Werror",
-]
-
 DOCUMENT_SRCS = [
     "document.cpp",
     "logical_line_range.cpp",
@@ -51,7 +43,6 @@ cc_library(
     srcs = DOCUMENT_SRCS,
     hdrs = DOCUMENT_HDRS,
     strip_include_prefix = "include",
-    copts = COMMON_COPTS,
     visibility = [
         "//applications/editor:__pkg__",
         "//editor_core:__pkg__",
@@ -77,7 +68,6 @@ cc_library(
     srcs = DOCUMENT_SRCS,
     hdrs = DOCUMENT_HDRS,
     strip_include_prefix = "include",
-    copts = COMMON_COPTS,
     deps = [
         ":gap_buffer_layout",
         ":line_starts_layout",

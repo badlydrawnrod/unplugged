@@ -6,7 +6,6 @@ cc_library(
     name = "api",
     srcs = ["fd_byte_source.cpp"],
     hdrs = ["fd_byte_source.h"],
-    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
     visibility = [
         "//terminal:__pkg__",
         "//terminal/tests:__pkg__",

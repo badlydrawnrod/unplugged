@@ -2,20 +2,11 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
-COMMON_COPTS = [
-    "-std=c++23",
-    "-Wall",
-    "-Wextra",
-    "-Wpedantic",
-    "-Werror",
-]
-
 cc_library(
     name = "api",
     srcs = ["decoder.cpp"],
     hdrs = ["include/key_decoder/decoder.h"],
     strip_include_prefix = "include",
-    copts = COMMON_COPTS,
     visibility = [
         "//key_decoder/tests:__pkg__",
         "//terminal:__pkg__",

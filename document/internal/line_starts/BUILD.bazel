@@ -2,19 +2,10 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
-COMMON_COPTS = [
-    "-std=c++23",
-    "-Wall",
-    "-Wextra",
-    "-Wpedantic",
-    "-Werror",
-]
-
 cc_library(
     name = "storage",
     srcs = ["line_starts.cpp"],
     hdrs = ["line_starts.h"],
-    copts = COMMON_COPTS,
     deps = [
         "//document/internal/size_limits:api",
         "//contracts:checks",
@@ -36,7 +27,6 @@ cc_library(
     testonly = True,
     srcs = ["line_starts.cpp"],
     hdrs = ["line_starts.h"],
-    copts = COMMON_COPTS,
     deps = [
         "//:contract_test_mode",
         "//document/internal/size_limits:api",

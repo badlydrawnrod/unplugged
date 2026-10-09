@@ -6,7 +6,7 @@ cc_test(
     name = "key_tests",
     srcs = ["key_tests.cpp"],
     # GoogleTest assertion templates trigger signedness diagnostics under GCC 15.
-    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror", "-UNDEBUG", "-Wno-error=sign-compare"],
+    copts = ["-UNDEBUG", "-Wno-error=sign-compare"],
     deps = [
         "//key:api",
         "@googletest//:gtest_main",

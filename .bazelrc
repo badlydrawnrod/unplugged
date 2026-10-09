@@ -1,0 +1,15 @@
+# Project-wide C++ language and warning policy.
+build --cxxopt=-std=c++23
+build --cxxopt=-Wall
+build --cxxopt=-Wextra
+build --cxxopt=-Wpedantic
+build --cxxopt=-Werror
+
+# Keep successful tests quiet while reporting failed test output.
+test --test_output=errors
+
+# Convenient build modes.
+build:dev --compilation_mode=dbg
+test:dev --compilation_mode=dbg
+build:release --compilation_mode=opt
+test:release --compilation_mode=opt

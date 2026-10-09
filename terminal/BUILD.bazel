@@ -17,7 +17,6 @@ cc_library(
         "include/terminal/read_key.h",
     ],
     strip_include_prefix = "include",
-    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
     visibility = [
         "//applications/editor:__pkg__",
         "//terminal/tests:__pkg__",

@@ -2,20 +2,11 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:private"])
 
-COMMON_COPTS = [
-    "-std=c++23",
-    "-Wall",
-    "-Wextra",
-    "-Wpedantic",
-    "-Werror",
-]
-
 cc_library(
     name = "api",
     srcs = ["editor.cpp"],
     hdrs = ["include/editor_core/editor.h"],
     strip_include_prefix = "include",
-    copts = COMMON_COPTS,
     visibility = [
         "//applications/editor:__pkg__",
         "//editor_core/tests:__pkg__",

@@ -7,7 +7,6 @@ cc_library(
     srcs = ["load.cpp"],
     hdrs = ["include/file_loader/load.h"],
     strip_include_prefix = "include",
-    copts = ["-std=c++23", "-Wall", "-Wextra", "-Wpedantic", "-Werror"],
     visibility = [
         "//applications/editor:__pkg__",
         "//file_loader/tests:__pkg__",
