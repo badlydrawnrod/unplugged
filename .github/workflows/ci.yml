@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install clang-format
+        run: python -m pip install clang-format==21.1.8
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+          external-cache: true
+          cache-save: ${{ github.event_name != 'pull_request' }}
+
+      - name: Check formatting and acceptance traceability
+        run: python3 tools/verify.py
+
+      - name: Build editor
+        run: bazel build //:editor
+
+      - name: Test optimized configuration
+        run: bazel test //...
+
+      - name: Test debug configuration
+        run: bazel test -c dbg //...
