@@ -42,6 +42,17 @@ bazel test //...
 bazel test -c dbg //...
 ```
 
-The format check requires clang-format 21.1.8. [CI](.github/workflows/ci.yml) runs these checks on pushed changes and pull requests.
+The format check requires clang-format 21.1.8. [CI](.github/workflows/ci.yml)
+runs these checks on pushed changes and pull requests.
 
-For repository conventions, read [AGENTS.md](AGENTS.md). For the supported scenario syntax and test annotations, read the [acceptance traceability guide](tools/acceptance/README.md). Work that is still being considered lives under [plans/](plans/); component contracts describe behaviour that should remain true after a plan is complete.
+## Guidance
+
+Start with [AGENTS.md](AGENTS.md) for contributor instructions. It links to the
+reusable [engineering principles](guidance/engineering.md), language-specific
+[C++ guidance](guidance/cpp.md), [Bazel guidance](guidance/bazel.md), and the
+[Unplugged repository guide](guidance/repository.md). The
+[acceptance traceability guide](tools/acceptance/README.md) describes supported
+scenario syntax and test annotations.
+
+Work that is still being considered lives under [plans/](plans/); component
+contracts describe behaviour that should remain true after a plan is complete.
