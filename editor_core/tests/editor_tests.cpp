@@ -221,7 +221,8 @@ TEST(EditorTest, ExactWidthEndUsesLastVisibleCellWithoutExtraRow) {
 TEST(EditorTest, EditsKeepCursorVisibleAndNormalizeViewportAfterDeletion) {
   auto editor = MakeEditor("", 8, 1);
   for (char ch : std::string("abcdef")) {
-    ASSERT_TRUE(editor.HandleKey(Key::MakeText(ch)));
+    ASSERT_TRUE(
+        editor.HandleKey(Key::MakeText(static_cast<unsigned char>(ch))));
   }
   EXPECT_EQ(editor.TopRow(), 1U);
   EXPECT_EQ(editor.CreateFrame().rows.front(), "    ef");

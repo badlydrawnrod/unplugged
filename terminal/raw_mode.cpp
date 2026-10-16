@@ -6,6 +6,12 @@
 namespace terminal {
 namespace {
 
+constexpr tcflag_t kInputFlagsToDisable =
+    static_cast<tcflag_t>(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+constexpr tcflag_t kOutputFlagsToDisable = static_cast<tcflag_t>(OPOST);
+constexpr tcflag_t kLocalFlagsToDisable =
+    static_cast<tcflag_t>(ECHO | ICANON | IEXTEN | ISIG);
+
 int GetAttributes(int fd, termios& attributes) {
   int result;
   do {
@@ -29,10 +35,10 @@ RawMode::RawMode(int fd) : fd_(fd) {
     throw std::system_error(errno, std::generic_category(), "tcgetattr");
   }
   termios raw = saved_;
-  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-  raw.c_oflag &= ~OPOST;
+  raw.c_iflag &= ~kInputFlagsToDisable;
+  raw.c_oflag &= ~kOutputFlagsToDisable;
   raw.c_cflag |= CS8;
-  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+  raw.c_lflag &= ~kLocalFlagsToDisable;
   raw.c_cc[VMIN] = 0;
   raw.c_cc[VTIME] = 1;
   if (SetAttributes(fd_, raw) < 0) {

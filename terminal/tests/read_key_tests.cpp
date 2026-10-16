@@ -65,7 +65,7 @@ TEST(ReadKeyTest, TerminalZeroReadIsNoKeyWithoutSleeping) {
   PseudoTerminal terminal;
   termios attributes{};
   ASSERT_EQ(tcgetattr(terminal.Slave(), &attributes), 0);
-  attributes.c_lflag &= ~ICANON;
+  attributes.c_lflag &= ~static_cast<tcflag_t>(ICANON);
   attributes.c_cc[VMIN] = 0;
   attributes.c_cc[VTIME] = 0;
   ASSERT_EQ(tcsetattr(terminal.Slave(), TCSANOW, &attributes), 0);
