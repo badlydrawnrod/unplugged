@@ -6,6 +6,8 @@
 #include "document/internal/line_starts/line_starts.h"
 #include "test_support/allocation_failure.h"
 
+using unplugged::document::storage::LineStarts;
+
 using unplugged::testing::ExerciseAllocationFailures;
 using unplugged::testing::FailAllocationAfter;
 

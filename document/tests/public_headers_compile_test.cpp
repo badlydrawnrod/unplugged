@@ -12,8 +12,8 @@
 #error "Document API headers must not expose contract-check machinery"
 #endif
 
-// These names belong to the internal storage APIs. Defining them here fails
-// compilation if a supported document header exports either storage class.
+// Storage declarations are transitively visible for private inline members,
+// but must stay in their owning namespace without global aliases.
 struct GapBuffer {};
 struct LineStarts {};
 
@@ -22,5 +22,6 @@ static_assert(
 static_assert(std::same_as<LogicalLineRange::LineNumber,
                            unplugged::document::LineNumber>);
 static_assert(std::is_copy_constructible_v<Document>);
+static_assert(std::is_copy_assignable_v<Document>);
 static_assert(std::is_nothrow_move_constructible_v<Document>);
 static_assert(std::is_nothrow_move_assignable_v<Document>);

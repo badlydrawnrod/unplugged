@@ -16,28 +16,6 @@ DOCUMENT_HDRS = [
     "include/document/wrapped_row_range.h",
 ]
 
-# Complete member declarations keep storage inline without exposing the
-# supported internal storage APIs. Only owning implementations depend here.
-cc_library(
-    name = "gap_buffer_layout",
-    hdrs = ["detail/gap_buffer.h"],
-    visibility = ["//document/internal/gap_buffer:__pkg__"],
-    deps = [
-        "//document/types:api",
-        "//contracts:api",
-    ],
-)
-
-cc_library(
-    name = "line_starts_layout",
-    hdrs = ["detail/line_starts.h"],
-    visibility = ["//document/internal/line_starts:__pkg__"],
-    deps = [
-        "//document/types:api",
-        "//contracts:api",
-    ],
-)
-
 cc_library(
     name = "api",
     srcs = DOCUMENT_SRCS,
@@ -49,8 +27,7 @@ cc_library(
         "//editor_core/tests:__pkg__",
     ],
     deps = [
-        ":gap_buffer_layout",
-        ":line_starts_layout",
+        "//contracts:api",
         "//document/types:api",
         "//document/internal/size_limits:api",
         "//contracts:checks",
@@ -69,9 +46,8 @@ cc_library(
     hdrs = DOCUMENT_HDRS,
     strip_include_prefix = "include",
     deps = [
-        ":gap_buffer_layout",
-        ":line_starts_layout",
         "//:contract_test_mode",
+        "//contracts:api",
         "//document/types:api",
         "//document/internal/size_limits:api",
         "//contracts:checks",

@@ -15,6 +15,8 @@
 
 #include "document/internal/gap_buffer/gap_buffer.h"
 
+using unplugged::document::storage::GapBuffer;
+
 namespace {
 std::string Snapshot(const GapBuffer &buffer) {
   std::vector<Byte> out;
