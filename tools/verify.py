@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run formatting, acceptance traceability, and simple architecture checks."""
+"""Run formatting, acceptance traceability, and architecture checks."""
 
 import argparse
 from pathlib import Path
@@ -19,6 +19,7 @@ def main():
         ["tools/acceptance/check_traceability.py"],
         ["tools/acceptance/check_traceability_tests.py"],
         ["tools/check_architecture.py"],
+        ["tools/check_architecture_tests.py"],
     ]
     failed = False
     for command in commands:

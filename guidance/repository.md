@@ -65,7 +65,8 @@ changes. Navigation and wrapping count bytes, not Unicode display cells.
 
 ## Verification
 
-Run these commands from the repository root:
+Run these commands from the repository root (`python` can replace `python3` on
+Windows):
 
 ```sh
 python3 tools/verify.py
@@ -85,15 +86,30 @@ checker validates supported feature syntax and requires at least one adjacent
 `TEST`, `TEST_F`, or `TEST_P` binding per scenario. Its guide explains the syntax
 and limits: [acceptance traceability](../tools/acceptance/README.md).
 
-The [architecture check](../tools/check_architecture.py) scans headers beneath
-conventional `include/` directories and flags direct includes containing an
-`impl/` path segment or `..` path traversal. It uses Git to include active tracked
-and untracked files, requires no Bazel or compiler, and reports the file and line.
-It deliberately checks direct text patterns only. Bazel builds remain responsible
-for dependency visibility and configured target cycles. Both it and
-`tools/verify.py` derive the repository root from their script locations.
+The [architecture check](../tools/check_architecture.py) scans active tracked and
+untracked headers beneath `include/` directories. It inspects literal include
+directives, normalizes forward and backslash separators, and reports `impl/`,
+`.` and `..` path segments. For uniquely resolved repository headers, it also
+rejects test headers (under `tests/` or named `*_tests`), cross-component
+`internal/` includes, and `detail/` includes from a different Bazel package. If
+a private spelling matches multiple repository headers, it reports the
+ambiguity instead of choosing one. Unresolved system and external headers are
+ignored for ownership checks; the lexical `impl/` and path traversal checks
+still apply. Macro-based includes are ignored.
+
+The checker uses Git and the Python standard library; it requires neither Bazel
+nor a C++ compiler. It is a direct-include scan of public headers: block comments
+and inactive preprocessor branches can produce findings, and direct `detail/`
+includes from `.cpp` or test files are outside its scope. It does not inspect C++
+declarations for internal or detail types in public signatures, follow transitive
+includes, or interpret Bazel visibility declarations. Bazel builds remain
+responsible for target dependency enforcement. The checker, `tools/verify.py`,
+and acceptance tooling derive the repository root from their script locations.
 
 CI runs the same verification entry point, editor build, and default and debug
 Bazel test suites in [.github/workflows/ci.yml](../.github/workflows/ci.yml).
-These remain distinct checks: `tools/verify.py` runs architecture loading queries
-and fixture tests, but does not run Bazel builds or product test targets.
+These remain distinct checks: `tools/verify.py` runs formatting, acceptance
+traceability and its fixture suite, and the architecture scan and its fixture
+suite. CI runs this verification entry point on Ubuntu, Windows, and macOS; the
+Bazel build and product test targets run on Ubuntu. The verification entry point
+does not run Bazel builds or product test targets.
