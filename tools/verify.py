@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run repository formatting, acceptance traceability, and checker fixture tests."""
+"""Run formatting, acceptance traceability, and architecture checker verification."""
 
 import argparse
 from pathlib import Path
@@ -18,6 +18,8 @@ def main():
         ["tools/check_format.py", "--clang-format", args.clang_format],
         ["tools/acceptance/check_traceability.py"],
         ["tools/acceptance/check_traceability_tests.py"],
+        ["tools/architecture/check.py"],
+        ["-m", "unittest", "discover", "-s", "tools/architecture", "-p", "*_tests.py"],
     ]
     failed = False
     for command in commands:

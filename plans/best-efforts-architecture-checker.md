@@ -1,6 +1,6 @@
 # A small, deterministic architecture checker
 
-Status: steps 1–3 complete; step 4 pending.
+Status: steps 1–4 complete.
 Created: 2026-10-16.
 Last progress update: 2026-10-16.
 
@@ -17,8 +17,60 @@ supported behavior and limitations; this plan tracks delivery and verification.
 - [x] **Step 3: Prove behavior with focused fixtures.** Passing, failing, and
   limitation cases for all four rules and their interactions; completion-criteria
   coverage reviewed and missing fixtures added.
-- [ ] **Step 4: Integrate and finish.** Verification entry-point integration,
+- [x] **Step 4: Integrate and finish.** Verification entry-point integration,
   failure-propagation tests, final documentation, and completion checks.
+
+### Step 4 handoff — 2026-10-16
+
+Continued on `spike/simple-enforcement` from committed step 3 (`445eccd`).
+Delegated integration and documentation to GPT-6 Luna with high reasoning, then
+reviewed the combined behavior and ran the completion checks. No commits were
+made during step 4.
+
+`tools/verify.py` now runs the architecture checker and complete focused
+architecture fixture suite after the existing format and acceptance checks.
+It preserves script-relative repository resolution, `--clang-format` forwarding,
+continued checks after child failures, and an aggregate nonzero status when any
+check fails. Bazel build/default/debug tests remain separate commands.
+
+Added `tools/architecture/verify_tests.py` with four public-command fixtures.
+They copy the actual verification entry point into a temporary checkout, use
+small child commands and a real unittest discovery suite, and verify checker
+violation/operational statuses, architecture fixture failures, prior failures
+with later checks still running, invocation from another directory, and
+`--clang-format` argument forwarding. These tests run in the architecture suite
+without recursively invoking the repository's full verification.
+
+Updated the tooling README, repository guide, and acceptance guide to describe
+the integrated commands, supported failure behavior, Git/pinned-Bazel
+requirements, and unchanged coverage limitations. The existing CI invocation
+already runs the new checks; only its display name changed.
+
+Verification completed successfully:
+
+- `python3 -m unittest discover -s tools/architecture -p '*_tests.py'`: all 95
+  architecture tests passed, including the four verification integration tests.
+- `python3 tools/architecture/check.py`: exit 0, no violations, 19 explicit
+  not-checked findings. Checked counts remain 112 include directives, 17
+  private-header directives, 85 entry-target edges, and 69 cycle edges.
+- `python3 tools/verify.py`: passed formatting for 63 C++ files, traceability
+  for 44 scenarios/48 bindings, 20 acceptance fixtures, the repository
+  architecture audit, and all 95 architecture fixtures.
+- `bazel build //:editor`, `bazel test //...`, and
+  `bazel test -c dbg //...` passed. Both test modes reported 20 passing targets
+  using cached results. Whitespace checks passed.
+
+The delegated verification attempt encountered the sandbox's Bazel cache access
+restriction. The final complete run used approved cache access and passed.
+There are no outstanding verification failures. Product behavior and existing
+compiler-based public-header assertions are unchanged.
+
+All four steps are complete. Coverage remains intentionally bounded: global
+syntactic include aliases, unresolved preprocessor/selector combinations,
+indirect membership, unavailable generated headers, target aliases, unsupported
+visibility forms, and unowned utility/application cycle edges remain visible
+limitations. The current 19 findings comprise three helper/policy API-ownership
+limitations and 16 cycle edges involving unowned application/helper targets.
 
 ### Step 3 handoff — 2026-10-16
 
@@ -197,7 +249,7 @@ Build a useful checker for a few observable architectural mistakes. Complete
 coverage is not a requirement. Unsupported arrangements should be visible in the
 report without blocking development.
 
-Continue with step 4 using the implemented checker and its tests. Inspect Git
+All implementation steps are complete. For future extensions, inspect Git
 status before making changes and preserve the current implementation. The
 original baseline was `develop` without `tools/architecture/`; the implementation
 recorded above is now the starting point. No older architecture plan or abandoned
@@ -212,14 +264,15 @@ existing product behavior.
 
 ## Session handoff and delegation
 
-Suggested starting instruction:
+The implementation used this delegation approach; future bounded extensions can
+follow the same pattern:
 
-> Continue `plans/best-efforts-architecture-checker.md` from its recorded progress;
-> steps 1–3 are complete. Use
+> Extend the architecture checker only for a concrete violation worth detecting.
+> Preserve the completed implementation and fixture coverage. Use
 > GPT-6 Luna subagents with high reasoning for bounded implementation tasks.
 > Keep one lead agent responsible for shared interfaces, policy decisions,
-> integration, review, and all completion checks. Complete the implementation
-> through verification and report the results.
+> integration, review, and all completion checks. Add a focused fixture for each
+> extension, complete verification, and report the results.
 
 The lead should read this whole plan, the tooling README, and the contributor
 guidance, inspect Git status and the current branch, and confirm the recorded

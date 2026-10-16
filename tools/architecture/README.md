@@ -3,8 +3,9 @@
 This tooling owns the contract for a small, deterministic architecture checker.
 Git discovery, structured Bazel fact loading, and the four supported rules are
 implemented, with a public `check.py` command and focused fixtures covering the
-step 3 completion criteria. Integration with `tools/verify.py` remains in the plan.
-Existing compiler-based public-header assertions remain in place.
+completion criteria. `tools/verify.py` runs the checker and its complete focused
+test suite alongside formatting and acceptance traceability. Existing
+compiler-based public-header assertions remain in place.
 
 Run from the repository root:
 
@@ -16,6 +17,9 @@ The default repository is relative to the script, so invocation from another
 directory works too. Use `--repo /path/to/checkout` to inspect another repository.
 Exit status is 0 for no supported violation, 1 for definite violations, and 2 for
 operational errors. Coverage limitations alone do not fail the command.
+The checker uses Git discovery and Bazelisk with the repository's pinned Bazel
+version to load declarations; these loading-phase queries need no C++ compiler
+or SDK.
 
 ## Operating contract
 
@@ -174,7 +178,8 @@ and successful empty query output for active packages raise `OperationalError`.
 
 ## Limits and remaining work
 
-The checker assumes a Git repository root and a readable numeric Bazel pin.
+The checker assumes a Git repository root and a readable numeric Bazel pin, and
+requires Git and Bazelisk with normal cache/download access.
 Sources must be readable UTF-8. Arbitrary source suffixes, symlinked inputs, C++
 semantic analysis, macro expansion, and preprocessor evaluation are outside the
 supported subset. `#include_next`, `#import`, `%:include`, computed includes,
@@ -193,8 +198,7 @@ Unowned utilities and application wiring do not receive invented component
 owners: affected cycle edges are not checked. On the current repository this
 also leaves API ownership uncertain for three helper/policy libraries. Effective
 visibility, package groups, symbolic-macro permissions, and compilation remain
-Bazel's responsibility. Verification entry-point integration is pending; the
-checker is currently run separately.
+Bazel's responsibility.
 
 ## Verification
 
@@ -203,6 +207,19 @@ From the repository root, run all checker fixtures:
 ```sh
 python3 -m unittest discover -s tools/architecture -p '*_tests.py'
 ```
+
+This suite includes tests of the verification entry point. Run those tests alone
+with:
+
+```sh
+python3 tools/architecture/verify_tests.py
+```
+
+They cover aggregate failure propagation and confirm that every check runs after
+an earlier check fails. Definite checker violations and operational errors fail
+aggregate verification; nonblocking not-checked findings do not. The full
+architecture discovery suite is also run by `tools/verify.py` after its
+standalone checker command.
 
 To run just the rule, ownership, and command unit suites:
 
@@ -251,5 +268,11 @@ bazel test //...
 bazel test -c dbg //...
 ```
 
-`tools/verify.py` does not run the new fixtures yet; that integration belongs to
-the final implementation step.
+`tools/verify.py` preserves the format check's
+`--clang-format /path/to/clang-format` option, runs all checks after a failure,
+and returns failure if any check fails. It derives the repository root from its
+script location, so it works when invoked by absolute path from another directory.
+Bazel-backed fixtures need Git, Bazelisk, and normal cache/download access;
+loading-phase queries need no C++ compiler or SDK. The existing CI workflow calls
+`python3 tools/verify.py`, so it runs the checker and its focused suite without
+a separate workflow step.

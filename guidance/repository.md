@@ -75,14 +75,28 @@ bazel test -c dbg //...
 ```
 
 `tools/verify.py` preserves the repository entry point and runs the C++ format
-check, acceptance traceability check, and traceability checker's fixture tests.
-The format check requires clang-format 21.1.8 and accepts
-`--clang-format /path/to/clang-format`. It checks active tracked and untracked
-C++ sources against `.clang-format`, excluding ignored build output. The
-traceability checker validates supported feature syntax and requires at least
-one adjacent `TEST`, `TEST_F`, or `TEST_P` binding per scenario. Its guide
-explains the syntax and limits: [acceptance traceability](../tools/acceptance/README.md).
+check, acceptance traceability check and fixture tests, the architecture checker,
+and the complete focused architecture test suite. It continues all checks after
+a failure and returns failure if any check fails. The format check requires
+clang-format 21.1.8 and accepts `--clang-format /path/to/clang-format`, including
+when passed to `tools/verify.py`. It checks active tracked and untracked C++
+sources against `.clang-format`, excluding ignored build output. The traceability
+checker validates supported feature syntax and requires at least one adjacent
+`TEST`, `TEST_F`, or `TEST_P` binding per scenario. Its guide explains the syntax
+and limits: [acceptance traceability](../tools/acceptance/README.md).
 
-CI runs the same verification, editor build, and default and debug Bazel test
-suites in [.github/workflows/ci.yml](../.github/workflows/ci.yml). These
-commands are distinct: `tools/verify.py` does not run Bazel builds or tests.
+The [architecture checker](../tools/architecture/README.md) uses Git and the Bazel
+version pinned by `.bazelversion` (normally supplied by Bazelisk) to run
+loading-phase queries. These queries and their integration fixtures need normal
+cache/download access but no C++ compiler or SDK. Definite architecture violations
+and Git/Bazel operational errors fail verification; nonblocking
+not-checked findings do not. Both the checker and `tools/verify.py` derive the
+repository root from their script locations, so they can be invoked by absolute
+path from another directory. Tests for verification integration run directly with
+`python3 tools/architecture/verify_tests.py` and are included in the full
+architecture discovery suite.
+
+CI runs the same verification entry point, editor build, and default and debug
+Bazel test suites in [.github/workflows/ci.yml](../.github/workflows/ci.yml).
+These remain distinct checks: `tools/verify.py` runs architecture loading queries
+and fixture tests, but does not run Bazel builds or product test targets.
