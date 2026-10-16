@@ -107,6 +107,28 @@ def normalize_include_spelling(spelling):
     return PurePosixPath(spelling.replace("\\", "/"))
 
 
+def path_segments(spelling):
+    """Return normalized raw segments, preserving dot segments for checks."""
+    return tuple(spelling.replace("\\", "/").split("/"))
+
+
+def package_root_for(inventory, header):
+    """Return the nearest Bazel package root containing a repository header."""
+    relative_parts = header.relative.parts
+    candidates = [
+        package for package in inventory.package_roots
+        if relative_parts[:len(package.parts)] == package.parts
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda package: len(package.parts))
+
+
+def component_for(header):
+    """Return the repository's top-level component containing a header."""
+    return header.relative.parts[0] if header.relative.parts else None
+
+
 def check(root):
     """Return (violations, operational error)."""
     try:
@@ -128,14 +150,54 @@ def check(root):
             if not match:
                 continue
             spelling = match.group(1) or match.group(2)
-            parts = normalize_include_spelling(spelling).parts
-            if "impl" in parts or ".." in parts:
+            segments = path_segments(spelling)
+            if "impl" in segments:
                 findings.append((header.relative.as_posix(), line_number,
-                                 spelling, "suspicious include path"))
-            if (PRIVATE_PATH_SEGMENTS & set(parts)
-                    and len(resolve_header(inventory, spelling)) > 1):
+                                 spelling, "public header includes an impl path"))
+            if "." in segments or ".." in segments:
                 findings.append((header.relative.as_posix(), line_number,
-                                 spelling, "ambiguous private include spelling"))
+                                 spelling, "public header include uses path traversal"))
+
+            matches = resolve_header(inventory, spelling)
+            private_segments = PRIVATE_PATH_SEGMENTS & set(segments)
+            if len(matches) > 1:
+                private_targets = any(
+                    PRIVATE_PATH_SEGMENTS & set(target.relative.parts)
+                    or target.relative.stem.endswith("_tests")
+                    for target in matches
+                )
+                if private_segments or private_targets:
+                    findings.append((header.relative.as_posix(), line_number,
+                                     spelling,
+                                     "ambiguous private include spelling"))
+                continue
+            if not matches:
+                # Unresolved include paths may refer to system or external
+                # headers. Ownership rules apply only to indexed repository files.
+                continue
+
+            target = matches[0]
+            target_segments = set(target.relative.parts)
+            if ("tests" in segments or "tests" in target_segments
+                    or target.relative.stem.endswith("_tests")):
+                findings.append((header.relative.as_posix(), line_number,
+                                 spelling, "public header includes a test header"))
+            if "internal" in target_segments:
+                source_component = component_for(header)
+                target_component = component_for(target)
+                if (source_component is None or target_component is None
+                        or source_component != target_component):
+                    findings.append((header.relative.as_posix(), line_number,
+                                     spelling,
+                                     "public header includes an internal header from another component"))
+            if "detail" in target_segments:
+                source_package = package_root_for(inventory, header)
+                target_package = package_root_for(inventory, target)
+                if (source_package is None or target_package is None
+                        or source_package != target_package):
+                    findings.append((header.relative.as_posix(), line_number,
+                                     spelling,
+                                     "public header includes a detail header from another Bazel package"))
     return tuple(findings), None
 
 

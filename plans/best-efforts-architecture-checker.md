@@ -60,7 +60,7 @@ prove that C++ declarations preserve an API boundary.
 - [x] Parse only literal `#include` directives. Normalize `\\` to `/` for
   path-rule evaluation. Keep macro-based include operands outside the check and
   document that limitation.
-- [ ] Apply the `impl`, traversal, tests, same-component `internal`, and
+- [x] Apply the `impl`, traversal, tests, same-component `internal`, and
   same-package `detail` rules above. Determine a header's component from its
   repository location and its package from the nearest ancestor containing a
   Bazel BUILD file; do not parse BUILD language contents.
