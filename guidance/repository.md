@@ -65,7 +65,8 @@ changes. Navigation and wrapping count bytes, not Unicode display cells.
 
 ## Verification
 
-Run these commands from the repository root:
+Run these commands from the repository root (`python` can replace `python3` on
+Windows):
 
 ```sh
 python3 tools/verify.py
@@ -108,7 +109,7 @@ and acceptance tooling derive the repository root from their script locations.
 CI runs the same verification entry point, editor build, and default and debug
 Bazel test suites in [.github/workflows/ci.yml](../.github/workflows/ci.yml).
 These remain distinct checks: `tools/verify.py` runs formatting, acceptance
-traceability and its fixture suite, plus the architecture scan. The architecture
-fixture suite currently runs separately with
-`python3 tools/check_architecture_tests.py`. The verification entry point does
-not run Bazel builds or product test targets.
+traceability and its fixture suite, and the architecture scan and its fixture
+suite. CI runs this verification entry point on Ubuntu, Windows, and macOS; the
+Bazel build and product test targets run on Ubuntu. The verification entry point
+does not run Bazel builds or product test targets.

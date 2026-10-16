@@ -1,7 +1,7 @@
 # A simple public-header include check
 
-Status: direct-include rules and fixture suite implemented; verification and CI
-integration remain.
+Status: direct-include rules, fixture suite, and CI matrix implemented; hosted
+Windows and macOS execution remains to be confirmed.
 
 The goal is to catch obvious accidental boundary breakage during ordinary
 verification. Keep the check small and source based. Do not build a full
@@ -78,9 +78,10 @@ prove that C++ declarations preserve an API boundary.
   from policy violations.
 - [x] Update `guidance/repository.md` and this plan to state exactly which rules
   are enforced and which C++ API properties remain unverified.
-- [ ] Add the fixture suite to `tools/verify.py`; run it and the verification
-  entry point on at least Windows, Linux, and macOS CI runners if those runners
-  are available.
+- [x] Add the fixture suite to `tools/verify.py` and configure CI to run the
+  verification entry point on Ubuntu, Windows, and macOS.
+- [ ] Confirm the cross-platform verification jobs pass after this change is
+  pushed and CI runs on all three operating systems.
 
 ### Completion criteria
 
