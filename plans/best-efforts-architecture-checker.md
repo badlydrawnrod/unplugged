@@ -64,7 +64,7 @@ prove that C++ declarations preserve an API boundary.
   same-package `detail` rules above. Determine a header's component from its
   repository location and its package from the nearest ancestor containing a
   Bazel BUILD file; do not parse BUILD language contents.
-- [ ] Add isolated Python fixture tests for accepted and rejected includes,
+- [x] Add isolated Python fixture tests for accepted and rejected includes,
   including Windows-style separators, nested Bazel packages, the documented
   `document/internal/` exception, external headers, ambiguous paths, comments,
   inactive preprocessor branches, and symlinks.
