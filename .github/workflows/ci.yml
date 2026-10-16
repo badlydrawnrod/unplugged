@@ -36,7 +36,7 @@ jobs:
           external-cache: true
           cache-save: ${{ github.event_name != 'pull_request' }}
 
-      - name: Check formatting, acceptance traceability, and architecture
+      - name: Check formatting, traceability, and public header includes
         run: python3 tools/verify.py
 
       - name: Build editor

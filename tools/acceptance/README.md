@@ -65,11 +65,9 @@ directory. Failures report feature/test paths and line numbers; the checker exit
 with status 1 when traceability or supported syntax is invalid.
 
 `python3 tools/verify.py` runs formatting, repository traceability and these
-fixture tests, the architecture checker, and its complete focused fixture suite.
-It continues all checks after failures and fails if any check fails. The format
-check accepts `--clang-format /path/to/clang-format`; the entry point works from
-any working directory when invoked by its absolute path. Architecture
-not-checked findings are nonblocking, while violations and operational errors
-fail the checker. Continue running Bazel build/default/debug tests separately;
-the verification entry point runs loading queries and fixtures, not Bazel builds
-or product tests.
+fixture tests, plus a small source-pattern check for suspicious includes in
+public headers. It continues all checks after failures and fails if any check
+fails. The format check accepts `--clang-format /path/to/clang-format`; the entry
+point works from any working directory when invoked by its absolute path.
+Continue running Bazel build/default/debug tests separately; the verification
+entry point does not run Bazel builds or product tests.
