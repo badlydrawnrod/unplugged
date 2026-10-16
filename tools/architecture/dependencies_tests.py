@@ -49,6 +49,23 @@ class DependenciesTests(unittest.TestCase):
         self.assertEqual([f.rule for f in report.ordered(not_checked=True)], ["cycles", "cycles"])
         self.assertEqual(report.counts["entry-targets"], 3)
 
+    def test_ordinary_and_testonly_api_variants_keep_their_entry_roles(self):
+        # An ordinary same-header variant is a supported entry for production
+        # clients. A testonly same-header variant is an entry for tests, while
+        # its production use remains Bazel's testonly check.
+        report = run(api("canvas"), api("ink"),
+                     target("//ink:debug_api", hdrs=("//ink:public.h",)),
+                     target("//ink:test_api", hdrs=("//ink:public.h",), testonly=True),
+                     target("//app:main", kind="cc_binary", deps=("//ink:debug_api",)),
+                     target("//canvas/tests:tests", kind="cc_test", deps=("//ink:test_api",)),
+                     target("//app:diagnostics", kind="cc_binary", deps=("//ink:test_api",)))
+
+        self.assertFalse(report.failed, report.render())
+        self.assertIn("left to Bazel", report.render())
+        self.assertEqual(report.counts["entry-targets"], 2)
+        self.assertEqual([finding.rule for finding in report.ordered(not_checked=True)],
+                         ["cycles", "cycles", "entry-targets"])
+
     def test_foreign_implementation_bypass_even_from_tests(self):
         report = run(api("canvas"), api("ink"), target("//ink:storage"),
                      target("//canvas/tests:tests", kind="cc_test", deps=("//ink:storage",)),
@@ -61,12 +78,14 @@ class DependenciesTests(unittest.TestCase):
         report = run(api("canvas"), api("ink"),
                      target("//ink:storage", visibility=("//canvas:__pkg__", "//canvas/tests:__pkg__")),
                      target("//canvas:renderer", deps=("//ink:storage",)),
+                     target("//canvas:decoder", implementation_deps=("//ink:storage",)),
                      target("//canvas/tests:tests", kind="cc_test", deps=("//ink:storage",)))
         self.assertFalse(report.failed, report.render())
         self.assertFalse(report.ordered(not_checked=True), report.render())
 
     def test_public_visibility_fails_but_inherited_grants_are_uncertain(self):
         for visibility, explicit in ((("//visibility:public",), True),
+                                     (("//visibility:public", "//canvas:__pkg__"), True),
                                      (("//canvas:__pkg__",), False)):
             with self.subTest(visibility=visibility, explicit=explicit):
                 implementation = target("//ink:storage")
@@ -143,6 +162,22 @@ class DependenciesTests(unittest.TestCase):
         report = run(api("canvas", selectors=conditional), api("ink", deps=("//canvas:api",)))
         self.assertFalse(report.failed)
         self.assertIn("conditional component edge", report.render())
+
+    def test_mutually_exclusive_select_edges_do_not_form_a_cycle(self):
+        canvas_deps = (Selector((Choice("//mode:debug", ("//ink:api",)),
+                                 Choice("//conditions:default", ())), True, ""),)
+        ink_deps = (Selector((Choice("//mode:debug", ()),
+                              Choice("//conditions:default", ("//canvas:api",))), True, ""),)
+
+        report = run(api("canvas", selectors=canvas_deps),
+                     api("ink", selectors=ink_deps))
+
+        self.assertFalse(report.failed, report.render())
+        cycle_limitations = [finding for finding in report.ordered(not_checked=True)
+                             if finding.rule == "cycles"]
+        self.assertEqual(len(cycle_limitations), 2, report.render())
+        self.assertTrue(all("conditional component edge" in finding.reason
+                            for finding in cycle_limitations))
 
     def test_conditional_bypass_is_nonblocking_alongside_definite_violation(self):
         conditional = (Selector((Choice("//mode:fast", ("//ink:storage",)),

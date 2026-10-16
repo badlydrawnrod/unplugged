@@ -218,6 +218,30 @@ const char* quoted = "#include \\\"bad/d.h\\\"";
                                     [provider, consumer])
             self.assertEqual(report.failed, not grant)
 
+    def test_detail_header_is_private_to_its_component(self):
+        report = self.run_check({
+            "bird/detail/decoder/decoder.h": "",
+            "fish/fish.h": '#include "bird/detail/decoder/decoder.h"',
+        }, [target("bird/detail/decoder", headers=("decoder.h",)),
+            target("fish", headers=("fish.h",))])
+        self.assertTrue(report.failed)
+        finding, = report.ordered(not_checked=False)
+        self.assertEqual(finding.rule, "private-access")
+        self.assertEqual(finding.location.path, "fish/fish.h")
+
+    def test_conditional_private_grant_is_reported_as_not_checked(self):
+        provider = target("bird/internal/decoder", headers=("decoder.h",), extra=(
+            conditional("visibility", "//fish:__pkg__"),))
+        consumer = target("fish", sources=("fish.cpp",), deps=(provider.label,))
+        report = self.run_check({
+            "bird/internal/decoder/decoder.h": "",
+            "fish/fish.cpp": '#include "bird/internal/decoder/decoder.h"',
+        }, [provider, consumer])
+        self.assertFalse(report.failed)
+        finding, = report.ordered(not_checked=True)
+        self.assertEqual(finding.rule, "private-access")
+        self.assertIn("conditional or unsupported", finding.reason)
+
     def test_unsupported_directive_forms_are_visible(self):
         parsed = directives('#include_next "bird.h"\n#import "bird.h"\n%:include "bird.h"')
         self.assertEqual([d.spelling for d in parsed], [None, None, None])

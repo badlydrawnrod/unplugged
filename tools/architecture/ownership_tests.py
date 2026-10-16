@@ -45,6 +45,20 @@ class OwnershipTest(unittest.TestCase):
                                    target("//parcel/internal/ring:api", "alias"))
         self.assertIsNone(ownership.owner_path("parcel/internal/ring/tests/read.cpp"))
 
+    def test_supported_nested_boundary_overrides_unsupported_ancestor(self):
+        unsupported_parent = target("//parcel:api", "alias")
+        nested_api = target("//parcel/internal/ring:api",
+                            hdrs=("//parcel/internal/ring:ring.h",))
+        implementation = target("//parcel/internal/ring:storage")
+        tests = target("//parcel/internal/ring/tests:tests", "cc_test")
+        ownership = self.ownership(unsupported_parent, nested_api, implementation, tests)
+
+        self.assertIsNone(ownership.owner_path("parcel/other/feature.cpp"))
+        self.assertEqual(ownership.owner_path("parcel/internal/ring/ring.h"),
+                         "parcel/internal/ring")
+        self.assertEqual(ownership.owner_target(implementation), "parcel/internal/ring")
+        self.assertEqual(ownership.owner_target(tests), "parcel/internal/ring")
+
     def test_api_variants_require_same_package_headers_and_mappings(self):
         api = target("//parcel:api", hdrs=("//parcel:parcel.h",), include_prefix="postal")
         variant = target("//parcel:debug_api", hdrs=("//parcel:parcel.h",), include_prefix="postal")
@@ -55,6 +69,36 @@ class OwnershipTest(unittest.TestCase):
         self.assertTrue(ownership.entry_status(variant))
         self.assertFalse(ownership.entry_status(helper))
         self.assertFalse(ownership.entry_status(moved))
+
+    def test_api_variant_with_conditional_evidence_is_uncertain(self):
+        api = target("//parcel:api", hdrs=("//parcel:parcel.h",),
+                     include_prefix="postal")
+        conditional_headers = Attribute("hdrs", "LABEL_LIST", True, selectors=(
+            Selector((Choice("//conditions:default", ("//parcel:parcel.h",)),), True, ""),
+            Selector((Choice("//:debug", ("//parcel:parcel.h",)),
+                      Choice("//conditions:default", ("//parcel:other.h",))), True, "")))
+        variant = Target("//parcel:test_api", "cc_library", Location("parcel/BUILD", 8), (
+            conditional_headers,
+            Attribute("include_prefix", "STRING", True, value="postal"),))
+
+        self.assertIsNone(self.ownership(api, variant).entry_status(variant))
+
+    def test_api_variant_with_unsupported_mapping_is_uncertain(self):
+        api = target("//parcel:api", hdrs=("//parcel:parcel.h",),
+                     include_prefix="postal")
+        variant = Target("//parcel:test_api", "cc_library", Location("parcel/BUILD", 9), (
+            Attribute("hdrs", "LABEL_LIST", True, value=("//parcel:parcel.h",)),
+            Attribute("include_prefix", "UNKNOWN", True,
+                      limitation="unsupported value type UNKNOWN"),))
+
+        self.assertIsNone(self.ownership(api, variant).entry_status(variant))
+
+    def test_test_api_name_does_not_grant_entry_status(self):
+        api = target("//parcel:api", hdrs=("//parcel:parcel.h",))
+        test_api = target("//parcel:test_api", hdrs=("//parcel:test_support.h",))
+        ownership = self.ownership(api, test_api)
+
+        self.assertFalse(ownership.entry_status(test_api))
 
     def test_external_and_nonlocal_labels_are_not_local_paths(self):
         self.assertEqual(label_path("//parcel:include/parcel/parcel.h"), "parcel/include/parcel/parcel.h")

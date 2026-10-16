@@ -1,6 +1,6 @@
 # A small, deterministic architecture checker
 
-Status: steps 1–2 complete; steps 3–4 pending.
+Status: steps 1–3 complete; step 4 pending.
 Created: 2026-10-16.
 Last progress update: 2026-10-16.
 
@@ -14,11 +14,69 @@ supported behavior and limitations; this plan tracks delivery and verification.
   fact loading, private fact records, documentation, and focused fixtures.
 - [x] **Step 2: Implement the small checker.** Ownership helper, findings,
   `check.py`, include rules, entry-target checks, and component cycles.
-- [ ] **Step 3: Prove behavior with focused fixtures.** Passing, failing, and
-  limitation cases for all four rules and their interactions. Core fixtures
-  accompany step 2; the full completion-criteria coverage review remains.
+- [x] **Step 3: Prove behavior with focused fixtures.** Passing, failing, and
+  limitation cases for all four rules and their interactions; completion-criteria
+  coverage reviewed and missing fixtures added.
 - [ ] **Step 4: Integrate and finish.** Verification entry-point integration,
   failure-propagation tests, final documentation, and completion checks.
+
+### Step 3 handoff — 2026-10-16
+
+Continued on `spike/simple-enforcement` from committed step 2 (`b8fd4f8`).
+Delegated the bounded fixture work to GPT-6 Luna with high reasoning, then
+reviewed the combined changes. No commits were made during step 3.
+
+Added nine tests across `ownership_tests.py`, `includes_tests.py`,
+`dependencies_tests.py`, and `check_integration_tests.py`, and extended existing
+grant fixtures. The additions cover supported nested boundaries beneath
+unsupported ancestors, uncertain API variants, misleading `test_api` names,
+`detail/` access, conditional private grants, ordinary/testonly API variants,
+mixed public/package visibility, grants on `implementation_deps`, and mutually
+exclusive selector edges. No production checker changes were needed.
+
+The new real Git/Bazel lifecycle fixture starts with passing parent/nested
+composition and nonzero checked counts for all four rules. It adds an untracked
+conventional component and verifies its private-header violation alongside a
+computed-include limitation. Repairing the private include leaves a nonblocking
+limitation; repeated discovery, fact loading, and auditing produce identical
+inventories, facts, and rendered findings. No registry or checker edits occur
+between these fixture states.
+
+Completion-criteria coverage review (existing and added fixtures):
+
+| Requirement | Fixture evidence |
+| --- | --- |
+| Passing, failing, and limitation cases for every rule | Include/dependency suites plus passing and failing real-pipeline fixtures; command suite verifies exit statuses 0/1/2. |
+| Comments, strings, guards, and include chains | Include scanner fixtures mask comments/ordinary/raw strings, preserve physical lines, and report full API-to-`impl/` paths. |
+| Parent/private composition and selected test access | Include fixtures allow parent composition and require both exact grants and direct dependencies for selected tests; dependency fixtures preserve selected test implementation access. |
+| Ordinary/test APIs and legitimate implementation grants | Ownership/dependency fixtures distinguish matching APIs, unsupported/conditional variants, misleading names, testonly context, explicit grants, inherited grants, and public visibility. Grants cannot excuse API include closure or remove cycle edges. |
+| Inherited and nested ownership | Ownership and dependency fixtures cover inherited test/implementation owners, distinct nested components, and supported nested boundaries overriding unsupported ancestors. |
+| Parent-to-child composition, parent/child cycles, and same-owner edges | Dependency fixtures pass composition and same-owner round trips, retain the exact parent/child cycle witness, and map inherited tests/implementation targets into cycles. |
+| Conditional paths | Include/header/source/mapping/grant fixtures remain potential findings; dependency selectors, complementary mutually exclusive cycle edges, and default-only constant selectors retain their classifications. |
+| Visible limitations alongside definite violations | Include/dependency fixtures and the all-four-rule real pipeline retain violations alongside unsupported inputs; the lifecycle repair proves limitations alone remain nonblocking. |
+| Operational failures | Discovery/query fixtures cover real Git/Bazel errors and malformed output; include fixtures cover unreadable required source; command fixtures return status 2 without a successful report. |
+| Determinism and automatic component discovery | Reordered facts/targets produce identical reports; repeated real loads agree; a newly added untracked API package is discovered and checked without registry edits. |
+| Existing repository arrangements and compiler assertions | Current checker succeeds with nonzero checked counts, POSIX headers remain supported, and default/debug Bazel tests preserve public-header assertions and existing product behavior. |
+
+Verification completed successfully:
+
+- `python3 -m unittest discover -s tools/architecture -p '*_tests.py'`: 91 tests
+  passed (29 include, 20 dependency, 14 ownership/report, 6 command, 2 checker
+  integration, and the original 20 foundation tests).
+- `python3 tools/architecture/check.py`: exit 0, no violations, the same 19
+  explicit not-checked findings. Checked counts remain 112 include directives,
+  17 private-header directives, 85 entry-target edges, and 69 cycle edges.
+- `python3 tools/verify.py`, `bazel build //:editor`, `bazel test //...`, and
+  `bazel test -c dbg //...` passed. Each Bazel test mode reported 20 passing
+  test targets using cached results. Whitespace checks passed.
+
+Supported forms and limitations are unchanged. `tools/verify.py` remains
+unchanged; running the checker and its fixtures through that entry point,
+verification failure-propagation tests, and final integration documentation
+belong to step 4. There are no outstanding verification failures.
+
+Next: implement step 4 from this tested fixture baseline. Preserve the checker,
+the completed coverage audit, and all unrelated working-tree edits.
 
 ### Step 2 handoff — 2026-10-16
 
@@ -139,7 +197,7 @@ Build a useful checker for a few observable architectural mistakes. Complete
 coverage is not a requirement. Unsupported arrangements should be visible in the
 report without blocking development.
 
-Continue with step 3 using the implemented checker and its tests. Inspect Git
+Continue with step 4 using the implemented checker and its tests. Inspect Git
 status before making changes and preserve the current implementation. The
 original baseline was `develop` without `tools/architecture/`; the implementation
 recorded above is now the starting point. No older architecture plan or abandoned
@@ -157,7 +215,7 @@ existing product behavior.
 Suggested starting instruction:
 
 > Continue `plans/best-efforts-architecture-checker.md` from its recorded progress;
-> steps 1–2 are complete. Use
+> steps 1–3 are complete. Use
 > GPT-6 Luna subagents with high reasoning for bounded implementation tasks.
 > Keep one lead agent responsible for shared interfaces, policy decisions,
 > integration, review, and all completion checks. Complete the implementation

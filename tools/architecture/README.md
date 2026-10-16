@@ -2,8 +2,8 @@
 
 This tooling owns the contract for a small, deterministic architecture checker.
 Git discovery, structured Bazel fact loading, and the four supported rules are
-implemented, with a public `check.py` command and focused fixtures. Further rule
-fixture coverage and integration with `tools/verify.py` remain in the plan.
+implemented, with a public `check.py` command and focused fixtures covering the
+step 3 completion criteria. Integration with `tools/verify.py` remains in the plan.
 Existing compiler-based public-header assertions remain in place.
 
 Run from the repository root:
@@ -193,8 +193,8 @@ Unowned utilities and application wiring do not receive invented component
 owners: affected cycle edges are not checked. On the current repository this
 also leaves API ownership uncertain for three helper/policy libraries. Effective
 visibility, package groups, symbolic-macro permissions, and compilation remain
-Bazel's responsibility. Further fixture coverage and verification entry-point
-integration are pending; the checker is currently run separately.
+Bazel's responsibility. Verification entry-point integration is pending; the
+checker is currently run separately.
 
 ## Verification
 
@@ -223,12 +223,19 @@ ignored package exclusion, and an actual BUILD loading failure. It uses batch
 mode and a temporary Bazel output root. Bazelisk may need its normal version
 download/cache access.
 
-The checker integration fixture also loads C++-shaped Starlark declarations with
-the pinned Bazel and exercises all four rule failures together, alongside a
-nonblocking limitation. Command fixtures check status codes, explicit/default
+The checker integration fixtures also load C++-shaped Starlark declarations with
+the pinned Bazel and exercise all four rule failures together, alongside a
+nonblocking limitation. A passing parent/nested-component fixture then adds a
+conventional untracked component, proving that fresh discovery and queries enforce
+its boundary without a registry edit. Repairing its private include leaves only
+the computed-include limitation; repeated real loads produce identical facts and
+reports. Command fixtures check status codes, explicit/default
 repository roots, and failure propagation. Rule fixtures exercise include
 chains, guards, comments/strings, conditional paths, mappings, grants, variants,
 inherited ownership, nested cycles, and supported checks alongside limitations.
+They include conditional private-access grants, `detail/` boundaries, ordinary
+and testonly API variants, mutually exclusive selector edges, and supported
+nested boundaries beneath unsupported ancestors.
 
 The coverage summary counts resolved first-party include directives, inspected
 private-header directives, and evaluated dependency/cycle edges, followed by
