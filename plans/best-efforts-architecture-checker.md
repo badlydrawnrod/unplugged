@@ -51,7 +51,7 @@ prove that C++ declarations preserve an API boundary.
 
 ### Implementation steps
 
-- [ ] Extend discovery to retain normalized repository-relative paths for active
+- [x] Extend discovery to retain normalized repository-relative paths for active
   headers and identify Bazel package roots from `BUILD` / `BUILD.bazel` files.
 - [ ] Build an index of repository headers by repository path and by public
   include spelling (remove the `include/` directory where present). If a

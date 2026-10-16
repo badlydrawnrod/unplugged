@@ -2,6 +2,7 @@
 """Flag obvious implementation includes from public headers."""
 
 import os
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 import re
 import subprocess
@@ -13,29 +14,48 @@ HEADER_SUFFIXES = {".h", ".hh", ".hpp", ".hxx", ".inc"}
 INCLUDE = re.compile(r'^\s*#\s*include\s*(?:"([^"\n]+)"|<([^>\n]+)>)')
 
 
-def public_headers(root):
-    """Return active Git-known headers beneath conventional include directories."""
+@dataclass(frozen=True)
+class RepositoryInventory:
+    """Active public headers and Bazel package roots, using repository paths."""
+
+    headers: tuple[tuple[PurePosixPath, Path], ...]
+    package_roots: tuple[PurePosixPath, ...]
+
+
+def repository_inventory(root):
+    """Discover active headers and package roots without traversing build output."""
     result = subprocess.run(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
         cwd=root, check=True, capture_output=True)
-    headers = []
+
+    active_paths = set()
     for raw_path in result.stdout.split(b"\0"):
-        if not raw_path:
+        if raw_path:
+            # Git emits repository paths with forward slash separators on every
+            # platform. Keep that spelling for comparisons and diagnostics.
+            active_paths.add(PurePosixPath(os.fsdecode(raw_path)))
+
+    headers = []
+    package_roots = set()
+    for relative in sorted(active_paths, key=PurePosixPath.as_posix):
+        full_path = root.joinpath(*relative.parts)
+        if not full_path.is_file() or full_path.is_symlink():
             continue
-        relative = os.fsdecode(raw_path)
-        path = PurePosixPath(relative)
-        if path.suffix not in HEADER_SUFFIXES or "include" not in path.parts:
-            continue
-        full_path = root / relative
-        if full_path.is_file() and not full_path.is_symlink():
+        if relative.name in {"BUILD", "BUILD.bazel"}:
+            package_roots.add(relative.parent)
+        if relative.suffix in HEADER_SUFFIXES and "include" in relative.parts:
             headers.append((relative, full_path))
-    return sorted(headers)
+
+    return RepositoryInventory(
+        headers=tuple(headers),
+        package_roots=tuple(sorted(package_roots, key=PurePosixPath.as_posix)),
+    )
 
 
 def check(root):
     """Return (violations, operational error)."""
     try:
-        headers = public_headers(root)
+        inventory = repository_inventory(root)
     except (OSError, subprocess.CalledProcessError) as error:
         detail = getattr(error, "stderr", b"")
         if isinstance(detail, bytes):
@@ -43,11 +63,11 @@ def check(root):
         return (), f"Git file discovery failed: {detail or error}"
 
     findings = []
-    for relative, path in headers:
+    for relative, path in inventory.headers:
         try:
             lines = path.read_text(encoding="utf-8").splitlines()
         except (OSError, UnicodeError) as error:
-            return (), f"Cannot read {relative}: {error}"
+            return (), f"Cannot read {relative.as_posix()}: {error}"
         for line_number, line in enumerate(lines, start=1):
             match = INCLUDE.match(line)
             if not match:
@@ -55,7 +75,7 @@ def check(root):
             spelling = match.group(1) or match.group(2)
             parts = PurePosixPath(spelling).parts
             if "impl" in parts or ".." in parts:
-                findings.append((relative, line_number, spelling))
+                findings.append((relative.as_posix(), line_number, spelling))
     return tuple(findings), None
 
 
