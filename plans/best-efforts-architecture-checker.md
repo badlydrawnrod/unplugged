@@ -1,6 +1,6 @@
 # A small, deterministic architecture checker
 
-Status: step 1 complete; steps 2–4 pending.
+Status: steps 1–2 complete; steps 3–4 pending.
 Created: 2026-10-16.
 Last progress update: 2026-10-16.
 
@@ -12,12 +12,77 @@ supported behavior and limitations; this plan tracks delivery and verification.
 
 - [x] **Step 1: Create the minimal foundation.** Git discovery, structured Bazel
   fact loading, private fact records, documentation, and focused fixtures.
-- [ ] **Step 2: Implement the small checker.** Ownership helper, findings,
+- [x] **Step 2: Implement the small checker.** Ownership helper, findings,
   `check.py`, include rules, entry-target checks, and component cycles.
 - [ ] **Step 3: Prove behavior with focused fixtures.** Passing, failing, and
-  limitation cases for all four rules and their interactions.
+  limitation cases for all four rules and their interactions. Core fixtures
+  accompany step 2; the full completion-criteria coverage review remains.
 - [ ] **Step 4: Integrate and finish.** Verification entry-point integration,
   failure-propagation tests, final documentation, and completion checks.
+
+### Step 2 handoff — 2026-10-16
+
+Implemented on `spike/simple-enforcement`, continuing from the committed step 1
+foundation (`a66d09b`). No commits were made during step 2.
+
+Added under `tools/architecture/`:
+
+- `ownership.py` and `ownership_tests.py`: shared nearest-component ownership,
+  inherited test/implementation ownership, distinct nested components,
+  conservative API-variant recognition, selector references, and narrow explicit
+  package-grant evidence.
+- `report.py`: deterministic findings, separate violations and coverage
+  limitations, and per-rule checked/not-checked counts.
+- `includes.py` and `includes_tests.py`: comment/string-aware directive scanning,
+  literal include resolution, API closure into `impl/`, direct private-header
+  checks, conditional-path handling, and visible unsupported inputs.
+- `dependencies.py` and `dependencies_tests.py`: direct entry-target checks and
+  unconditional component cycles, preserving nested components and implementation
+  grants while excluding conditional edges from definite cycles.
+- `check.py`, `check_tests.py`, and `check_integration_tests.py`: public command
+  with script-relative default root and `--repo`, exit statuses 0/1/2 for
+  passing/violations/operational errors, command fixtures, and a real Git/Bazel
+  pipeline fixture exercising all four rules alongside a coverage limitation.
+
+Updated the tooling README with implemented behavior, exact supported grant and
+mapping forms, limitations, output semantics, and commands. Narrow private-header
+access requires an explicit exact-package provider grant plus a declared direct
+dependency; parent production composition and same-owner use remain supported.
+Public visibility does not grant an API bypass; inherited narrow grants remain
+not checked. Grants never excuse
+API include closure into `impl/` or erase cycle edges. Default and prefix-only
+mapping behavior was checked against the pinned `rules_cc` implementation.
+
+Verification completed successfully:
+
+- `python3 -m unittest discover -s tools/architecture -p '*_tests.py'`: 82 tests
+  passed, including 27 include, 18 dependency, 10 ownership/report, 6 command,
+  1 checker integration, and the original 20 foundation tests. Integration
+  fixtures use actual Git and pinned Bazel loading-phase queries without a
+  compiler or SDK. Reordered facts produce identical output.
+- `python3 tools/architecture/check.py`: exit 0, no violations, 19 explicit
+  not-checked findings. Checked counts: 112 resolved include directives,
+  17 private-header directives, 85 entry-target edges, and 69 cycle edges.
+- The 19 limitations are three helper/policy libraries without supported API
+  ownership and 16 cycle edges involving unowned application/helper targets.
+  They remain visible; supported-rule success does not rely on skipping all
+  checks.
+- `python3 tools/verify.py`, `bazel build //:editor`, `bazel test //...`, and
+  `bazel test -c dbg //...` passed. Both Bazel test modes reported 20 passing
+  test targets using cached results.
+
+Remaining limits include global syntactic alias lookup rather than configured
+compiler search paths, unresolved preprocessor/selector combinations, indirect
+membership, unavailable generated headers, target aliases, and unsupported
+visibility forms. Product behavior and compiler-based public-header assertions
+are unchanged. `tools/verify.py` remains unchanged; integration belongs to step 4.
+There are no outstanding verification failures.
+
+Next: review the existing fixtures against every step 3 completion requirement
+and add missing cases before proceeding to verification integration. Useful
+additional ownership fixtures include supported nested boundaries overriding
+unsupported ancestors and uncertain API variants. Do not treat the current core
+fixtures as completion of the remaining plan.
 
 ### Step 1 handoff — 2026-10-16
 
@@ -74,9 +139,9 @@ Build a useful checker for a few observable architectural mistakes. Complete
 coverage is not a requirement. Unsupported arrangements should be visible in the
 report without blocking development.
 
-Continue with step 2 using the completed foundation and its tests. Inspect Git
+Continue with step 3 using the implemented checker and its tests. Inspect Git
 status before making changes and preserve the current implementation. The
-original baseline was `develop` without `tools/architecture/`; the foundation
+original baseline was `develop` without `tools/architecture/`; the implementation
 recorded above is now the starting point. No older architecture plan or abandoned
 checker implementation is needed.
 
@@ -92,7 +157,7 @@ existing product behavior.
 Suggested starting instruction:
 
 > Continue `plans/best-efforts-architecture-checker.md` from its recorded progress;
-> step 1 is complete. Use
+> steps 1–2 are complete. Use
 > GPT-6 Luna subagents with high reasoning for bounded implementation tasks.
 > Keep one lead agent responsible for shared interfaces, policy decisions,
 > integration, review, and all completion checks. Complete the implementation
@@ -101,7 +166,7 @@ Suggested starting instruction:
 The lead should read this whole plan, the tooling README, and the contributor
 guidance, inspect Git status and the current branch, and confirm the recorded
 progress before delegating. Preserve completed work and unrelated changes. If a
-separate checkout is needed, carry forward this plan and the completed foundation
+separate checkout is needed, carry forward this plan and the completed checker
 rather than restarting from `develop`. Do not reuse an abandoned checker
 implementation. Routine implementation choices can be resolved under this plan
 without another architecture-planning round.
