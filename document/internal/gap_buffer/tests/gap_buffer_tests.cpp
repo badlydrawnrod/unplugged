@@ -37,18 +37,18 @@ struct ReferenceBuffer {
     return {};
   }
 
-  ByteCount Len() const { return data.size(); }
+  ByteCount Len() const { return static_cast<ByteCount>(data.size()); }
 
   void Insert(ByteIndex pos, Byte c) {
     if (pos > data.size()) {
-      pos = data.size();
+      pos = static_cast<ByteIndex>(data.size());
     }
     data.insert(data.begin() + static_cast<std::ptrdiff_t>(pos), c);
   }
 
   void Insert(ByteIndex pos, const ByteSpan sv) {
     if (pos > data.size()) {
-      pos = data.size();
+      pos = static_cast<ByteIndex>(data.size());
     }
     data.insert(data.begin() + static_cast<std::ptrdiff_t>(pos), sv.begin(),
                 sv.end());
@@ -157,9 +157,9 @@ struct Op {
 [[maybe_unused]] void CheckAtAgreement(const GapBuffer &actual,
                                        const ReferenceBuffer &expected,
                                        size_t pos) {
-  const auto expected_at = expected.At(pos);
+  const auto expected_at = expected.At(static_cast<ByteIndex>(pos));
   if (expected_at) {
-    EXPECT_EQ(actual.At(pos), *expected_at);
+    EXPECT_EQ(actual.At(static_cast<ByteIndex>(pos)), *expected_at);
   }
 }
 

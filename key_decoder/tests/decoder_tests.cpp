@@ -17,7 +17,10 @@ class Stream final : public ByteSource {
   explicit Stream(std::string_view bytes,
                   ByteReadStatus end = ByteReadStatus::Eof)
       : end_(end) {
-    for (unsigned char byte : bytes) events_.emplace_back(uint8_t{byte});
+    for (char byte : bytes) {
+      events_.emplace_back(
+          static_cast<uint8_t>(static_cast<unsigned char>(byte)));
+    }
   }
   Stream(std::initializer_list<ByteReadResult> events) : events_(events) {}
 

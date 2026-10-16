@@ -3,6 +3,11 @@ build --cxxopt=-std=c++23
 build --cxxopt=-Wall
 build --cxxopt=-Wextra
 build --cxxopt=-Wpedantic
+build --cxxopt=-Wconversion
+build --cxxopt=-Wsign-conversion
+build --cxxopt=-Wshadow
+build --cxxopt=-Wnon-virtual-dtor
+build --cxxopt=-Woverloaded-virtual
 build --cxxopt=-Werror
 
 # Keep successful tests quiet while reporting failed test output.
