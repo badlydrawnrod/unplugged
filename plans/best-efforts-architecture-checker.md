@@ -57,7 +57,7 @@ prove that C++ declarations preserve an API boundary.
   include spelling (remove the `include/` directory where present). If a
   private include spelling maps ambiguously, report it as ambiguous rather than
   guessing its owner. Ignore unresolved external/system includes.
-- [ ] Parse only literal `#include` directives. Normalize `\\` to `/` for
+- [x] Parse only literal `#include` directives. Normalize `\\` to `/` for
   path-rule evaluation. Keep macro-based include operands outside the check and
   document that limitation.
 - [ ] Apply the `impl`, traversal, tests, same-component `internal`, and

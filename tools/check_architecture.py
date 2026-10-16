@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Flag obvious implementation includes from public headers."""
+"""Flag obvious implementation includes from public headers.
+
+Only literal ``#include "..."`` and ``#include <...>`` operands are inspected.
+Macro-based include operands are intentionally ignored.
+"""
 
 import os
 from dataclasses import dataclass
@@ -87,7 +91,7 @@ def repository_inventory(root):
 
 def resolve_header(inventory, spelling):
     """Return matching repository headers for a repository or public spelling."""
-    path = PurePosixPath(spelling)
+    path = normalize_include_spelling(spelling)
     matches = {}
     repository_match = inventory.headers_by_repository_path.get(path)
     if repository_match is not None:
@@ -96,6 +100,11 @@ def resolve_header(inventory, spelling):
         matches[header.relative] = header
     return tuple(matches[key] for key in sorted(matches,
                                                 key=PurePosixPath.as_posix))
+
+
+def normalize_include_spelling(spelling):
+    """Treat either slash style as a path separator for rule evaluation."""
+    return PurePosixPath(spelling.replace("\\", "/"))
 
 
 def check(root):
@@ -119,7 +128,7 @@ def check(root):
             if not match:
                 continue
             spelling = match.group(1) or match.group(2)
-            parts = PurePosixPath(spelling).parts
+            parts = normalize_include_spelling(spelling).parts
             if "impl" in parts or ".." in parts:
                 findings.append((header.relative.as_posix(), line_number,
                                  spelling, "suspicious include path"))
