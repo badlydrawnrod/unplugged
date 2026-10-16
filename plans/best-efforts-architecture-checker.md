@@ -68,7 +68,7 @@ prove that C++ declarations preserve an API boundary.
   including Windows-style separators, nested Bazel packages, the documented
   `document/internal/` exception, external headers, ambiguous paths, comments,
   inactive preprocessor branches, and symlinks.
-- [ ] Preserve diagnostics with repository-relative path, line number, rule,
+- [x] Preserve diagnostics with repository-relative path, line number, rule,
   and include spelling. Operational discovery/read failures must remain distinct
   from policy violations.
 - [ ] Update `guidance/repository.md` and this plan to state exactly which rules

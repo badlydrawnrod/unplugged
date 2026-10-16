@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Focused architecture-checker fixtures using isolated temporary repositories."""
 
+from contextlib import redirect_stderr, redirect_stdout
+import io
 from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import check_architecture as checker
 
@@ -171,6 +174,53 @@ class ArchitectureCheckTest(unittest.TestCase):
         ))
 
         self.assertEqual(self.findings(), ())
+
+    def test_policy_diagnostic_has_path_line_rule_and_spelling(self):
+        self.write("editor/include/editor/editor.h", (
+            "// The violation is on the next line.\n"
+            '#include "editor/impl/private.h"\n'
+        ))
+
+        findings = self.findings()
+        self.assertEqual(findings, ((
+            "editor/include/editor/editor.h",
+            2,
+            "editor/impl/private.h",
+            "public header includes an impl path",
+        ),))
+
+        output = io.StringIO()
+        with patch.object(checker, "REPO_ROOT", self.root), \
+                redirect_stdout(output):
+            self.assertEqual(checker.main(), 1)
+        self.assertEqual(
+            output.getvalue(),
+            "editor/include/editor/editor.h:2: public header includes an impl "
+            "path 'editor/impl/private.h'\n",
+        )
+
+    def test_discovery_error_is_separate_from_policy_findings(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            findings, error = checker.check(root)
+            self.assertEqual(findings, ())
+            self.assertIsNotNone(error)
+            self.assertIn("Git file discovery failed:", error)
+
+            output = io.StringIO()
+            with patch.object(checker, "REPO_ROOT", root), \
+                    redirect_stderr(output):
+                self.assertEqual(checker.main(), 2)
+            self.assertIn("Architecture check error:", output.getvalue())
+
+    def test_header_read_error_is_separate_from_policy_findings(self):
+        header = self.write("editor/include/editor/editor.h")
+        header.write_bytes(b"\xff")
+
+        findings, error = checker.check(self.root)
+        self.assertEqual(findings, ())
+        self.assertIsNotNone(error)
+        self.assertIn("Cannot read editor/include/editor/editor.h:", error)
 
     def test_symlinked_public_header_is_not_followed(self):
         self.write("editor/include/editor/target.h",
