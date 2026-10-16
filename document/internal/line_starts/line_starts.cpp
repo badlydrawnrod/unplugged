@@ -10,7 +10,7 @@ using unplugged::internal::CheckedAdd;
 using unplugged::internal::CheckedByteCount;
 using unplugged::internal::CheckedByteGrowth;
 
-namespace unplugged::document_detail {
+namespace unplugged::document::storage {
 
 [[nodiscard]] unplugged::dbc::InvariantResult LineStarts::CheckInvariants()
     const {
@@ -120,4 +120,4 @@ void LineStarts::UpdateOnDelete(ByteIndex pos, ByteCount count) {
   }
 }
 
-}  // namespace unplugged::document_detail
+}  // namespace unplugged::document::storage

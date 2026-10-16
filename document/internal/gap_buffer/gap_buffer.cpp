@@ -10,7 +10,7 @@ using unplugged::internal::CheckedAdd;
 using unplugged::internal::CheckedByteCount;
 using unplugged::internal::CheckedByteGrowth;
 
-namespace unplugged::document_detail {
+namespace unplugged::document::storage {
 
 GapBuffer::GapBuffer(std::vector<Byte> &&buffer)
     : data_{std::move(buffer)},
@@ -176,4 +176,4 @@ ByteCount GapBuffer::Len() const noexcept {
 
 bool GapBuffer::IsValid(ByteIndex pos) const noexcept { return pos < Len(); }
 
-}  // namespace unplugged::document_detail
+}  // namespace unplugged::document::storage

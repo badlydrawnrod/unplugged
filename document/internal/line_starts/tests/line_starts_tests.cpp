@@ -5,6 +5,8 @@
 
 #include "document/internal/line_starts/line_starts.h"
 
+using unplugged::document::storage::LineStarts;
+
 #ifdef CONTRACT_EXCEPTIONS
 template <typename F>
 void ExpectPreconditionViolation(F &&fn) {

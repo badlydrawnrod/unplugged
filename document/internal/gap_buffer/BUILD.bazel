@@ -3,44 +3,33 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:private"])
 
 cc_library(
-    name = "storage",
+    name = "api",
     srcs = ["gap_buffer.cpp"],
     hdrs = ["gap_buffer.h"],
+    visibility = ["//document:__pkg__"],
     deps = [
-        "//document/internal/size_limits:api",
+        "//contracts:api",
         "//contracts:checks",
-        "//document:gap_buffer_layout",
-    ],
-)
-
-alias(
-    name = "api",
-    actual = ":storage",
-    visibility = [
-        "//document:__pkg__",
+        "//document/internal/size_limits:api",
+        "//document/types:api",
     ],
 )
 
 # Same supported API with the shared debug-only throwing contract policy.
 cc_library(
-    name = "storage_test",
+    name = "test_api",
     testonly = True,
     srcs = ["gap_buffer.cpp"],
     hdrs = ["gap_buffer.h"],
-    deps = [
-        "//:contract_test_mode",
-        "//document/internal/size_limits:api",
-        "//contracts:checks",
-        "//document:gap_buffer_layout",
-    ],
-)
-
-alias(
-    name = "test_api",
-    actual = ":storage_test",
-    testonly = True,
     visibility = [
         "//document:__pkg__",
         "//document/internal/gap_buffer/tests:__pkg__",
+    ],
+    deps = [
+        "//:contract_test_mode",
+        "//contracts:api",
+        "//contracts:checks",
+        "//document/internal/size_limits:api",
+        "//document/types:api",
     ],
 )

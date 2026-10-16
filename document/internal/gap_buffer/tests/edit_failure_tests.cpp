@@ -6,6 +6,8 @@
 #include "document/internal/gap_buffer/gap_buffer.h"
 #include "test_support/allocation_failure.h"
 
+using unplugged::document::storage::GapBuffer;
+
 using unplugged::testing::ExerciseAllocationFailures;
 using unplugged::testing::FailAllocationAfter;
 

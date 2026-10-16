@@ -9,6 +9,9 @@
 #include "document/internal/size_limits/size_limits.h"
 #include "document/logical_line_range.h"
 
+using unplugged::document::storage::GapBuffer;
+using unplugged::document::storage::LineStarts;
+
 static_assert(std::is_nothrow_move_assignable_v<LineStarts>,
               "committing a prepared line index must not throw");
 

@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "contracts/invariant_result.h"
-#include "document/detail/gap_buffer.h"
-#include "document/detail/line_starts.h"
+#include "document/internal/gap_buffer/gap_buffer.h"
+#include "document/internal/line_starts/line_starts.h"
 #include "document/line_number.h"
 #include "document/logical_line_range.h"
 #include "document/types/types.h"
@@ -64,6 +64,6 @@ class Document {
       noexcept(!kDocumentContractExceptionsEnabled);
 
  private:
-  unplugged::document_detail::GapBuffer buffer_{};
-  unplugged::document_detail::LineStarts line_starts_{};
+  unplugged::document::storage::GapBuffer buffer_{};
+  unplugged::document::storage::LineStarts line_starts_{};
 };

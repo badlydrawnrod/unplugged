@@ -6,7 +6,11 @@ cc_library(
     name = "api",
     hdrs = ["include/contracts/invariant_result.h"],
     strip_include_prefix = "include",
-    visibility = ["//document:__pkg__"],
+    visibility = [
+        "//document:__pkg__",
+        "//document/internal/gap_buffer:__pkg__",
+        "//document/internal/line_starts:__pkg__",
+    ],
 )
 
 # Contract checks are implementation machinery, never included by API headers.

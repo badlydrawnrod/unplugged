@@ -37,11 +37,16 @@ views; gutters, viewport state, and cursor rendering belong to the editor.
 
 ## Inline representation and contract configuration
 
-Document owns storage inline. Public headers require complete unsupported
-[detail declarations](../../detail/), preserving inline ownership without a
-PImpl allocation. Consumers must not use those declarations or depend directly
-on layout targets or internal storage APIs. Storage implementations remain behind
-restricted `:api` boundaries.
+Document owns storage inline through the supported APIs of its internal
+[gap buffer](../../internal/gap_buffer/gap_buffer.h) and
+[line index](../../internal/line_starts/line_starts.h) subcomponents. Each
+subcomponent owns its complete class declaration alongside its implementation,
+in the `unplugged::document::storage` namespace. The public document header
+includes those APIs for its private by-value members, preserving inline
+ownership without a PImpl allocation. Their transitive compiler visibility does
+not make them part of the supported document API. Consumers outside document
+must not use the storage declarations or depend directly on internal storage
+targets; their `:api` boundaries remain restricted to legitimate consumers.
 
 `//document:test_api` exposes the same supported API only to document tests.
 Its shared `//:contract_test_mode` dependency propagates `CONTRACT_EXCEPTIONS`
