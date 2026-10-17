@@ -21,15 +21,15 @@ behaviour.
   - [x] Apply the same contract-location convention to a substantial nested
     port or subcomponent.
   - [x] Keep root `plans/` for genuinely cross-cutting work.
-- [ ] Move and clarify existing contracts.
+- [x] Move and clarify existing contracts.
   - [x] Move existing documents from `<component>/docs/specs/` to the owning
     component's `README.md`.
   - [x] Move the byte-source contract to its port root.
   - [x] Update relative links throughout the repository and remove the old
     copies.
-  - [ ] Give other top-level public components concise READMEs based on their
+  - [x] Give other top-level public components concise READMEs based on their
     supported APIs and established behaviour.
-  - [ ] Record ambiguous implementation details that should not become
+  - [x] Record ambiguous implementation details that should not become
     approved contracts for separate reporting; do not turn them into contract
     statements.
 - [ ] Write one reusable component-creation guide at
@@ -75,6 +75,13 @@ behaviour.
 - [ ] Run `python3 tools/verify.py` and the relevant Bazel checks.
 - [ ] Report what moved, how someone adds and finds a new component, which
   checks passed, and any unresolved contract decisions.
+
+## Contract decisions to resolve separately
+
+- `file_loader::Load`: decide how callers should distinguish an empty file
+  from open or read failure; the current API does not specify error reporting.
+- `Key::MakeText`: decide which `uint32_t` values are valid text code points and
+  what invalid values should do; the API and tests currently leave this open.
 
 ## Constraints
 
