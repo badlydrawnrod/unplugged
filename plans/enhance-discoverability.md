@@ -43,15 +43,15 @@ behaviour.
   - [x] Link to the existing C++ and Bazel guidance instead of repeating it.
   - [x] Keep the guide suitable for another C++/Bazel repository using this
     layout.
-- [ ] Make navigation local.
-  - [ ] Adjust the root README so its component map is clearly a set of common
+- [x] Make navigation local.
+  - [x] Adjust the root README so its component map is clearly a set of common
     starting points, not an exhaustive registry.
-  - [ ] State that the owning component's README is the contract and that
+  - [x] State that the owning component's README is the contract and that
     neighbouring `features/`, `tests/`, and `plans/` contain examples, checks,
     and proposals.
   - [x] Move component-specific plans beside their owner and update their
     links.
-  - [ ] Keep proposed behaviour clearly separate from the current contract.
+  - [x] Keep proposed behaviour clearly separate from the current contract.
 - [ ] Add concise writing guidance to the reusable engineering guidance.
   - [ ] Align it with [ISO 24495-1:2023](https://www.iso.org/standard/78907.html):
     write for the reader's task; make needed information relevant, findable,

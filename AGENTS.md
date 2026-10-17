@@ -8,9 +8,9 @@ and checks. Follow the [component-creation guide](guidance/components.md)
 when adding a component.
 
 Before changing behavior, find its owning component, read its public API and
-[component contract](README.md#find-the-right-part-of-the-repo), and update
+[component contract](README.md#find-a-starting-point), and update
 relevant tests and persisted scenarios. Keep durable behavior in the owning
-component's specification. Read the
+component's README contract. Read the
 [acceptance traceability guide](tools/acceptance/README.md) when adding or
 changing feature scenarios or bindings.
 
