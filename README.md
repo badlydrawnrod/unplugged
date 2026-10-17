@@ -70,8 +70,8 @@ reusable [engineering principles](guidance/engineering.md), language-specific
 [acceptance traceability guide](tools/acceptance/README.md) describes supported
 scenario syntax and test annotations.
 
-Cross-cutting work that is still being considered lives under [plans/](plans/).
-Component-specific proposals live beside their owner, such as the
+Use a root `plans/` directory for cross-cutting proposals while they are being
+considered. Component-specific proposals live beside their owner, such as the
 [editor layout-cache proposal](editor_core/plans/shared-wrapped-row-layout-cache.md).
 Component READMEs describe supported behaviour; proposals become contracts only
 after their behavior is implemented and accepted.
