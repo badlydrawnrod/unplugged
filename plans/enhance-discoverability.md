@@ -52,17 +52,17 @@ behaviour.
   - [x] Move component-specific plans beside their owner and update their
     links.
   - [x] Keep proposed behaviour clearly separate from the current contract.
-- [ ] Add concise writing guidance to the reusable engineering guidance.
-  - [ ] Align it with [ISO 24495-1:2023](https://www.iso.org/standard/78907.html):
+- [x] Add concise writing guidance to the reusable engineering guidance.
+  - [x] Align it with [ISO 24495-1:2023](https://www.iso.org/standard/78907.html):
     write for the reader's task; make needed information relevant, findable,
     understandable, and usable.
-  - [ ] Recommend descriptive headings, direct language, concrete examples,
+  - [x] Recommend descriptive headings, direct language, concrete examples,
     and defined terms where needed.
-  - [ ] Apply [Diátaxis](https://diataxis.fr/start-here/) pragmatically: choose
+  - [x] Apply [Diátaxis](https://diataxis.fr/start-here/) pragmatically: choose
     tutorial, how-to, reference, or explanation according to the reader's need.
-  - [ ] Describe a component README as primarily a contract/reference with
+  - [x] Describe a component README as primarily a contract/reference with
     enough orientation to use it; do not require all four document types.
-  - [ ] Do not claim formal ISO conformance.
+  - [x] Do not claim formal ISO conformance.
 - [ ] Make the placement convention hard to forget.
   - [ ] Add a small verification rule requiring `README.md` for each top-level
     public library component identified by a `BUILD.bazel` and `include/`

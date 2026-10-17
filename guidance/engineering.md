@@ -44,6 +44,24 @@ implementation details and verify them through the supported API. Keep each
 scenario traceable to an executable test. Use ordinary focused tests for
 implementation properties that are not acceptance behavior.
 
+## Documentation
+
+Write for the reader's task. Include information they need, make it easy to
+find, explain it clearly, and make it usable. Use descriptive headings, direct
+language, and concrete examples. Define terms when readers may not know them.
+These are practical writing principles informed by
+[ISO 24495-1:2023](https://www.iso.org/standard/78907.html); this guidance does
+not claim formal conformance.
+
+Choose the document shape for the reader's need, using
+[Diátaxis](https://diataxis.fr/start-here/) as a practical guide: tutorials
+teach through a learning task, how-to guides help complete a real task,
+reference documents state facts needed for correct use, and explanations give
+context. A component README is primarily a contract and reference, with enough
+orientation to help readers use the component. Link to separate tutorials,
+how-to guides, or explanations when they serve a real need; do not require every
+component to have all four kinds of documentation.
+
 ## Change discipline
 
 Work in small, coherent increments. Keep the build and relevant checks green as
