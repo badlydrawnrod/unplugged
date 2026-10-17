@@ -17,10 +17,13 @@ cc_library(
     deps = ["@googletest//:gtest"],
 )
 
-# Isolated POSIX pipes/PTYs are shared only by terminal boundary tests.
+# Isolated POSIX pipes/PTYs are shared by terminal and application boundary tests.
 cc_library(
     name = "posix_endpoints",
     testonly = True,
     hdrs = ["posix_endpoints.h"],
-    visibility = ["//terminal/tests:__pkg__"],
+    visibility = [
+        "//applications/editor:__pkg__",
+        "//terminal/tests:__pkg__",
+    ],
 )
