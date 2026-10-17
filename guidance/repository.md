@@ -2,7 +2,7 @@
 
 Unplugged is a C++23 terminal editor. This guide records repository-specific
 structure and commands; behavior contracts belong in the owning component's
-specification.
+README.md.
 
 ## Where code lives
 
@@ -10,29 +10,33 @@ specification.
   frames. `//:editor` is the compatibility build/run alias for
   `//applications/editor:editor`. Components do not depend on the application.
 - `document/` owns document bytes, edits, logical lines, and wrapped-row views.
-  Its contract is [document.md](../document/docs/specs/document.md).
+  Its contract is [README.md](../document/README.md).
 - `editor_core/` owns editing commands, navigation, viewport state, and frame
-  snapshots. Its contract is [editor.md](../editor_core/docs/specs/editor.md).
+  snapshots. Its contract is [README.md](../editor_core/README.md).
 - `key/` owns shared key value types; `key_decoder/` owns protocol decoding.
 - `key_decoder/ports/byte_source/` owns the byte-source port and conformance
   checks. The terminal's FD adapter implements that contract; see
-  [byte_source.md](../key_decoder/ports/byte_source/docs/specs/byte_source.md).
+  [README.md](../key_decoder/ports/byte_source/README.md).
 - `terminal/` owns POSIX terminal lifetimes, input protocol, key acquisition,
   and buffered output. Its contract is
-  [terminal.md](../terminal/docs/specs/terminal.md).
+  [README.md](../terminal/README.md).
 - `terminal_io/` owns checked descriptor I/O; `file_loader/` owns file loading.
 - `contracts/` owns invariant diagnostic types. Storage primitives under
   `document/internal/` are used by the document component.
 
-Repository-visible component tests and persisted features live in each
-component's `tests/` and `features/` directories. Internal subcomponent tests
-live in their owning `tests/` directories. Test sources use `*_tests.cpp`.
-Implementation `.cpp` files live at their component or subcomponent root.
-Repository-visible APIs use `include/<component>/`; internal subcomponent and
-port APIs remain at their package roots. Do not add `src/` directories or empty
-source/test directories to header-only packages. Bazel dependencies are
-declared in `MODULE.bazel`.
-Read the owning specification and public headers for supported behavior and API
+Each component's `README.md` is its current behavior contract. Keep
+repository-visible APIs in `include/<component>/`, significant persisted
+behavior examples in `features/`, executable checks in `tests/`, and unfinished
+component work in `plans/`. Apply the same README and neighboring-directory
+convention to substantial nested ports or subcomponents. Use root `plans/` for
+cross-cutting proposals. Create these directories only when needed.
+
+Internal subcomponent tests live in their owning `tests/` directories. Test
+sources use `*_tests.cpp`. Implementation `.cpp` files live at their component
+or subcomponent root. Internal subcomponent and port APIs remain at their
+package roots. Do not add `src/` directories or empty source/test directories
+to header-only packages. Bazel dependencies are declared in `MODULE.bazel`.
+Read the owning README and public headers for supported behavior and API
 boundaries; this map is not a substitute for those contracts.
 
 ## Tests and contributions
@@ -76,13 +80,16 @@ bazel test -c dbg //...
 ```
 
 `tools/verify.py` preserves the repository entry point and runs the C++ format
-check, acceptance traceability check and fixture tests, and a small source-pattern
-check for suspicious includes in public headers. It continues all checks after a
-failure and returns failure if any check fails. The format check requires
-clang-format 21.1.8 and accepts `--clang-format /path/to/clang-format`, including
-when passed to `tools/verify.py`. It checks active tracked and untracked C++
-sources against `.clang-format`, excluding ignored build output. The traceability
-checker validates supported feature syntax and requires at least one adjacent
+check, then each repository checker's fixture suite immediately before its
+scan. These checkers validate acceptance traceability, public-header include
+patterns, and README presence. The README check requires a README for each
+top-level directory with both `BUILD.bazel` and `include/`. It continues all
+checks after a failure and returns failure if any check fails. The format check
+requires clang-format 21.1.8 and accepts
+`--clang-format /path/to/clang-format`, including when passed to
+`tools/verify.py`. It checks active tracked and untracked C++ sources against
+`.clang-format`, excluding ignored build output. The traceability checker
+validates supported feature syntax and requires at least one adjacent
 `TEST`, `TEST_F`, or `TEST_P` binding per scenario. Its guide explains the syntax
 and limits: [acceptance traceability](../tools/acceptance/README.md).
 
@@ -108,8 +115,8 @@ and acceptance tooling derive the repository root from their script locations.
 
 CI runs the same verification entry point, editor build, and default and debug
 Bazel test suites in [.github/workflows/ci.yml](../.github/workflows/ci.yml).
-These remain distinct checks: `tools/verify.py` runs formatting, acceptance
-traceability and its fixture suite, and the architecture scan and its fixture
-suite. CI runs this verification entry point on Ubuntu, Windows, and macOS; the
-Bazel build and product test targets run on Ubuntu. The verification entry point
-does not run Bazel builds or product test targets.
+These remain distinct checks: `tools/verify.py` runs formatting, all checker
+fixture suites, and then the repository scans. CI runs this verification entry
+point on Ubuntu, Windows, and macOS; the Bazel build and product test targets
+run on Ubuntu. The verification entry point does not run Bazel builds or
+product test targets.

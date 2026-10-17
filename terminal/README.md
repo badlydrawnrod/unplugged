@@ -1,9 +1,11 @@
 # Terminal lifetimes and error policy
 
-Consumers depend on `//terminal:api` and use the
-[supported headers](../../include/terminal/). [The target](../../BUILD.bazel)
-composes checked `//terminal_io:api` operations, decoder input, and a private FD
-adapter. Core editor and document code do not perform terminal I/O.
+## Use the terminal API
+
+Depend on `//terminal:api` and include the
+[supported headers](include/terminal/). [The target](BUILD.bazel) composes
+checked `//terminal_io:api` operations, decoder input, and a private FD adapter.
+Core editor and document code do not perform terminal I/O.
 
 ## Scoped ownership
 
@@ -24,7 +26,7 @@ application nests protocol ownership inside raw-mode and output ownership, and
 explicitly restores protocol, terminal attributes, then signal handling on normal
 exit. None of these scopes owns or closes the borrowed descriptor.
 
-## Checked shutdown and unwinding
+## Restore resources and handle failures
 
 Explicit restoration reports failures. Successful restoration is idempotent;
 failed restoration leaves cleanup pending. Destructors attempt restoration
@@ -40,19 +42,19 @@ before restoring the saved signal disposition. After successful teardown,
 output requests throw `std::logic_error`; an empty flush is harmless. The output
 destructor restores signal handling without flushing pending bytes.
 
-## Input results
+## Read input
 
 `ReadKey()` distinguishes a key, `NoKey`, and EOF. Timeouts and discarded
 unsupported/incomplete sequences yield `NoKey` unless acquisition reached EOF.
 EOF during a sequence remains EOF. Acquisition failures propagate as system
 errors. The private FD adapter implements the
-[decoder-owned byte-source contract](../../../key_decoder/ports/byte_source/docs/specs/byte_source.md);
+[decoder-owned byte-source contract](../key_decoder/ports/byte_source/README.md);
 it does not make the decoder depend on terminal or POSIX I/O.
 
 ## Verification
 
-[Features](../../features/) cover restoration, protocol scope, input, and output.
-[API and adapter tests](../../tests/) use isolated PTYs and pipes. Run
+[Features](features/) cover restoration, protocol scope, input, and output.
+[API and adapter tests](tests/) use isolated PTYs and pipes. Run
 `bazel test //terminal/tests:all` and its `-c dbg` variant, plus
 `bazel test //terminal_io/tests:syscall_tests` for checked syscall behavior.
 Preserve static output-test linking and signal/syscall linker wrapping.

@@ -4,12 +4,13 @@ Apply the [engineering principles](guidance/engineering.md) to every change.
 For C++ work, also follow the [C++ guidance](guidance/cpp.md); for Bazel
 work, follow the [Bazel guidance](guidance/bazel.md). The
 [repository guide](guidance/repository.md) has project structure, commands,
-and checks.
+and checks. Follow the [component-creation guide](guidance/components.md)
+when adding a component.
 
 Before changing behavior, find its owning component, read its public API and
-[component contract](README.md#find-the-right-part-of-the-repo), and update
+[component contract](README.md#find-a-starting-point), and update
 relevant tests and persisted scenarios. Keep durable behavior in the owning
-component's specification. Read the
+component's README contract. Read the
 [acceptance traceability guide](tools/acceptance/README.md) when adding or
 changing feature scenarios or bindings.
 

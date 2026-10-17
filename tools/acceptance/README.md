@@ -1,11 +1,16 @@
 # Acceptance traceability
 
-Run `python3 tools/acceptance/check_traceability.py` from the repository root,
-using the script's absolute path when working elsewhere. The script resolves
-its repository from its own location. It checks active tracked and untracked
-files from Git, excludes ignored output, skips deleted paths, and does not follow
-file or directory symlinks. It scans `.feature` files and C++ `.cpp`, `.cc`,
-`.cxx`, `.h`, and `.hpp` files. No third-party Python packages are required.
+## Run the checker
+
+Run `python3 tools/acceptance/check_traceability.py` from the repository root.
+From another working directory, invoke the script by its absolute path; it
+locates the repository from its own location. The checker scans active tracked
+and untracked files from Git, excludes ignored output, skips deleted paths, and
+does not follow file or directory symlinks. It scans `.feature` files and C++
+`.cpp`, `.cc`, `.cxx`, `.h`, and `.hpp` files. No third-party Python packages
+are required.
+
+## Write a supported feature
 
 Each persisted scenario must have at least one executable GoogleTest binding.
 Several tests may bind the same scenario. Scenario identity is its normalized
@@ -31,7 +36,7 @@ It rejects unsupported constructs with a file and line diagnostic, including
 prose and unrecognized keyword headers are rejected. Extend the parser and its
 fixtures deliberately before introducing additional Gherkin forms.
 
-## Supported bindings
+## Bind a scenario to a test
 
 Place these two standalone line comments immediately above a test definition:
 
@@ -57,17 +62,18 @@ GoogleTest runtime registration; it does not prove that a binding's assertions
 implement the scenario. Build and run the component tests as well. Custom test
 macros are unsupported and cannot serve as annotated bindings.
 
-## Verification
+## Understand checker limits and run its tests
 
 `python3 tools/acceptance/check_traceability_tests.py` runs isolated temporary
 fixtures for successes, failures, discovery, and invocation from another working
 directory. Failures report feature/test paths and line numbers; the checker exits
 with status 1 when traceability or supported syntax is invalid.
 
-`python3 tools/verify.py` runs formatting, repository traceability and these
-fixture tests, plus a small source-pattern check for suspicious includes in
-public headers. It continues all checks after failures and fails if any check
-fails. The format check accepts `--clang-format /path/to/clang-format`; the entry
-point works from any working directory when invoked by its absolute path.
-Continue running Bazel build/default/debug tests separately; the verification
-entry point does not run Bazel builds or product tests.
+`python3 tools/verify.py` runs formatting, then each repository checker's
+fixture tests immediately before its acceptance traceability, public-header
+architecture, or component README presence scan. It continues all checks after
+failures and fails if any check fails. The format check accepts
+`--clang-format /path/to/clang-format`; the entry point works from any working
+directory when invoked by its absolute path. Run Bazel builds and
+default/debug product tests separately; the verification entry point does not
+run them.
