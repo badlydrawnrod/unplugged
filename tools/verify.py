@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run formatting, acceptance traceability, architecture, and README checks."""
+"""Run formatting, Markdown links, acceptance, architecture, and README checks."""
 
 import argparse
 from pathlib import Path
@@ -16,6 +16,8 @@ def main():
     args = parser.parse_args()
     commands = [
         ["tools/check_format.py", "--clang-format", args.clang_format],
+        ["tools/check_markdown_links_tests.py"],
+        ["tools/check_markdown_links.py"],
         ["tools/acceptance/check_traceability_tests.py"],
         ["tools/acceptance/check_traceability.py"],
         ["tools/check_architecture_tests.py"],
