@@ -71,6 +71,9 @@ whether retaining inactive widths justifies its complexity. A full rebuild on
 every editing keystroke may still miss the desired outcome even if repeated
 navigation becomes faster.
 
-Retain this spec as intent and rationale when implemented. Record final scope
-and link the accepted scenarios here, and update the component README with the
-supported contract. Later changes should identify any superseded requirements.
+When implemented, update the component README with the supported contract and
+preserve the problem, goals, constraints, and reasons for the chosen approach
+there or in a maintained design explanation linked from it. Keep accepted
+scenarios and tests with the component. Remove this working spec and its plan
+only after transferring that intent and updating incoming links to their
+maintained destinations.

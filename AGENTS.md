@@ -10,13 +10,15 @@ when adding a component.
 Before changing behavior, find its owning component and read its public API,
 [current contract](README.md#find-a-starting-point), and relevant specs and
 scenarios. Follow the [change workflow](guidance/components.md#specify-plan-and-implement-a-change):
-keep durable intent in component-owned `specs/`, implementation approaches in
-temporary `plans/`, and acceptance scenarios in `features/` with executable test
-bindings. For small changes, scenarios can supply the spec without a separate
+keep proposed changes in temporary component-owned `specs/`, implementation
+approaches in temporary `plans/`, and acceptance scenarios in `features/` with
+executable test bindings. For small changes, scenarios can supply the spec without a separate
 document or plan. Implement one scenario at a time, starting with a test that
 fails for the expected reason. Update the owning README's supported contract as
-part of completing the change; retain the spec and remove the completed plan.
-Read the
+part of completing the change. Preserve the problem, goals, constraints, and
+design rationale in the owning README or a linked, maintained explanation before
+removing the completed spec and plan. Keep intent discoverable from the current
+component documentation. Read the
 [acceptance traceability guide](tools/acceptance/README.md) when adding or
 changing feature scenarios or bindings.
 

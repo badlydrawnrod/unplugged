@@ -12,10 +12,12 @@ express rules through types, assertions, tests, or other mechanical checks
 rather than relying only on prose.
 
 Record the problem, desired outcomes, and constraints before implementation.
-Keep this durable intent distinct from the temporary plan for how to achieve
-it and from the current supported contract. Refine the approach and acceptance
-examples together as understanding improves. Retain the rationale after the
-change is delivered and update the contract to match accepted behavior.
+Use working specs and plans to refine the approach and acceptance examples as
+understanding improves. Preserve the problem, goals, constraints, significant
+choices, and their tradeoffs in maintained documentation close to the owner.
+Update the contract to match accepted behavior. Remove completed working
+documents only after transferring their enduring intent and rationale into
+that documentation, where future contributors can find and maintain it.
 
 ## Components and boundaries
 

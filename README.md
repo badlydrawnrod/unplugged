@@ -34,9 +34,9 @@ change does not fit a row, follow the owning code and its component README.
 The owning component's `README.md` is its current supported contract. Public
 headers under `include/<component>/` define the supported API. Where present,
 neighbouring `specs/`, `plans/`, `features/`, and `tests/` directories contain
-durable intent, temporary implementation plans, acceptance scenarios, and
-executable checks. Specs can describe proposed behavior; the README describes
-what is supported now.
+temporary change specs, temporary implementation plans, acceptance scenarios,
+and executable checks. The README describes what is supported now and explains
+its intent, linking to further design rationale where needed.
 
 ## Make and check a change
 
@@ -45,8 +45,8 @@ what is supported now.
    establish its responsibility and boundary using the
    [component guide](guidance/components.md).
 2. Write or refine a brief/spec describing the problem, desired outcomes,
-   scope, and constraints in the owner's `specs/`. Keep it as a durable record
-   of intent. For a small, clear change, acceptance scenarios can supply the
+   scope, and constraints in the owner's `specs/` while the change is in progress.
+   For a small, clear change, acceptance scenarios can supply the
    spec without a separate document.
 3. Propose an implementation plan in the owner's `plans/` when needed. Define
    concrete acceptance scenarios for its slices of work. Refine the spec, plan,
@@ -61,8 +61,10 @@ what is supported now.
    implementation tests for properties that are not acceptance behaviour.
 5. Check the result against the intended outcomes. Update the README's contract
    to match the implemented and accepted behaviour before calling the change
-   done. Retain the spec with its final scope and status, and remove the
-   completed plan once enduring information has been captured.
+   done. Preserve the problem, goals, constraints, and reasons for significant
+   design choices in the owning README or a linked, maintained explanation.
+   Remove the completed spec and plan only after transferring that intent and
+   updating incoming links to their maintained destinations.
 6. Run the checks from the repository root:
 
 ```sh

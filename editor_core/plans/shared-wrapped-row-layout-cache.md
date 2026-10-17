@@ -51,9 +51,11 @@ The following design is retained as a candidate, subject to those decisions.
 Keep this plan updated while implementing it. For each agreed slice, define
 consumer-visible acceptance scenarios and write a failing bound test before
 implementing the behavior; keep implementation properties in focused tests.
-After completion, retain enduring rationale in the spec, update the component
-README's supported contract and acceptance scenarios, and remove this plan and
-its incoming links.
+After completion, update the component README's supported contract and acceptance
+scenarios. Preserve the problem, goals, constraints, and reasons for the chosen
+ownership, update strategy, and memory policy in the README or a maintained
+design explanation linked from it. Remove this plan and its spec only after
+transferring that intent, and update incoming links to maintained destinations.
 
 ## The rule
 

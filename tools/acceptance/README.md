@@ -25,6 +25,12 @@ before implementing the behavior, then make it pass and refactor. Keep the
 scenario and its executable assertions aligned as requirements are refined.
 Do not use a placeholder or skipped test as an acceptance binding.
 
+Keep the accepted scenarios and their bindings as behavior evolves. When the
+change is complete, transfer the spec and plan's enduring intent and design
+rationale into the component README or a maintained explanation linked from it,
+then remove the working documents. Scenarios and tests preserve concrete
+expectations; component documentation also explains why they matter.
+
 Each persisted scenario must have at least one executable GoogleTest binding.
 Several tests may bind the same scenario. Scenario identity is its normalized
 repository-relative feature path plus its exact title; the same title may appear
