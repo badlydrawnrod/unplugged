@@ -41,7 +41,8 @@ the current contract until its behavior is implemented and accepted.
 
 1. Find the component that owns the behaviour.
 2. Read its contract, public API, and relevant acceptance scenarios.
-3. Change the behaviour and its tests. Update the contract or scenarios when the intended behaviour changes.
+3. Change the behaviour and its tests. Update the contract or scenarios when
+   the intended behaviour changes.
 4. Run the checks from the repository root:
 
 ```sh

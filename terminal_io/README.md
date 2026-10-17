@@ -1,9 +1,14 @@
 # Checked descriptor I/O
 
-`//terminal_io:api` provides POSIX descriptor operations through
-[`terminal_io/io.h`](include/terminal_io/io.h). The functions borrow their
-descriptors and never close them. Syscall failures throw `std::system_error`,
-and interrupted read, write, poll, or terminal checks are retried.
+## Use checked descriptor operations
+
+Depend on `//terminal_io:api` and include
+[`terminal_io/io.h`](include/terminal_io/io.h) for POSIX descriptor operations.
+Functions borrow their descriptors and never close them. Syscall failures throw
+`std::system_error`; interrupted read, write, poll, and terminal checks are
+retried.
+
+## Choose an operation
 
 - `ReadSome()` reads into a caller-owned buffer and returns the number of bytes
   read. A zero result keeps its endpoint-specific meaning, such as timeout or
@@ -15,4 +20,5 @@ and interrupted read, write, poll, or terminal checks are retried.
   must suppress `SIGPIPE`.
 
 The [syscall tests](tests/) verify observable bytes and error results while
-injecting syscall outcomes.
+injecting syscall outcomes. Run them with
+`bazel test //terminal_io/tests:syscall_tests`.

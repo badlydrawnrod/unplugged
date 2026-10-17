@@ -1,8 +1,11 @@
 # Document ownership, edits, and views
 
-Consumers depend on `//document:api` and include logical `document/*.h` paths.
-The supported declarations are in [include/document/](include/document/);
-[the Bazel targets](BUILD.bazel) enforce storage ownership.
+## Use the document API
+
+Depend on `//document:api` and include headers through logical
+`document/*.h` paths. The supported declarations are in
+[include/document/](include/document/); [the Bazel targets](BUILD.bazel)
+enforce storage ownership.
 
 ## Bytes and edits
 

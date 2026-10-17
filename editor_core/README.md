@@ -1,10 +1,12 @@
 # Editor navigation and frame ownership
 
-Consumers depend on `//editor_core:api` and include `editor_core/editor.h`.
-The [API](include/editor_core/editor.h) owns a document, cursor, preferred
-column, and viewport state. [The target](BUILD.bazel) depends on document
-and shared key APIs. File loading, input acquisition, and drawing belong to
-[application composition](../applications/editor/main.cpp).
+## Use the editor API
+
+Depend on `//editor_core:api` and include
+[`editor_core/editor.h`](include/editor_core/editor.h). The API owns a
+document, cursor, preferred column, and viewport state. [The target](BUILD.bazel)
+depends on document and shared key APIs. File loading, input acquisition, and
+drawing belong to [application composition](../applications/editor/main.cpp).
 
 ## Byte navigation and wrapping
 

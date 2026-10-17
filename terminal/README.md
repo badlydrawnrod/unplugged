@@ -1,9 +1,11 @@
 # Terminal lifetimes and error policy
 
-Consumers depend on `//terminal:api` and use the
-[supported headers](include/terminal/). [The target](BUILD.bazel)
-composes checked `//terminal_io:api` operations, decoder input, and a private FD
-adapter. Core editor and document code do not perform terminal I/O.
+## Use the terminal API
+
+Depend on `//terminal:api` and include the
+[supported headers](include/terminal/). [The target](BUILD.bazel) composes
+checked `//terminal_io:api` operations, decoder input, and a private FD adapter.
+Core editor and document code do not perform terminal I/O.
 
 ## Scoped ownership
 
@@ -24,7 +26,7 @@ application nests protocol ownership inside raw-mode and output ownership, and
 explicitly restores protocol, terminal attributes, then signal handling on normal
 exit. None of these scopes owns or closes the borrowed descriptor.
 
-## Checked shutdown and unwinding
+## Restore resources and handle failures
 
 Explicit restoration reports failures. Successful restoration is idempotent;
 failed restoration leaves cleanup pending. Destructors attempt restoration
@@ -40,7 +42,7 @@ before restoring the saved signal disposition. After successful teardown,
 output requests throw `std::logic_error`; an empty flush is harmless. The output
 destructor restores signal handling without flushing pending bytes.
 
-## Input results
+## Read input
 
 `ReadKey()` distinguishes a key, `NoKey`, and EOF. Timeouts and discarded
 unsupported/incomplete sequences yield `NoKey` unless acquisition reached EOF.
