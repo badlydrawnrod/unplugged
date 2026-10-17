@@ -12,6 +12,25 @@ are required.
 
 ## Write a supported feature
 
+Acceptance scenarios define concrete examples of the behavior required by a
+spec. Follow the [change workflow](../../guidance/components.md#specify-plan-and-implement-a-change):
+derive examples from the spec's outcomes while refining the implementation
+plan, then implement one scenario at a time. Keep scenarios in consumer language
+and check behavior through the supported API.
+
+During planning, keep draft scenarios in the spec or plan's Markdown. When ready
+to implement a scenario, add it to the owning component's `features/` with a
+bound GoogleTest in `tests/`. Run the test and establish its expected failure
+before implementing the behavior, then make it pass and refactor. Keep the
+scenario and its executable assertions aligned as requirements are refined.
+Do not use a placeholder or skipped test as an acceptance binding.
+
+Keep the accepted scenarios and their bindings as behavior evolves. When the
+change is complete, transfer the spec and plan's enduring intent and design
+rationale into the component README or a maintained explanation linked from it,
+then remove the working documents. Scenarios and tests preserve concrete
+expectations; component documentation also explains why they matter.
+
 Each persisted scenario must have at least one executable GoogleTest binding.
 Several tests may bind the same scenario. Scenario identity is its normalized
 repository-relative feature path plus its exact title; the same title may appear

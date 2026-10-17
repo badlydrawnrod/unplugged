@@ -33,23 +33,39 @@ change does not fit a row, follow the owning code and its component README.
 
 The owning component's `README.md` is its current supported contract. Public
 headers under `include/<component>/` define the supported API. Where present,
-neighbouring `features/`, `tests/`, and `plans/` directories contain behavior
-examples, executable checks, and proposals. A proposal remains separate from
-the current contract until its behavior is implemented and accepted.
+neighbouring `specs/`, `plans/`, `features/`, and `tests/` directories contain
+temporary change specs, temporary implementation plans, acceptance scenarios,
+and executable checks. The README describes what is supported now and explains
+its intent, linking to further design rationale where needed.
 
 ## Make and check a change
 
-1. Find the component that owns the behaviour.
-2. Read its contract, public API, and relevant acceptance scenarios.
-3. Agree on a concrete observable example. Add or revise the component
-   scenario and a boundary test through its supported API, then confirm the
+1. Find the component that owns the behaviour. Read its current contract,
+   public API, relevant specs, and acceptance scenarios. For a new component,
+   establish its responsibility and boundary using the
+   [component guide](guidance/components.md).
+2. Write or refine a brief/spec describing the problem, desired outcomes,
+   scope, and constraints in the owner's `specs/` while the change is in progress.
+   For a small, clear change, acceptance scenarios can supply the
+   spec without a separate document.
+3. Propose an implementation plan in the owner's `plans/` when needed. Define
+   concrete acceptance scenarios for its slices of work. Refine the spec, plan,
+   and scenarios together until the approach and definition of done are clear.
+   See the [full workflow](guidance/components.md#specify-plan-and-implement-a-change).
+4. Implement one scenario at a time. Add or revise the component's `.feature`
+   scenario and its boundary test through the supported API, then confirm the
    test fails for the expected reason. See the
    [acceptance traceability guide](tools/acceptance/README.md) for scenario
    syntax and test bindings.
-4. Implement the behaviour, then refactor with tests passing. Keep focused
+   Implement the behaviour, then refactor with tests passing. Keep focused
    implementation tests for properties that are not acceptance behaviour.
-   Update the contract when supported behaviour changes.
-5. Run the checks from the repository root:
+5. Check the result against the intended outcomes. Update the README's contract
+   to match the implemented and accepted behaviour before calling the change
+   done. Preserve the problem, goals, constraints, and reasons for significant
+   design choices in the owning README or a linked, maintained explanation.
+   Remove the completed spec and plan only after transferring that intent and
+   updating incoming links to their maintained destinations.
+6. Run the checks from the repository root:
 
 ```sh
 python3 tools/verify.py
@@ -70,8 +86,8 @@ reusable [engineering principles](guidance/engineering.md), language-specific
 [acceptance traceability guide](tools/acceptance/README.md) describes supported
 scenario syntax and test annotations.
 
-Use a root `plans/` directory for cross-cutting proposals while they are being
-considered. Component-specific proposals live beside their owner, such as the
-[editor layout-cache proposal](editor_core/plans/shared-wrapped-row-layout-cache.md).
-Component READMEs describe supported behaviour; proposals become contracts only
-after their behavior is implemented and accepted.
+Use root `specs/` and `plans/` directories for cross-component work. Otherwise,
+keep them beside their owner. The editor's
+[layout spec](editor_core/specs/responsive-wrapped-row-layout.md) records its
+desired outcomes; the [layout-cache plan](editor_core/plans/shared-wrapped-row-layout-cache.md)
+records a candidate implementation approach. Both remain drafts.

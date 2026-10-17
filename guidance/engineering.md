@@ -11,6 +11,14 @@ designs that make intent explicit, local, and easy to verify. Where practical,
 express rules through types, assertions, tests, or other mechanical checks
 rather than relying only on prose.
 
+Record the problem, desired outcomes, and constraints before implementation.
+Use working specs and plans to refine the approach and acceptance examples as
+understanding improves. Preserve the problem, goals, constraints, significant
+choices, and their tradeoffs in maintained documentation close to the owner.
+Update the contract to match accepted behavior. Remove completed working
+documents only after transferring their enduring intent and rationale into
+that documentation, where future contributors can find and maintain it.
+
 ## Components and boundaries
 
 Design small, cohesive components with narrow, stable APIs and explicit

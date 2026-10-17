@@ -25,11 +25,17 @@ README.md.
   `document/internal/` are used by the document component.
 
 Each component's `README.md` is its current behavior contract. Keep
-repository-visible APIs in `include/<component>/`, significant persisted
-behavior examples in `features/`, executable checks in `tests/`, and unfinished
-component work in `plans/`. Apply the same README and neighboring-directory
-convention to substantial nested ports or subcomponents. Use root `plans/` for
-cross-cutting proposals. Create these directories only when needed.
+repository-visible APIs in `include/<component>/`, temporary change specs in
+`specs/`, temporary implementation plans in `plans/`, significant persisted
+acceptance scenarios in `features/`, and executable checks in `tests/`. Apply
+the same README and neighboring-directory convention to substantial nested
+ports or subcomponents. Use root `specs/` and `plans/` for cross-component work.
+Create these directories only when needed. Follow the
+[change workflow](components.md#specify-plan-and-implement-a-change) for a new
+component or feature, including when scenarios suffice without separate docs.
+Preserve intent and design rationale in the owning README or a maintained
+explanation linked from it. Remove completed specs and plans after transferring
+their enduring information and updating incoming links.
 
 Internal subcomponent tests live in their owning `tests/` directories. Test
 sources use `*_tests.cpp`. Implementation `.cpp` files live at their component

@@ -1,8 +1,13 @@
-# Shared wrapped-row layout cache
+# Shared wrapped-row layout cache implementation plan
 
-
-Status: design proposal; implementation has not started.
+Status: draft candidate approach; implementation has not started.
 Reviewed: 2026-10-06.
+
+Spec: [responsive wrapped-row layout](../specs/responsive-wrapped-row-layout.md).
+The spec records the problem, desired outcomes, constraints, and unresolved
+scope. This plan records a candidate technical approach. Refine it into small
+slices with agreed acceptance examples once the spec's scope and targets are
+settled. No acceptance scenarios or test bindings have been added for this work.
 
 ## Review notes and dependencies
 
@@ -42,17 +47,15 @@ Before implementing:
   supported workflow. The active-set memory bound below is not a fixed byte
   ceiling; memory also grows with line count and distinct active widths.
 
-The following design is retained as a proposal, subject to those decisions.
-Keep this plan updated while implementing it, and remove it after completion
-once enduring contracts are captured in code, tests, and acceptance scenarios.
-
-## Goal
-
-Stop doing full-document wrapped-row scans on every keystroke. Keep it cheap enough for embedded hardware and correct when multiple windows are showing the same file.
-
-## Problem
-
-The editor currently recomputes wrapped-row layout by scanning the whole document during scroll and cursor checks. That gets expensive fast when the file is large, when the window is resized, or when two windows show the same file.
+The following design is retained as a candidate, subject to those decisions.
+Keep this plan updated while implementing it. For each agreed slice, define
+consumer-visible acceptance scenarios and write a failing bound test before
+implementing the behavior; keep implementation properties in focused tests.
+After completion, update the component README's supported contract and acceptance
+scenarios. Preserve the problem, goals, constraints, and reasons for the chosen
+ownership, update strategy, and memory policy in the README or a maintained
+design explanation linked from it. Remove this plan and its spec only after
+transferring that intent, and update incoming links to maintained destinations.
 
 ## The rule
 
@@ -71,7 +74,11 @@ One file gets one shared wrapped-row layout cache, not one cache per window. The
 - Resize changes width, not document identity, so the resize path picks a different width entry or rebuilds it.
 - Keep one entry for each distinct width used by an open window, plus a bounded set of inactive entries; only the inactive-entry limit affects reuse performance.
 
-## Small design
+## Candidate design
+
+The document-owned placement below is a candidate, not a settled boundary.
+Resolve ownership without adding presentation dependencies to the document
+model before implementing it.
 
 Use a document-owned cache keyed by wrap width. Each distinct width used by an open window has one active layout entry; windows at the same width share that entry. Track how many windows use each width so an entry remains active until the last window at that width changes size or closes.
 
@@ -137,6 +144,11 @@ The cache is valid only when both of these are true:
 That means a stale cache cannot be used after edits or after a resize to a different width.
 
 ## Implementation order
+
+This is an initial dependency outline, subject to the spec's unresolved scope.
+Before implementation, turn it into small outcome-based slices with acceptance
+scenarios and failing tests for each. In particular, introduce resize or
+multi-window work only if included in the agreed scope.
 
 1. Add a document cache keyed by width, with active-window use counts, a bounded inactive LRU set, and a document generation counter.
 2. Route `WrappedRowCountForLine`, `TotalWrappedRowCount`, and `TopAnchorForRow` through the cache.

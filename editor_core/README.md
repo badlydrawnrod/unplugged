@@ -35,9 +35,11 @@ The application emits the frame through the terminal API.
 
 Layout helpers are private to the editor. The document supplies bytes, logical
 lines, and wrapped-row views without depending on editor viewport or presentation
-state. The [layout-cache proposal](plans/shared-wrapped-row-layout-cache.md)
-remains proposed; it adds no current cache, generation, resize, or multi-window
-contract. Any implementation must preserve this dependency direction.
+state. The [layout spec](specs/responsive-wrapped-row-layout.md) records desired
+outcomes, and the [layout-cache plan](plans/shared-wrapped-row-layout-cache.md)
+records a candidate implementation approach. Both remain drafts; they add no
+current cache, generation, resize, or multi-window contract. Any implementation
+must preserve this dependency direction.
 
 ## Verification
 
