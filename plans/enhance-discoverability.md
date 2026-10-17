@@ -63,17 +63,17 @@ behaviour.
   - [x] Describe a component README as primarily a contract/reference with
     enough orientation to use it; do not require all four document types.
   - [x] Do not claim formal ISO conformance.
-- [ ] Make the placement convention hard to forget.
-  - [ ] Add a small verification rule requiring `README.md` for each top-level
+- [x] Make the placement convention hard to forget.
+  - [x] Add a small verification rule requiring `README.md` for each top-level
     public library component identified by a `BUILD.bazel` and `include/`
     directory.
-  - [ ] Use filesystem convention rather than a maintained list or Bazel
+  - [x] Use filesystem convention rather than a maintained list or Bazel
     parser.
-  - [ ] Add focused tests for the rule and run it through the existing
+  - [x] Add focused tests for the rule and run it through the existing
     verification entry point.
-  - [ ] Check presence only; do not attempt to score prose quality.
-- [ ] Run `python3 tools/verify.py` and the relevant Bazel checks.
-- [ ] Report what moved, how someone adds and finds a new component, which
+  - [x] Check presence only; do not attempt to score prose quality.
+- [x] Run `python3 tools/verify.py` and the relevant Bazel checks.
+- [x] Report what moved, how someone adds and finds a new component, which
   checks passed, and any unresolved contract decisions.
 
 ## Contract decisions to resolve separately

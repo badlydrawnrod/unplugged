@@ -80,13 +80,15 @@ bazel test -c dbg //...
 ```
 
 `tools/verify.py` preserves the repository entry point and runs the C++ format
-check, acceptance traceability check and fixture tests, and a small source-pattern
-check for suspicious includes in public headers. It continues all checks after a
-failure and returns failure if any check fails. The format check requires
-clang-format 21.1.8 and accepts `--clang-format /path/to/clang-format`, including
-when passed to `tools/verify.py`. It checks active tracked and untracked C++
-sources against `.clang-format`, excluding ignored build output. The traceability
-checker validates supported feature syntax and requires at least one adjacent
+check, acceptance traceability check and fixture tests, a source-pattern check
+for suspicious includes in public headers, and a presence check requiring a
+README for each top-level directory with both `BUILD.bazel` and `include/`. It
+continues all checks after a failure and returns failure if any check fails. The
+format check requires clang-format 21.1.8 and accepts
+`--clang-format /path/to/clang-format`, including when passed to
+`tools/verify.py`. It checks active tracked and untracked C++ sources against
+`.clang-format`, excluding ignored build output. The traceability checker
+validates supported feature syntax and requires at least one adjacent
 `TEST`, `TEST_F`, or `TEST_P` binding per scenario. Its guide explains the syntax
 and limits: [acceptance traceability](../tools/acceptance/README.md).
 
