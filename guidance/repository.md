@@ -80,11 +80,12 @@ bazel test -c dbg //...
 ```
 
 `tools/verify.py` preserves the repository entry point and runs the C++ format
-check, acceptance traceability check and fixture tests, a source-pattern check
-for suspicious includes in public headers, and a presence check requiring a
-README for each top-level directory with both `BUILD.bazel` and `include/`. It
-continues all checks after a failure and returns failure if any check fails. The
-format check requires clang-format 21.1.8 and accepts
+check, then each repository checker's fixture suite immediately before its
+scan. These checkers validate acceptance traceability, public-header include
+patterns, and README presence. The README check requires a README for each
+top-level directory with both `BUILD.bazel` and `include/`. It continues all
+checks after a failure and returns failure if any check fails. The format check
+requires clang-format 21.1.8 and accepts
 `--clang-format /path/to/clang-format`, including when passed to
 `tools/verify.py`. It checks active tracked and untracked C++ sources against
 `.clang-format`, excluding ignored build output. The traceability checker
@@ -114,8 +115,8 @@ and acceptance tooling derive the repository root from their script locations.
 
 CI runs the same verification entry point, editor build, and default and debug
 Bazel test suites in [.github/workflows/ci.yml](../.github/workflows/ci.yml).
-These remain distinct checks: `tools/verify.py` runs formatting, acceptance
-traceability and its fixture suite, and the architecture scan and its fixture
-suite. CI runs this verification entry point on Ubuntu, Windows, and macOS; the
-Bazel build and product test targets run on Ubuntu. The verification entry point
-does not run Bazel builds or product test targets.
+These remain distinct checks: `tools/verify.py` runs formatting, all checker
+fixture suites, and then the repository scans. CI runs this verification entry
+point on Ubuntu, Windows, and macOS; the Bazel build and product test targets
+run on Ubuntu. The verification entry point does not run Bazel builds or
+product test targets.

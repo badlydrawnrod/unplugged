@@ -69,9 +69,9 @@ fixtures for successes, failures, discovery, and invocation from another working
 directory. Failures report feature/test paths and line numbers; the checker exits
 with status 1 when traceability or supported syntax is invalid.
 
-`python3 tools/verify.py` runs formatting, acceptance traceability and its
-fixture tests, the public-header architecture check and its fixtures, and the
-component README presence check and its fixtures. It continues all checks after
+`python3 tools/verify.py` runs formatting, then each repository checker's
+fixture tests immediately before its acceptance traceability, public-header
+architecture, or component README presence scan. It continues all checks after
 failures and fails if any check fails. The format check accepts
 `--clang-format /path/to/clang-format`; the entry point works from any working
 directory when invoked by its absolute path. Run Bazel builds and
