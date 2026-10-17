@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -12,5 +12,17 @@ cc_binary(
         "//file_loader:api",
         "//key:api",
         "//terminal:api",
+    ],
+)
+
+cc_test(
+    name = "editor_process_tests",
+    srcs = ["tests/editor_process_tests.cpp"],
+    args = ["$(rootpath :editor)"],
+    data = [":editor"],
+    copts = ["-UNDEBUG"],
+    deps = [
+        "//test_support:posix_endpoints",
+        "@googletest//:gtest",
     ],
 )

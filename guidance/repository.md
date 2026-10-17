@@ -81,10 +81,16 @@ bazel test -c dbg //...
 
 `tools/verify.py` preserves the repository entry point and runs the C++ format
 check, then each repository checker's fixture suite immediately before its
-scan. These checkers validate acceptance traceability, public-header include
-patterns, and README presence. The README check requires a README for each
-top-level directory with both `BUILD.bazel` and `include/`. It continues all
-checks after a failure and returns failure if any check fails. The format check
+scan. These checkers validate repository-relative Markdown link targets,
+acceptance traceability, public-header include patterns, and README presence.
+The Markdown link check covers inline links, images, and reference definitions
+whose destinations are relative file or directory paths. It checks that each
+target exists. Use angle brackets for destinations containing spaces or
+parentheses. It does not validate anchors, external URLs, reference usage,
+Markdown rendering, or links written in other syntaxes. The README check
+requires a README for each top-level directory with both `BUILD.bazel` and
+`include/`. It continues all checks after a failure and returns failure if any
+check fails. The format check
 requires clang-format 21.1.8 and accepts
 `--clang-format /path/to/clang-format`, including when passed to
 `tools/verify.py`. It checks active tracked and untracked C++ sources against

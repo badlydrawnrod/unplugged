@@ -41,9 +41,15 @@ the current contract until its behavior is implemented and accepted.
 
 1. Find the component that owns the behaviour.
 2. Read its contract, public API, and relevant acceptance scenarios.
-3. Change the behaviour and its tests. Update the contract or scenarios when
-   the intended behaviour changes.
-4. Run the checks from the repository root:
+3. Agree on a concrete observable example. Add or revise the component
+   scenario and a boundary test through its supported API, then confirm the
+   test fails for the expected reason. See the
+   [acceptance traceability guide](tools/acceptance/README.md) for scenario
+   syntax and test bindings.
+4. Implement the behaviour, then refactor with tests passing. Keep focused
+   implementation tests for properties that are not acceptance behaviour.
+   Update the contract when supported behaviour changes.
+5. Run the checks from the repository root:
 
 ```sh
 python3 tools/verify.py
@@ -64,8 +70,8 @@ reusable [engineering principles](guidance/engineering.md), language-specific
 [acceptance traceability guide](tools/acceptance/README.md) describes supported
 scenario syntax and test annotations.
 
-Cross-cutting work that is still being considered lives under [plans/](plans/).
-Component-specific proposals live beside their owner, such as the
+Use a root `plans/` directory for cross-cutting proposals while they are being
+considered. Component-specific proposals live beside their owner, such as the
 [editor layout-cache proposal](editor_core/plans/shared-wrapped-row-layout-cache.md).
 Component READMEs describe supported behaviour; proposals become contracts only
 after their behavior is implemented and accepted.

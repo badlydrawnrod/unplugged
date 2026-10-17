@@ -9,9 +9,12 @@ bytes for the editor application.
 ## Size limit and errors
 
 The supported document-size limit is `kMaxDocumentBytes`. Loading a larger
-file throws `std::length_error` before allocating its contents. The API does
-not specify how open or read failures are reported, so callers must not infer
-that behavior from the current implementation.
+file throws `std::length_error` before allocating its contents. A valid empty
+file loads successfully as an empty byte buffer. If a file cannot be opened,
+sized, or read, `Load()` throws `std::runtime_error` with the file path and
+failure stage. The editor application reports this error and exits without
+entering terminal mode.
 
-The [document-size scenario](features/document_size.feature) and
-[loader tests](tests/) cover rejection of oversized input.
+The [file-opening](features/file_opening.feature) and
+[document-size](features/document_size.feature) scenarios, bound to the
+[loader tests](tests/), cover these outcomes.
