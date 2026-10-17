@@ -15,6 +15,4 @@ Modifiers are bit flags. `HasMod()` checks that all requested bits are set;
 the UTF-8 encoding for a text key and an empty string for a special key. The
 [key tests](tests/) cover category separation, modifier behavior, and UTF-8
 encoding boundaries. The API and tests do not currently define the valid input
-range for `Key::MakeText()`; see the repository
-[discoverability plan](../plans/enhance-discoverability.md) for this open
-contract decision.
+range for `Key::MakeText()`.
