@@ -41,9 +41,15 @@ the current contract until its behavior is implemented and accepted.
 
 1. Find the component that owns the behaviour.
 2. Read its contract, public API, and relevant acceptance scenarios.
-3. Change the behaviour and its tests. Update the contract or scenarios when
-   the intended behaviour changes.
-4. Run the checks from the repository root:
+3. Agree on a concrete observable example. Add or revise the component
+   scenario and a boundary test through its supported API, then confirm the
+   test fails for the expected reason. See the
+   [acceptance traceability guide](tools/acceptance/README.md) for scenario
+   syntax and test bindings.
+4. Implement the behaviour, then refactor with tests passing. Keep focused
+   implementation tests for properties that are not acceptance behaviour.
+   Update the contract when supported behaviour changes.
+5. Run the checks from the repository root:
 
 ```sh
 python3 tools/verify.py
