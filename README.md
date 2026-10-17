@@ -18,11 +18,11 @@ Press **Alt+Escape** to exit. Use a file you can read; changes made in the edito
 
 | If you are changing… | Start here |
 | --- | --- |
-| Document bytes, lines, edits, or wrapped views | [Document contract](document/docs/specs/document.md) |
-| Editing commands, navigation, or the displayed frame | [Editor contract](editor_core/docs/specs/editor.md) |
+| Document bytes, lines, edits, or wrapped views | [Document contract](document/README.md) |
+| Editing commands, navigation, or the displayed frame | [Editor contract](editor_core/README.md) |
 | Key decoding | [Key decoder](key_decoder/) |
-| Byte acquisition and its adapter contract | [Byte-source contract](key_decoder/ports/byte_source/docs/specs/byte_source.md) |
-| Terminal input, output, or restoration | [Terminal contract](terminal/docs/specs/terminal.md) |
+| Byte acquisition and its adapter contract | [Byte-source contract](key_decoder/ports/byte_source/README.md) |
+| Terminal input, output, or restoration | [Terminal contract](terminal/README.md) |
 | File loading | [File loader](file_loader/) |
 | Program startup and component wiring | [Editor application](applications/editor/main.cpp) |
 

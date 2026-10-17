@@ -1,10 +1,10 @@
 # Editor navigation and frame ownership
 
 Consumers depend on `//editor_core:api` and include `editor_core/editor.h`.
-The [API](../../include/editor_core/editor.h) owns a document, cursor, preferred
-column, and viewport state. [The target](../../BUILD.bazel) depends on document
+The [API](include/editor_core/editor.h) owns a document, cursor, preferred
+column, and viewport state. [The target](BUILD.bazel) depends on document
 and shared key APIs. File loading, input acquisition, and drawing belong to
-[application composition](../../../applications/editor/main.cpp).
+[application composition](../applications/editor/main.cpp).
 
 ## Byte navigation and wrapping
 
@@ -33,14 +33,14 @@ The application emits the frame through the terminal API.
 
 Layout helpers are private to the editor. The document supplies bytes, logical
 lines, and wrapped-row views without depending on editor viewport or presentation
-state. The [layout-cache proposal](../../../plans/shared-wrapped-row-layout-cache.md)
+state. The [layout-cache proposal](plans/shared-wrapped-row-layout-cache.md)
 remains proposed; it adds no current cache, generation, resize, or multi-window
 contract. Any implementation must preserve this dependency direction.
 
 ## Verification
 
-[Editing and navigation features](../../features/) bind to
-[editor API tests](../../tests/editor_tests.cpp). Run
+[Editing and navigation features](features/) bind to
+[editor API tests](tests/editor_tests.cpp). Run
 `bazel test //editor_core/tests:editor_tests` and its `-c dbg` variant.
 Run `python3 tools/verify.py` from the repository root to validate persisted
 scenario bindings and formatting.

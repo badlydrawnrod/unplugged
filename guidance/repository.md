@@ -2,7 +2,7 @@
 
 Unplugged is a C++23 terminal editor. This guide records repository-specific
 structure and commands; behavior contracts belong in the owning component's
-specification.
+README.md.
 
 ## Where code lives
 
@@ -10,29 +10,33 @@ specification.
   frames. `//:editor` is the compatibility build/run alias for
   `//applications/editor:editor`. Components do not depend on the application.
 - `document/` owns document bytes, edits, logical lines, and wrapped-row views.
-  Its contract is [document.md](../document/docs/specs/document.md).
+  Its contract is [README.md](../document/README.md).
 - `editor_core/` owns editing commands, navigation, viewport state, and frame
-  snapshots. Its contract is [editor.md](../editor_core/docs/specs/editor.md).
+  snapshots. Its contract is [README.md](../editor_core/README.md).
 - `key/` owns shared key value types; `key_decoder/` owns protocol decoding.
 - `key_decoder/ports/byte_source/` owns the byte-source port and conformance
   checks. The terminal's FD adapter implements that contract; see
-  [byte_source.md](../key_decoder/ports/byte_source/docs/specs/byte_source.md).
+  [README.md](../key_decoder/ports/byte_source/README.md).
 - `terminal/` owns POSIX terminal lifetimes, input protocol, key acquisition,
   and buffered output. Its contract is
-  [terminal.md](../terminal/docs/specs/terminal.md).
+  [README.md](../terminal/README.md).
 - `terminal_io/` owns checked descriptor I/O; `file_loader/` owns file loading.
 - `contracts/` owns invariant diagnostic types. Storage primitives under
   `document/internal/` are used by the document component.
 
-Repository-visible component tests and persisted features live in each
-component's `tests/` and `features/` directories. Internal subcomponent tests
-live in their owning `tests/` directories. Test sources use `*_tests.cpp`.
-Implementation `.cpp` files live at their component or subcomponent root.
-Repository-visible APIs use `include/<component>/`; internal subcomponent and
-port APIs remain at their package roots. Do not add `src/` directories or empty
-source/test directories to header-only packages. Bazel dependencies are
-declared in `MODULE.bazel`.
-Read the owning specification and public headers for supported behavior and API
+Each component's `README.md` is its current behavior contract. Keep
+repository-visible APIs in `include/<component>/`, significant persisted
+behavior examples in `features/`, executable checks in `tests/`, and unfinished
+component work in `plans/`. Apply the same README and neighboring-directory
+convention to substantial nested ports or subcomponents. Use root `plans/` for
+cross-cutting proposals. Create these directories only when needed.
+
+Internal subcomponent tests live in their owning `tests/` directories. Test
+sources use `*_tests.cpp`. Implementation `.cpp` files live at their component
+or subcomponent root. Internal subcomponent and port APIs remain at their
+package roots. Do not add `src/` directories or empty source/test directories
+to header-only packages. Bazel dependencies are declared in `MODULE.bazel`.
+Read the owning README and public headers for supported behavior and API
 boundaries; this map is not a substitute for those contracts.
 
 ## Tests and contributions

@@ -9,23 +9,23 @@ behaviour.
 
 ## Work
 
-- [ ] Inspect the current repository and its contributor instructions before
+- [x] Inspect the current repository and its contributor instructions before
   editing.
-- [ ] Establish a discoverable component layout.
-  - [ ] Use `<component>/README.md` as the component's current, supported
+- [x] Establish a discoverable component layout.
+  - [x] Use `<component>/README.md` as the component's current, supported
     contract.
-  - [ ] Keep public headers under `include/<component>/`, significant
+  - [x] Keep public headers under `include/<component>/`, significant
     behaviour examples under `features/`, tests under `tests/`, and unfinished
     component work under `plans/`.
-  - [ ] Create these directories only when needed.
-  - [ ] Apply the same contract-location convention to a substantial nested
+  - [x] Create these directories only when needed.
+  - [x] Apply the same contract-location convention to a substantial nested
     port or subcomponent.
-  - [ ] Keep root `plans/` for genuinely cross-cutting work.
+  - [x] Keep root `plans/` for genuinely cross-cutting work.
 - [ ] Move and clarify existing contracts.
-  - [ ] Move existing documents from `<component>/docs/specs/` to the owning
+  - [x] Move existing documents from `<component>/docs/specs/` to the owning
     component's `README.md`.
-  - [ ] Move the byte-source contract to its port root.
-  - [ ] Update relative links throughout the repository and remove the old
+  - [x] Move the byte-source contract to its port root.
+  - [x] Update relative links throughout the repository and remove the old
     copies.
   - [ ] Give other top-level public components concise READMEs based on their
     supported APIs and established behaviour.
@@ -49,7 +49,7 @@ behaviour.
   - [ ] State that the owning component's README is the contract and that
     neighbouring `features/`, `tests/`, and `plans/` contain examples, checks,
     and proposals.
-  - [ ] Move component-specific plans beside their owner and update their
+  - [x] Move component-specific plans beside their owner and update their
     links.
   - [ ] Keep proposed behaviour clearly separate from the current contract.
 - [ ] Add concise writing guidance to the reusable engineering guidance.

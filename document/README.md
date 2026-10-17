@@ -1,8 +1,8 @@
 # Document ownership, edits, and views
 
 Consumers depend on `//document:api` and include logical `document/*.h` paths.
-The supported declarations are in [include/document/](../../include/document/);
-[the Bazel targets](../../BUILD.bazel) enforce storage ownership.
+The supported declarations are in [include/document/](include/document/);
+[the Bazel targets](BUILD.bazel) enforce storage ownership.
 
 ## Bytes and edits
 
@@ -38,8 +38,8 @@ views; gutters, viewport state, and cursor rendering belong to the editor.
 ## Inline representation and contract configuration
 
 Document owns storage inline through the supported APIs of its internal
-[gap buffer](../../internal/gap_buffer/gap_buffer.h) and
-[line index](../../internal/line_starts/line_starts.h) subcomponents. Each
+[gap buffer](internal/gap_buffer/gap_buffer.h) and
+[line index](internal/line_starts/line_starts.h) subcomponents. Each
 subcomponent owns its complete class declaration alongside its implementation,
 in the `unplugged::document::storage` namespace. The public document header
 includes those APIs for its private by-value members, preserving inline
@@ -59,8 +59,8 @@ runtime behavior.
 
 ## Verification
 
-[Features](../../features/) capture byte edits, empty documents, wrapping, and
-edit failures. Their executable annotations live in [API tests](../../tests/),
+[Features](features/) capture byte edits, empty documents, wrapping, and
+edit failures. Their executable annotations live in [API tests](tests/),
 including the existing-view failure check and public-header compile assertions.
 Run `bazel test //document/tests:all` and
 `bazel test -c dbg //document/tests:all`. Run `python3 tools/verify.py` from the

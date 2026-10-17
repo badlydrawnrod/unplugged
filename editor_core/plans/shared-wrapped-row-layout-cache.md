@@ -14,7 +14,7 @@ resize handling, and inactive-width LRU eviction are proposed future behavior.
 
 The editor boundary is `//editor_core:api`; layout helpers remain
 private to the editor and the document model has no presentation dependency.
-Preserve the component boundaries described in [AGENTS.md](../AGENTS.md) when
+Preserve the component boundaries described in [AGENTS.md](../../AGENTS.md) when
 designing the cache API. Sharing layout per document does not
 necessarily require placing presentation-specific cache machinery inside the
 `Document` storage model; choose ownership and dependency direction explicitly.
