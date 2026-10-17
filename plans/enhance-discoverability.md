@@ -32,16 +32,16 @@ behaviour.
   - [x] Record ambiguous implementation details that should not become
     approved contracts for separate reporting; do not turn them into contract
     statements.
-- [ ] Write one reusable component-creation guide at
+- [x] Write one reusable component-creation guide at
   `guidance/components.md`.
-  - [ ] Link the guide from `AGENTS.md`.
-  - [ ] Show a minimal directory example.
-  - [ ] Explain how to choose ownership, create a public `:api` Bazel target
+  - [x] Link the guide from `AGENTS.md`.
+  - [x] Show a minimal directory example.
+  - [x] Explain how to choose ownership, create a public `:api` Bazel target
     with narrow visibility, and add tests through the supported API.
-  - [ ] Explain when to add a feature scenario for significant observable
+  - [x] Explain when to add a feature scenario for significant observable
     behaviour.
-  - [ ] Link to the existing C++ and Bazel guidance instead of repeating it.
-  - [ ] Keep the guide suitable for another C++/Bazel repository using this
+  - [x] Link to the existing C++ and Bazel guidance instead of repeating it.
+  - [x] Keep the guide suitable for another C++/Bazel repository using this
     layout.
 - [ ] Make navigation local.
   - [ ] Adjust the root README so its component map is clearly a set of common
